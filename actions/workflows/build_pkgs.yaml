@@ -39,7 +39,7 @@ st2ci.build_pkgs:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"title": "[st2ci.build_pkgs: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.revision, ''n/a'') %>, "color": "#808080"}]'
+                attachments: '[{"title": "[st2ci.build_pkgs: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.revision, ''n/a'') %>", "color": "#808080"}]'
 
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>
@@ -47,4 +47,4 @@ st2ci.build_pkgs:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"title": "[st2cd.st2_pkg_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.revision, ''n/a'') %>, "color": "#808080"}]'
+                attachments: '[{"title": "[st2cd.st2_pkg_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.revision, ''n/a'') %>", "color": "#808080"}]'
