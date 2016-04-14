@@ -1,0 +1,14 @@
+---
+name: build_pkgs
+pack: st2ci
+description: Build packages for st2
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/build_pkgs.yaml
+parameters:
+    branch:
+        type: string
+        required: true
+    revision:
+        type: string
+        required: true

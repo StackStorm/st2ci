@@ -1,0 +1,50 @@
+---
+version: '2.0'
+
+st2ci.build_pkgs:
+    type: direct
+    input:
+        - branch
+        - revision
+        - circle_ci_project: "StackStorm/st2-packages"
+        - notify_channels:
+            - "#thunderdome"
+        - notify_failure_channels:
+            - "#thunderdome"
+            - "#stackstorm"
+
+    tasks:
+        get_webui_server:
+            action: core.local cmd="hostname"
+            publish:
+                webui_base_url: http://<% task(get_webui_server).result.stdout %>:8080
+            on-success:
+                - build_pkgs_circle_ci
+        build_pkgs_circle_ci:
+            action: circle_ci.run_build
+            input:
+                project: <% $.circle_ci_project %>
+                # branch names on st2 and st2-packages matches. So making this assumption for now.
+                branch: <% $.branch %>
+                build_parameters:
+                    "ST2_GITREV": <% $.branch %>
+            on-success:
+                - notify_start
+            on-error:
+                - notify_failure
+
+        notify_start:
+            with-items: channel in <% $.notify_channels %>
+            action: slack.chat.postMessage
+            input:
+                channel: <% $.channel %>
+                text: ""
+                attachments: '[{"title": "[st2ci.build_pkgs: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.revision, ''n/a'') %>, "color": "#808080"}]'
+
+        notify_failure:
+            with-items: channel in <% $.notify_failure_channels %>
+            action: slack.chat.postMessage
+            input:
+                channel: <% $.channel %>
+                text: ""
+                attachments: '[{"title": "[st2cd.st2_pkg_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.revision, ''n/a'') %>, "color": "#808080"}]'
