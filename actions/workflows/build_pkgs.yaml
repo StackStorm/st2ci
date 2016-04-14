@@ -6,8 +6,7 @@ st2ci.build_pkgs:
     input:
         - branch
         - revision
-        - circle_ci_project:
-            - "StackStorm/st2-packages"
+        - circle_ci_project: "StackStorm/st2-packages"
         - notify_channels:
             - "#thunderdome"
         - notify_failure_channels:
