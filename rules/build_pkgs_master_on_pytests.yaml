@@ -18,5 +18,5 @@ criteria:
 action:
     ref: st2ci.build_pkgs
     parameters:
-        branch: {{trigger.body.payload.branch}}
-        revision: {{trigger.body.payload.vcs_revision}}
+        branch: "{{trigger.body.payload.branch}}"
+        revision: "{{trigger.body.payload.vcs_revision}}"
