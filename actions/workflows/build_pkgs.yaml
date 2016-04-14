@@ -15,6 +15,12 @@ st2ci.build_pkgs:
             - "#stackstorm"
 
     tasks:
+        get_webui_server:
+            action: core.local cmd="hostname"
+            publish:
+                webui_base_url: http://<% task(get_webui_server).result.stdout %>:8080
+            on-success:
+                - build_pkgs_circle_ci
         build_pkgs_circle_ci:
             action: circle_ci.run_build
             input:
@@ -25,7 +31,7 @@ st2ci.build_pkgs:
                     "ST2_GITREV": <% $.branch %>
             on-success:
                 - notify_start
-            on-failure:
+            on-error:
                 - notify_failure
 
         notify_start:
