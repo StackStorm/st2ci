@@ -1,7 +1,7 @@
 ---
 name: st2_pkg_promote
 runner_type: mistral-v2
-description: Promote a st2 package from unstable to stable repo.
+description: Promote a st2 package from staging to production repo.
 enabled: true
 entry_point: workflows/st2_pkg_promote.yaml
 parameters:
