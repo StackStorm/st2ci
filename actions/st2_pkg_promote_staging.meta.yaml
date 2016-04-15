@@ -1,6 +1,6 @@
 ---
 name: st2_pkg_promote_staging
-pack: st2cd
+pack: st2ci
 description: Run end to end tests and promote st2 packages from staging for a given distro
 enabled: true
 runner_type: mistral-v2
