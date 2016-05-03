@@ -27,7 +27,7 @@ st2ci.setup_st2:
                 branch: <% $.repo_branch %>
                 target: <% $.repo_dir %>/st2_<% $.repo_branch %>
             publish:
-                clone_path: <% $.clone_repo.get($.host).stdout %>
+                clone_path: <% task(clone_repo).result.get($.host).stdout %>
             on-success:
                 - install
 
