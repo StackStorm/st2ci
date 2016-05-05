@@ -1,7 +1,7 @@
 ---
 version: '2.0'
 
-st2ci.st2_pkg_promote_staging:
+st2ci.st2_pkg_test_promote:
     type: direct
     input:
         - hostname
