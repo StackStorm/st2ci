@@ -26,6 +26,9 @@ st2ci.setup_st2:
                 repo: <% $.repo %>
                 branch: <% $.repo_branch %>
                 target: <% $.repo_dir %>/st2_<% $.repo_branch %>
+            retry:
+                count: 3
+                delay: 3
             publish:
                 clone_path: <% task(clone_repo).result.get($.host).stdout %>
             on-success:
