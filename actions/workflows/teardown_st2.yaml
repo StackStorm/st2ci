@@ -12,7 +12,7 @@ st2ci.teardown_st2:
             action: core.remote
             input:
                 hosts: <% $.host %>
-                cmd: <% $.repo %>/tools/launchdev.sh stop
+                cmd: <% $.repo %>/tools/launchdev.sh stop || true
             on-complete:
                 - teardown_db
 

@@ -27,6 +27,11 @@ workflows:
             - st2_repo_dir
             - merge_upstream
             - debug
+            - notify_channels:
+                - "#thunderdome"
+            - notify_failure_channels:
+                - "#thunderdome"
+                - "#stackstorm"
         output:
             hosts: <% $.hosts %>
             shas: <% $.shas %>
@@ -34,12 +39,15 @@ workflows:
         task-defaults:
             on-error:
                 - teardown_on_failure: <% not $.debug %>
-                - notify_on_failure: <% $.debug %>
+                - notify_failure: <% $.debug %>
         tasks:
-            init:
+            init_vars:
+                action: core.local cmd="hostname"
                 publish:
+                    webui_base_url: http://<% task(init_vars).result.stdout %>:8080
                     is_infra_setup: False
-                on-complete:
+                on-success:
+                    - notify_start
                     - get_hosts
             get_hosts:
                 workflow: get_build_hosts
@@ -71,15 +79,17 @@ workflows:
                     st2_repo_dir: <% $.st2_repo_dir %>
                     debug: <% $.debug %>
                 publish:
-                    is_infra_setup: True
+                    is_infra_setup: <% task(setup).result.is_mistral_setup and task(setup).result.is_st2_setup %>
                 on-success:
-                    - run_tests
+                    - run_tests: <% $.is_infra_setup %>
+                    - teardown_on_failure: <% not $.is_infra_setup and not $.debug %>
             run_tests:
                 action: core.remote
                 input:
                     hosts: <% $.hosts.get(test) %> 
-                    cmd: cd <% task(setup).result.clones.get(st2) %> && make mistral-itests
-                    timeout: 1800
+                    cwd: <% task(setup).result.clones.get(st2) %>
+                    cmd: make mistral-itests 2>&1 | tee /tmp/mistral-itests-output.txt
+                    timeout: 600
                 on-success:
                     - record_pip_freeze
             record_pip_freeze:
@@ -114,12 +124,8 @@ workflows:
                     host: <% $.hosts.get(test) %>
                     clones: <% task(setup).result.clones %>
                 on-success:
-                    - notify
-            notify:
-                action: slack.post_message
-                input:
-                    channel: '#thunderdome'
-                    message: '```[MISTRAL-CI][<% $.mis_repo_base.toUpper() %>] STATUS: SUCCEEDED```'
+                    - notify_success
+
 
             # Declare error handler(s) for the main workflow here.
             teardown_on_failure:
@@ -127,15 +133,35 @@ workflows:
                 input:
                     host: <% $.hosts.get(test) %>
                     clones: <% task(setup).result.clones %>
-                    backup: True
+                    backup: <% $.is_infra_setup %>
                 on-complete:
-                    - notify_on_failure
+                    - notify_failure
 
-            notify_on_failure:
-                action: slack.post_message
+
+            # Declare notification handler(s) for the main workflow here.
+            notify_start:
+                with-items: channel in <% $.notify_channels %>
+                action: slack.chat.postMessage
                 input:
-                    channel: '#stackstorm'
-                    message: '```[MISTRAL-CI][<% $.mis_repo_base.toUpper() %>] STATUS: EPIC FAIL```'
+                    channel: <% $.channel %>
+                    text: ""
+                    attachments: '[{"title": "[st2ci.mistral: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>", "color": "#808080"}]'
+
+            notify_success:
+                with-items: channel in <% $.notify_channels %>
+                action: slack.chat.postMessage
+                input:
+                    channel: <% $.channel %>
+                    text: ""
+                    attachments: '[{"title": "[st2ci.mistral: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>", "color": "#008000"}]'
+
+            notify_failure:
+                with-items: channel in <% $.notify_failure_channels %>
+                action: slack.chat.postMessage
+                input:
+                    channel: <% $.channel %>
+                    text: ""
+                    attachments: '[{"title": "[st2ci.mistral: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>\nHOSTNAME: <% $.hosts.get(test) %>\nINFRA SETUP: <% $.is_infra_setup %>", "color": "#FF0000"}]'
                 on-complete:
                     - fail
 
@@ -213,11 +239,24 @@ workflows:
             - st2_repo_dir
             - debug
         output:
-            clones: <% dict(mistral=>$.mis_clone_paths.get(mistral),
-                            mistralclient=>$.mis_clone_paths.get(mistralclient),
-                            st2mistral=>$.mis_clone_paths.get(st2mistral),
+            is_mistral_setup: <% $.is_mistral_setup %>
+            is_st2_setup: <% $.is_st2_setup %>
+            clones: <% dict(mistral=>$.mistral_clone_path,
+                            mistralclient=>$.mistralclient_clone_path,
+                            st2mistral=>$.st2mistral_clone_path,
                             st2=>$.st2_clone_path) %>
         tasks:
+            init_vars:
+                action: std.noop
+                publish:
+                    is_mistral_setup: False
+                    is_st2_setup: False
+                    mistral_clone_path: None
+                    mistralclient_clone_path: None
+                    st2mistral_clone_path: None
+                    st2_clone_path: None
+                on-success:
+                    - setup_mistral
             setup_mistral:
                 action: mistral-dev.setup
                 input:
@@ -237,9 +276,14 @@ workflows:
                     api_port: <% $.mis_api_port %>
                     debug: <% $.debug %>
                 publish:
-                    mis_clone_paths: <% task(setup_mistral).result.clone_paths %>
+                    mistral_clone_path: <% task(setup_mistral).result.clone_paths.get(mistral) %>
+                    mistralclient_clone_path: <% task(setup_mistral).result.clone_paths.get(mistralclient) %>
+                    st2mistral_clone_path: <% task(setup_mistral).result.clone_paths.get(st2mistral) %>
+                    is_mistral_setup: True
                 on-success:
                     - setup_st2
+                on-error:
+                    - noop
             setup_st2:
                 action: st2ci.setup_st2
                 input:
@@ -250,16 +294,9 @@ workflows:
                     debug: <% $.debug %>
                 publish:
                     st2_clone_path: <% task(setup_st2).result.clone_path %>
+                    is_st2_setup: True
                 on-error:
-                    - teardown_mistral: <% not $.debug %>
-                    - fail
-            teardown_mistral:
-                action: mistral-dev.teardown
-                input:
-                    host: <% $.host %>
-                    repo_main: <% $.mis_clone_paths.get(mistral) %>
-                    repo_client: <% $.mis_clone_paths.get(mistralclient) %>
-                    repo_action: <% $.mis_clone_paths.get(st2mistral) %>
+                    - noop
 
 
     teardown_infra:
@@ -273,7 +310,8 @@ workflows:
                 action: std.noop
                 on-complete:
                     - backup_logs: <% $.backup %>
-                    - teardown_mistral: <% not $.backup %>
+                    - teardown_mistral: <% not $.backup and $.clones.get(mistral, '') != '' %>
+                    - teardown_st2: <% not $.backup and $.clones.get(st2, '') != '' %>
             backup_logs:
                 action: st2ci.backup_logs
                 input:
@@ -285,7 +323,8 @@ workflows:
                     st2_log_dir: <% $.clones.get(st2) %>/logs
                     backup_dir: /home/stanley/logs
                 on-complete:
-                    - teardown_mistral
+                    - teardown_mistral: <% $.clones.get(mistral, '') != '' %>
+                    - teardown_st2: <% $.clones.get(st2, '') != '' %>
             teardown_mistral:
                 action: mistral-dev.teardown
                 input:
@@ -293,8 +332,6 @@ workflows:
                     repo_main: <% $.clones.get(mistral) %>
                     repo_client: <% $.clones.get(mistralclient) %>
                     repo_action: <% $.clones.get(st2mistral) %>
-                on-complete:
-                    - teardown_st2
             teardown_st2:
                 action: st2ci.teardown_st2
                 input:
