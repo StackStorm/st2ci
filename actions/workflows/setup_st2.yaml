@@ -26,6 +26,7 @@ st2ci.setup_st2:
                 repo: <% $.repo %>
                 branch: <% $.repo_branch %>
                 target: <% $.repo_dir %>/st2_<% $.repo_branch %>
+                timeout: 120
             retry:
                 count: 3
                 delay: 3
