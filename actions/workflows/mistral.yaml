@@ -123,8 +123,11 @@ workflows:
                 input:
                     host: <% $.hosts.get(test) %>
                     clones: <% task(setup).result.clones %>
+                    backup: False
                 on-success:
                     - notify_success
+                on-error:
+                    - notify_failure
 
 
             # Declare error handler(s) for the main workflow here.
