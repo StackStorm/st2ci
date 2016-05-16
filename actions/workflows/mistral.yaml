@@ -251,10 +251,10 @@ workflows:
                 publish:
                     is_mistral_setup: False
                     is_st2_setup: False
-                    mistral_clone_path: None
-                    mistralclient_clone_path: None
-                    st2mistral_clone_path: None
-                    st2_clone_path: None
+                    mistral_clone_path: null
+                    mistralclient_clone_path: null
+                    st2mistral_clone_path: null
+                    st2_clone_path: null
                 on-success:
                     - setup_mistral
             setup_mistral:
