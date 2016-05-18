@@ -40,7 +40,7 @@ parameters:
             - UBUNTU14
     role:
         type: string
-        default: default
+        default: blank
     release:
         type: string
         enum:
