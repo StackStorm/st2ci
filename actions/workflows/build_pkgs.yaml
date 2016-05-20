@@ -38,7 +38,7 @@ st2ci.build_pkgs:
                     "COMMITTER": <% $.committer %>
                     "COMMIT_MSG": <% $.commit_message %>
             publish:
-                PKG_BUILD_URL: <% task(build_pkgs_circle_ci).result.build_url %>
+                PKG_BUILD_URL: <% task(build_pkgs_circle_ci).result.result.build_url %>
             on-success:
                 - notify_start
             on-error:
