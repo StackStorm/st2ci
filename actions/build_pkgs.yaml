@@ -12,3 +12,16 @@ parameters:
     revision:
         type: string
         required: true
+    circle_url:
+        type: string
+        required: false
+    github_url:
+        type: string
+        required: false
+    committer:
+        type: string
+        required: false
+        # default: Kami
+    commmit_message:
+        type: string
+        required: false

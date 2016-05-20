@@ -20,3 +20,7 @@ action:
     parameters:
         branch: "{{trigger.body.payload.branch}}"
         revision: "{{trigger.body.payload.vcs_revision}}"
+        circle_url: "{{trigger.body.payload.build_url}}"
+        github_url: "{{trigger.body.payload.compare}}"
+        committer: "{{trigger.body.payload.committer_name}}"
+        commit_message: "{{trigger.body.payload.subject}}"
