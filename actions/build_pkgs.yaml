@@ -22,6 +22,6 @@ parameters:
         type: string
         required: false
         # default: Kami
-    commmit_message:
+    commit_message:
         type: string
         required: false
