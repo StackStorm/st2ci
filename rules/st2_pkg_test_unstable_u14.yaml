@@ -20,5 +20,5 @@ action:
         distro: UBUNTU14
         hostname: "st2-pkg-unstable-u14-{{trigger.body.payload.vcs_revision | truncate(10, False, '')}}"
         release: unstable
-        triggering_commit_url: "{{trigger.body.payload.vcs_url}}/commit/{{trigger.body.payload.vcs_revision}}"
+        triggering_commit_url: "WHO: {{trigger.body.payload.build_parameters.COMMITTER}}, COMPARE: {{trigger.body.payload.build_parameters.GITHUB_URL}}, CIRCLE: {{trigger.body.payload.build_parameters.CIRCLE_URL}}"
         pkg_env: staging
