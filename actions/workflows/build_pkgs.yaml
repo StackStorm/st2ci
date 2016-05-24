@@ -50,7 +50,7 @@ st2ci.build_pkgs:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"title": "[st2ci.build_pkgs: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMITTER: <% coalesce($.committer, ''n/a'') %> \n GITHUB_URL: <% coalesce($.github_url, ''n/a'') %> \n CIRCLE_URL: <% coalesce($.circle_url, ''n/a'') %> \n PKG_BUILD_URL: <% coalesce($.PKG_BUILD_URL, ''n/a'') %>", "color": "#808080"}]'
+                attachments: '[{"fallback": "[st2ci.build_pkgs: STARTED]", title": "[st2ci.build_pkgs: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMITTER: <% coalesce($.committer, ''n/a'') %> \n GITHUB_URL: <% coalesce($.github_url, ''n/a'') %> \n CIRCLE_URL: <% coalesce($.circle_url, ''n/a'') %> \n PKG_BUILD_URL: <% coalesce($.PKG_BUILD_URL, ''n/a'') %>", "color": "#808080"}]'
 
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>
@@ -58,4 +58,4 @@ st2ci.build_pkgs:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"title": "[st2cd.st2_pkg_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMITTER: <% coalesce($.committer, ''n/a'') %> \n GITHUB_URL: <% coalesce($.github_url, ''n/a'') %> \n CIRCLE_URL: <% coalesce($.circle_url, ''n/a'') %> \n PKG_BUILD_URL: <% coalesce($.PKG_BUILD_URL, ''n/a'') %>", "color": "#808080"}]'
+                attachments: '[{"fallback": "[st2ci.build_pkgs: FAILED]", "title": "[st2cd.build_pkgs: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMITTER: <% coalesce($.committer, ''n/a'') %> \n GITHUB_URL: <% coalesce($.github_url, ''n/a'') %> \n CIRCLE_URL: <% coalesce($.circle_url, ''n/a'') %> \n PKG_BUILD_URL: <% coalesce($.PKG_BUILD_URL, ''n/a'') %>", "color": "#808080"}]'
