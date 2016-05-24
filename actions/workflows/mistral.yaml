@@ -86,7 +86,7 @@ workflows:
             run_tests:
                 action: core.remote
                 input:
-                    hosts: <% $.hosts.get(test) %> 
+                    hosts: <% $.hosts.get(test) %>
                     cwd: <% task(setup).result.clones.get(st2) %>
                     cmd: make mistral-itests 2>&1 | tee /tmp/mistral-itests-output.txt
                     timeout: 600
@@ -148,7 +148,7 @@ workflows:
                 input:
                     channel: <% $.channel %>
                     text: ""
-                    attachments: '[{"title": "[st2ci.mistral: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>", "color": "#808080"}]'
+                    attachments: '[{"fallback": "[st2ci.mistral: STARTED]", "title": "[st2ci.mistral: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>", "color": "#808080"}]'
 
             notify_success:
                 with-items: channel in <% $.notify_channels %>
@@ -156,7 +156,7 @@ workflows:
                 input:
                     channel: <% $.channel %>
                     text: ""
-                    attachments: '[{"title": "[st2ci.mistral: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>", "color": "#008000"}]'
+                    attachments: '[{"fallback": "[st2ci.mistral: SUCCEEDED]", "title": "[st2ci.mistral: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>", "color": "#008000"}]'
 
             notify_failure:
                 with-items: channel in <% $.notify_failure_channels %>
@@ -164,7 +164,7 @@ workflows:
                 input:
                     channel: <% $.channel %>
                     text: ""
-                    attachments: '[{"title": "[st2ci.mistral: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>\nHOSTNAME: <% $.hosts.get(test) %>\nINFRA SETUP: <% $.is_infra_setup %>", "color": "#FF0000"}]'
+                    attachments: '[{"fallback": "[st2ci.mistral: FAILED]", "title": "[st2ci.mistral: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>\nHOSTNAME: <% $.hosts.get(test) %>\nINFRA SETUP: <% $.is_infra_setup %>", "color": "#FF0000"}]'
                 on-complete:
                     - fail
 
