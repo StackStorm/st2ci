@@ -20,5 +20,5 @@ action:
         distro: UBUNTU14
         hostname: "st2-pkg-unstable-u14-{{trigger.body.payload.vcs_revision | truncate(10, False, '')}}"
         release: unstable
-        triggering_commit_url: "PKG_BUILD_URL: {{trigger.body.payload.build_url}} \n COMMITTER: {{trigger.body.payload.build_parameters.COMMITTER}} \n DIFF: {{trigger.body.payload.build_parameters.GITHUB_URL}} \n CIRCLE: {{trigger.body.payload.build_parameters.CIRCLE_URL}}"
+        triggering_commit_url: "PKG_BUILD_URL: {{trigger.body.payload.build_url}} {% if trigger.body.payload.build_parameters != null %}\n COMMITTER: {{trigger.body.payload.build_parameters.COMMITTER}} \n DIFF: {{trigger.body.payload.build_parameters.GITHUB_URL}} \n CIRCLE: {{trigger.body.payload.build_parameters.CIRCLE_URL}} {% endif %}"
         pkg_env: staging
