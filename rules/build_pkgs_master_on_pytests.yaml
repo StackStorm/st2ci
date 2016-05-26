@@ -14,6 +14,9 @@ criteria:
     trigger.body.payload.vcs_url:
         type: equals
         pattern: "https://github.com/StackStorm/st2"
+    trigger.body.payload.status:
+        type: equals
+        pattern: success
 
 action:
     ref: st2ci.build_pkgs
