@@ -1,10 +1,10 @@
 ---
-name: st2_pkg_test_promote
+name: st2_pkg_test_and_promote
 pack: st2ci
 description: Run end to end tests and promote st2 packages from staging for a given distro
 enabled: true
 runner_type: mistral-v2
-entry_point: workflows/st2_pkg_test_promote.yaml
+entry_point: workflows/st2_pkg_test_and_promote.yaml
 parameters:
     hostname:
         type: string
