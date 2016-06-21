@@ -49,6 +49,11 @@ parameters:
         default: stable
     version:
         type: string
+    enterprise:
+        type: boolean
+        default: false
+    enterprise_key:
+        type: string
     pkg_env:
         type: string
         enum:
