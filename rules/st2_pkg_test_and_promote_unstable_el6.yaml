@@ -1,5 +1,5 @@
 ---
-name: st2_pkg_test_promote_unstable_el6
+name: st2_pkg_test_and_promote_unstable_el6
 pack: st2ci
 description: Test and promote unstable packages
 enabled: true
@@ -13,7 +13,7 @@ trigger:
 criteria: {}
 
 action:
-  ref: st2ci.st2_pkg_test_promote
+  ref: st2ci.st2_pkg_test_and_promote
   parameters:
     hostname: st2-pkg-unstable-el6
     distro: RHEL6
