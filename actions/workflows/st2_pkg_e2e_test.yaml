@@ -41,6 +41,7 @@ st2ci.st2_pkg_e2e_test:
         init_vars:
             action: std.noop
             publish:
+                vm_id: null
                 vm_fqdn: <% $.hostname %>.<% $.dns_zone %>
                 installed:
                     version_str: not installed
@@ -70,6 +71,7 @@ st2ci.st2_pkg_e2e_test:
                 role: <% $.role %>
             publish:
                 vm_info: <% task(create_vm).result.tasks[2].result.result[0] %>
+                vm_id: <% task(create_vm).result.tasks[2].result.result[0].id %>
             on-success:
                 - patch_rhel6: <% $.distro = 'RHEL6' %>
                 - get_bootstrap_script: <% $.distro != 'RHEL6' %>
@@ -144,6 +146,7 @@ st2ci.st2_pkg_e2e_test:
             action: st2cd.destroy_vm
             input:
                 hostname: <% $.hostname %>
+                instance_id: <% $.vm_id %>
             on-complete:
                 - notify_success
         notify_success:
@@ -159,6 +162,7 @@ st2ci.st2_pkg_e2e_test:
             action: st2cd.destroy_vm
             input:
                 hostname: <% $.hostname %>
+                instance_id: <% $.vm_id %>
             on-complete:
                 - notify_failure
         notify_failure:
