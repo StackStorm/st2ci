@@ -1,9 +1,9 @@
 ---
-name: st2_pkg_promote
+name: st2_pkg_promote_enterprise
 runner_type: mistral-v2
-description: Promote a st2 package from staging to production repo.
+description: Promote a st2 enterprise package from staging to production repo.
 enabled: true
-entry_point: workflows/st2_pkg_promote.yaml
+entry_point: workflows/st2_pkg_promote_enterprise.yaml
 parameters:
     package:
         type: string
@@ -28,5 +28,5 @@ parameters:
         required: true
     api_token:
         type: string
-        description: Token to upload to the packagecloud production repo
+        description: Token to upload to the packagecloud enterprise production repo
         default: "{{system.pkg_cloud_token}}"

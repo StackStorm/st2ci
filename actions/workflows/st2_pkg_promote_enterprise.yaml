@@ -1,8 +1,8 @@
 ---
 version: '2.0'
 
-st2ci.st2_pkg_promote:
-    description: Promote a StackStorm package from staging to production repo
+st2ci.st2_pkg_promote_enterprise:
+    description: Promote a StackStorm enterprise package from staging to production repo
     type: direct
     input:
         - package
@@ -20,6 +20,13 @@ st2ci.st2_pkg_promote:
             debian: deb
             el: rpm
             ubuntu: deb
+        - pkg_cloud_repo_map:
+            staging:
+                stable: staging-enterprise
+                unstable: staging-enterprise-unstable
+            production:
+                stable: enterprise
+                unstable: enterprise-unstable
     output:
         package: <% $.package %>
         release: <% $.release %>
@@ -36,11 +43,10 @@ st2ci.st2_pkg_promote:
         init:
             action: std.noop
             publish:
-                prd_repo: StackStorm/<% $.release %>
-                stg_repo: StackStorm/staging-<% $.release %>
+                prd_repo: StackStorm/<% $.pkg_cloud_repo_map.production.get($.release) %>
+                stg_repo: StackStorm/<% $.pkg_cloud_repo_map.staging.get($.release) %>
                 arch: <% $.distro_arch_map.get($.distro_version.split("/")[0]) %>
                 package_type: <% $.distro_pkg_type_map.get($.distro_version.split("/")[0]) %>
-                packages: <% list() %>
             on-success:
                 - get_stg_pkg_info: <% $.revision != null %>
                 - get_pkgs_list: <% $.revision = null %>
@@ -50,7 +56,7 @@ st2ci.st2_pkg_promote:
             action: packagecloud.list_packages
             input:
                 repo: <% $.stg_repo %>
-                package: <% $.package %>            
+                package: <% $.package %>
                 distro_version: <% $.distro_version %>
                 version: <% $.version %>
             publish:
