@@ -1,0 +1,21 @@
+---
+name: st2_pkg_upgrade_rpm
+pack: st2ci
+description: Upgrade rpm packages on a box using yum
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/st2_pkg_upgrade_rpm.yaml
+parameters:
+    host:
+        type: string
+        required: true
+        description: >
+            Host on which upgrade should be performed
+    pkg_list:
+        type: list
+        required: true
+        default:
+            - st2
+            - st2web
+            - st2chatops
+            - st2mistral

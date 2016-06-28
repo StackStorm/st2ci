@@ -1,0 +1,17 @@
+version: '2.0'
+
+st2ci.st2_pkg_upgrade_deb:
+    description: Upgrade StackStorm deb packages on the box using apt-get.
+    type: direct
+    input:
+        - hosts     # Host on which upgrade should be run
+        - pkg_list  # List of packages to upgrade
+
+    tasks:
+        upgrade_pkgs_via_yum:
+            with-items: pkg in <% $.pkg_list %>
+            concurrency: 1
+            action: core.remote
+            input:
+                hosts: <% $.host %>
+                cmd: sudo apt-get --only-upgrade <% $.pkg %>
