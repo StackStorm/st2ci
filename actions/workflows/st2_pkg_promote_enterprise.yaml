@@ -27,6 +27,17 @@ st2ci.st2_pkg_promote_enterprise:
             production:
                 stable: enterprise
                 unstable: enterprise-unstable
+    output:
+        package: <% $.package %>
+        release: <% $.release %>
+        version: <% $.version %>
+        revision: <% $.revision %>
+        distro_version: <% $.distro_version %>
+        arch: <% $.arch %>
+        package_type: <% $.package_type %>
+        stg_repo: <% $.stg_repo %>
+        prd_repo: <% $.prd_repo %>
+
 
     tasks:
         init:
@@ -37,7 +48,29 @@ st2ci.st2_pkg_promote_enterprise:
                 arch: <% $.distro_arch_map.get($.distro_version.split("/")[0]) %>
                 package_type: <% $.distro_pkg_type_map.get($.distro_version.split("/")[0]) %>
             on-success:
+                - get_stg_pkg_info: <% $.revision != null %>
+                - get_pkgs_list: <% $.revision = null %>
+
+
+        get_pkgs_list:
+            action: packagecloud.list_packages
+            input:
+                repo: <% $.stg_repo %>
+                package: <% $.package %>
+                distro_version: <% $.distro_version %>
+                version: <% $.version %>
+            publish:
+                pkgs_list: <% task(get_pkgs_list).result.result %>
+            on-success:
+                - get_latest_pkg_rev: <% len($.pkgs_list) > 0 %>
+                - fail: <% len($.pkgs_list) <= 0 %>
+        get_latest_pkg_rev:
+            publish:
+                revision: <% $.pkgs_list.first().get('release') %>
+            on-success:
                 - get_stg_pkg_info
+
+
         get_stg_pkg_info:
             action: packagecloud.show_package
             input:

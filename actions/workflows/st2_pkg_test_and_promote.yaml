@@ -1,8 +1,5 @@
----
 version: '2.0'
-
 st2ci.st2_pkg_test_and_promote:
-    type: direct
     input:
         - hostname
         - distro
@@ -24,19 +21,21 @@ st2ci.st2_pkg_test_and_promote:
         - notify_failure_channels:
             - "#thunderdome"
             - "#stackstorm"
-
     output:
         versions: <% $.versions %>
+
 
     task-defaults:
         on-error:
             - notify_failure
 
+
     tasks:
-        get_webui_server:
+        init:
             action: core.local cmd="hostname"
             publish:
-                webui_base_url: http://<% task(get_webui_server).result.stdout %>:8080
+                webui_base_url: http://<% task(init).result.stdout %>:8080
+                pkg_distro_version: <% $.distro_to_distro_version_map.get($.distro) %>
             on-success:
                 - notify_start
         notify_start:
@@ -47,13 +46,10 @@ st2ci.st2_pkg_test_and_promote:
                 text: ""
                 attachments: '[{"fallback": "[st2ci.st2_pkg_test_and_promote: STARTED]", "title": "[st2ci.st2_pkg_test_and_promote: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "HOSTNAME: <% coalesce($.hostname, "unspecified") %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#808080"}]'
             on-success:
-                - validate_distro
-        validate_distro:
-            action: std.noop
-            publish:
-                pkg_distro_version: <% $.distro_to_distro_version_map.get($.distro) %>
-            on-success:
                 - get_hostname_suffix
+
+
+
         get_hostname_suffix:
             action: core.local
             input:
@@ -81,11 +77,16 @@ st2ci.st2_pkg_test_and_promote:
                     task(run_e2e_test).result.versions.items().select(
                         $[0] + "=" + $[1]).join("\n\t") %>
             on-success:
+                - promote_all
+
+
+
+        promote_all:
+            on-complete:
                 - promote_st2
                 - promote_st2chatops
                 - promote_st2mistral
                 - promote_st2web
-
 
         promote_st2:
             action: st2ci.st2_pkg_promote
@@ -96,12 +97,11 @@ st2ci.st2_pkg_test_and_promote:
                 version: <% $.versions.get(st2).split("-")[0] %>
                 revision: <% $.versions.get(st2).split("-")[1] %>
             publish:
-                promoted_st2: True
+                promoted_st2: <% $.versions.get(st2) %>
             on-complete:
                 - process_completion
             on-error:
                 - noop
-
 
         promote_st2chatops:
             action: st2ci.st2_pkg_promote
@@ -112,12 +112,11 @@ st2ci.st2_pkg_test_and_promote:
                 version: <% $.versions.get(st2chatops).split("-")[0] %>
                 revision: <% $.versions.get(st2chatops).split("-")[1] %>
             publish:
-                promoted_st2chatops: True
+                promoted_st2chatops: <% $.versions.get(st2chatops) %>
             on-complete:
                 - process_completion
             on-error:
                 - noop
-
 
         promote_st2mistral:
             action: st2ci.st2_pkg_promote
@@ -128,12 +127,11 @@ st2ci.st2_pkg_test_and_promote:
                 version: <% $.versions.get(st2mistral).split("-")[0] %>
                 revision: <% $.versions.get(st2mistral).split("-")[1] %>
             publish:
-                promoted_st2mistral: True
+                promoted_st2mistral: <% $.versions.get(st2mistral) %>
             on-complete:
                 - process_completion
             on-error:
                 - noop
-
 
         promote_st2web:
             action: st2ci.st2_pkg_promote
@@ -144,11 +142,12 @@ st2ci.st2_pkg_test_and_promote:
                 version: <% $.versions.get(st2web).split("-")[0] %>
                 revision: <% $.versions.get(st2web).split("-")[1] %>
             publish:
-                promoted_st2web: True
+                promoted_st2web: <% $.versions.get(st2web) %>
             on-complete:
                 - process_completion
             on-error:
                 - noop
+
 
 
         process_completion:
@@ -161,6 +160,7 @@ st2ci.st2_pkg_test_and_promote:
                 - set_notify_success: <%
                         $.promoted_st2 and $.promoted_st2chatops and
                         $.promoted_st2mistral and $.promoted_st2web %>
+
         set_notify_failure:
             action: std.noop
             publish:
@@ -168,6 +168,7 @@ st2ci.st2_pkg_test_and_promote:
                 notify_completion_channels: <% $.notify_failure_channels %>
             on-success:
                 - notify_completion
+
         set_notify_success:
             action: std.noop
             publish:
@@ -175,6 +176,7 @@ st2ci.st2_pkg_test_and_promote:
                 notify_completion_channels: <% $.notify_channels %>
             on-success:
                 - notify_completion
+
         notify_completion:
             with-items: channel in <% $.notify_completion_channels %>
             action: slack.chat.postMessage
@@ -182,7 +184,6 @@ st2ci.st2_pkg_test_and_promote:
                 channel: <% $.channel %>
                 text: ""
                 attachments: '[{"fallback": "[st2ci.st2_pkg_test_and_promote: COMPLETED]", "title": "[st2ci.st2_pkg_test_and_promote: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "HOSTNAME: <% coalesce($.hostname, "unspecified") %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION TESTED:\n\t<% $.version_str %>\nPACKAGE PROMOTED:\n\tst2=<% $.promoted_st2 %>\n\tst2chatops=<% $.promoted_st2chatops %>\n\tst2mistral=<% $.promoted_st2mistral %>\n\tst2web=<% $.promoted_st2web %>", "color": "<% $.notify_color %>"}]'
-
 
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>

@@ -21,8 +21,7 @@ parameters:
         required: true
     revision:
         type: string
-        description: Revision to promote
-        required: true
+        description: Revision to promote. Use the latest revision if not provided.
     distro_version:
         type: string
         description: Distro version of the package to promote

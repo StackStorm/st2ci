@@ -1,12 +1,9 @@
 version: '2.0'
-st2ci.st2_pkg_test_and_promote_enterprise:
+st2ci.st2_pkg_promote_all:
     input:
-        - hostname
         - distro
         - release
         - version
-        - keyfile
-        - debug
         - enterprise_keys:
             stable: "{{system.enterprise_key_stg_stable}}"
             unstable: "{{system.enterprise_key_stg_unstable}}"
@@ -27,7 +24,12 @@ st2ci.st2_pkg_test_and_promote_enterprise:
             - "#thunderdome"
             - "#stackstorm"
     output:
-        versions: <% $.versions %>
+        versions: <% dict(st2 => $.promoted_st2,
+                          st2chatops => $.promoted_st2chatops,
+                          st2mistral => $.promoted_st2mistral,
+                          st2web => $.promoted_st2web,
+                          st2flow => $.promoted_st2flow,
+                          st2-auth-ldap => $.promoted_st2_auth_ldap) %>
 
 
     task-defaults:
@@ -49,40 +51,7 @@ st2ci.st2_pkg_test_and_promote_enterprise:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_test_and_promote_enterprise: STARTED]", "title": "[st2ci.st2_pkg_test_and_promote_enterprise: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "HOSTNAME: <% coalesce($.hostname, "unspecified") %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#808080"}]'
-            on-success:
-                - get_hostname_suffix
-
-
-
-        get_hostname_suffix:
-            action: core.local
-            input:
-                cmd: "date +'%s'"
-            publish:
-                suffix: <% task(get_hostname_suffix).result.stdout %>
-            on-success:
-                - run_e2e_test
-        run_e2e_test:
-            action: st2ci.st2_pkg_e2e_test
-            input:
-                hostname: <% coalesce(
-                    $.hostname,
-                    "st2-ent-pkg-" + $.release + "-" + $.distro.toLower() + "-" + str($.suffix)
-                    ) %>
-                distro: <% $.distro %>
-                release: <% $.release %>
-                version: <% $.version %>
-                enterprise: true
-                enterprise_key: <% $.enterprise_keys.get($.release) %>
-                pkg_env: <% $.pkg_env %>
-                keyfile: <% $.keyfile %>
-                debug: <% $.debug %>
-            publish:
-                versions: <% task(run_e2e_test).result.versions %>
-                version_str: <%
-                    task(run_e2e_test).result.versions.items().select(
-                        $[0] + "=" + $[1]).join("\n\t") %>
+                attachments: '[{"fallback": "[st2ci.st2_pkg_promote_all: STARTED]", "title": "[st2ci.st2_pkg_promote_all: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#808080"}]'
             on-success:
                 - promote_all
 
@@ -103,10 +72,9 @@ st2ci.st2_pkg_test_and_promote_enterprise:
                 package: st2
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <% $.versions.get(st2).split("-")[0] %>
-                revision: <% $.versions.get(st2).split("-")[1] %>
+                version: <% $.version %>
             publish:
-                promoted_st2: <% $.versions.get(st2) %>
+                promoted_st2: <% $.version + '-' + task(promote_st2).result.revision %>
             on-complete:
                 - process_completion
             on-error:
@@ -118,10 +86,9 @@ st2ci.st2_pkg_test_and_promote_enterprise:
                 package: st2chatops
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <% $.versions.get(st2chatops).split("-")[0] %>
-                revision: <% $.versions.get(st2chatops).split("-")[1] %>
+                version: <% $.version %>
             publish:
-                promoted_st2chatops: <% $.versions.get(st2chatops) %>
+                promoted_st2chatops: <% $.version + '-' + task(promote_st2chatops).result.revision %>
             on-complete:
                 - process_completion
             on-error:
@@ -133,10 +100,9 @@ st2ci.st2_pkg_test_and_promote_enterprise:
                 package: st2mistral
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <% $.versions.get(st2mistral).split("-")[0] %>
-                revision: <% $.versions.get(st2mistral).split("-")[1] %>
+                version: <% $.version %>
             publish:
-                promoted_st2mistral: <% $.versions.get(st2mistral) %>
+                promoted_st2mistral: <% $.version + '-' + task(promote_st2mistral).result.revision %>
             on-complete:
                 - process_completion
             on-error:
@@ -148,10 +114,9 @@ st2ci.st2_pkg_test_and_promote_enterprise:
                 package: st2web
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <% $.versions.get(st2web).split("-")[0] %>
-                revision: <% $.versions.get(st2web).split("-")[1] %>
+                version: <% $.version %>
             publish:
-                promoted_st2web: <% $.versions.get(st2web) %>
+                promoted_st2web: <% $.version + '-' + task(promote_st2web).result.revision %>
             on-complete:
                 - process_completion
             on-error:
@@ -163,10 +128,9 @@ st2ci.st2_pkg_test_and_promote_enterprise:
                 package: st2flow
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <% $.versions.get(st2flow).split("-")[0] %>
-                revision: <% $.versions.get(st2flow).split("-")[1] %>
+                version: <% $.version %>
             publish:
-                promoted_st2flow: <% $.versions.get(st2flow) %>
+                promoted_st2flow: <% $.version + '-' + task(promote_st2flow).result.revision %>
             on-complete:
                 - process_completion
             on-error:
@@ -178,10 +142,9 @@ st2ci.st2_pkg_test_and_promote_enterprise:
                 package: st2-auth-ldap
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <% $.versions.get(st2-auth-ldap).split("-")[0] %>
-                revision: <% $.versions.get(st2-auth-ldap).split("-")[1] %>
+                version: <% $.version %>
             publish:
-                promoted_st2_auth_ldap: <% $.versions.get(st2-auth-ldap) %>
+                promoted_st2_auth_ldap: <% $.version + '-' + task(promote_st2_auth_ldap).result.revision %>
             on-complete:
                 - process_completion
             on-error:
@@ -224,7 +187,7 @@ st2ci.st2_pkg_test_and_promote_enterprise:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_test_and_promote_enterprise: COMPLETED]", "title": "[st2ci.st2_pkg_test_and_promote_enterprise: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "HOSTNAME: <% coalesce($.hostname, "unspecified") %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION TESTED:\n\t<% $.version_str %>\nPACKAGE PROMOTED:\n\tst2=<% $.promoted_st2 %>\n\tst2chatops=<% $.promoted_st2chatops %>\n\tst2mistral=<% $.promoted_st2mistral %>\n\tst2web=<% $.promoted_st2web %>\n\tst2flow=<% $.promoted_st2flow %>\n\tst2-auth-ldap=<% $.promoted_st2_auth_ldap %>", "color": "<% $.notify_color %>"}]'
+                attachments: '[{"fallback": "[st2ci.st2_pkg_promote_all: COMPLETED]", "title": "[st2ci.st2_pkg_promote_all: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nPACKAGE PROMOTED:\n\tst2=<% $.promoted_st2 %>\n\tst2chatops=<% $.promoted_st2chatops %>\n\tst2mistral=<% $.promoted_st2mistral %>\n\tst2web=<% $.promoted_st2web %>\n\tst2flow=<% $.promoted_st2flow %>\n\tst2-auth-ldap=<% $.promoted_st2_auth_ldap %>", "color": "<% $.notify_color %>"}]'
 
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>
@@ -232,4 +195,4 @@ st2ci.st2_pkg_test_and_promote_enterprise:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_test_and_promote_enterprise: FAILED]", "title": "[st2ci.st2_pkg_test_and_promote_enterprise: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "HOSTNAME: <% coalesce($.hostname, "unspecified") %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#FF0000"}]'
+                attachments: '[{"fallback": "[st2ci.st2_pkg_promote_all: FAILED]", "title": "[st2ci.st2_pkg_promote_all: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#FF0000"}]'
