@@ -25,7 +25,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
         - st2_username: st2admin
         - st2_password: Ch@ngeMe
         - notify_channels:
-            - "#thunderdome"
+            - "#test1"
         - notify_failure_channels:
             - "#test1"
             - "#test1"
