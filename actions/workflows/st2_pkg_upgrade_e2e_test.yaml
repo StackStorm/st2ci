@@ -137,16 +137,26 @@ st2ci.st2_pkg_upgrade_e2e_test:
         upgrade_packages_rpm:
             action: st2ci.st2_pkg_upgrade_rpm
             input:
-                host: <% $.vm_fqdn $>
-                pkg_list: "st2 st2mistral st2chatops st2web st2enterprise"
+                host: <% $.vm_info.private_ip_address $>
+                pkg_list:
+                    - st2
+                    - st2mistral
+                    - st2chatops
+                    - st2web
+                    - st2enterprise
             on-success:
                 run_e2e_tests
 
         upgrade_packages_deb:
             action: st2ci.st2_pkg_upgrade_deb
             input:
-                host: <% $.vm_fqdn $>
-                pkg_list: "st2 st2mistral st2chatops st2web st2enterprise"
+                host: <% $.vm_info.private_ip_address $>
+                pkg_list:
+                    - st2
+                    - st2mistral
+                    - st2chatops
+                    - st2web
+                    - st2enterprise
             on-success:
                 run_e2e_tests
 

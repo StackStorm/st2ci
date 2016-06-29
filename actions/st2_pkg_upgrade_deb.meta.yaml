@@ -12,7 +12,7 @@ parameters:
         description: >
             Host on which upgrade should be performed
     pkg_list:
-        type: list
+        type: array
         required: true
         default:
             - st2
