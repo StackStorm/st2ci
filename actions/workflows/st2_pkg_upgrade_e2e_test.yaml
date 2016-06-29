@@ -1,7 +1,7 @@
 ---
 version: '2.0'
 
-st2ci.st2_pkg_e2e_test:
+st2ci.st2_pkg_upgrade_e2e_test:
     type: direct
     input:
         - hostname
@@ -15,6 +15,8 @@ st2ci.st2_pkg_e2e_test:
         - release
         - upgrade_from_version
         - upgrade_to_version
+        - enterprise
+        - enterprise_key
         - pkg_env
         - bootstrap_branch
         - bootstrap_script
@@ -40,6 +42,7 @@ st2ci.st2_pkg_e2e_test:
         init_vars:
             action: std.noop
             publish:
+                vm_id: null
                 vm_fqdn: <% $.hostname %>.<% $.dns_zone %>
                 installed:
                     version_str: not installed
@@ -71,6 +74,7 @@ st2ci.st2_pkg_e2e_test:
                 role: <% $.role %>
             publish:
                 vm_info: <% task(create_vm).result.tasks[2].result.result[0] %>
+                vm_id: <% task(create_vm).result.tasks[2].result.result[0].id %>
             on-success:
                 - patch_rhel6: <% $.distro = 'RHEL6' %>
                 - get_bootstrap_script: <% $.distro != 'RHEL6' %>
@@ -78,7 +82,7 @@ st2ci.st2_pkg_e2e_test:
         patch_rhel6:
             action: core.remote_sudo
             input:
-                hosts: <% $.vm_fqdn %>
+                hosts: <% $.vm_info.private_ip_address %>
                 cmd: yum-config-manager --enable rhui-REGION-rhel-server-releases-optional
             on-success:
                 - get_bootstrap_script
@@ -86,7 +90,7 @@ st2ci.st2_pkg_e2e_test:
         get_bootstrap_script:
             action: core.remote_sudo
             input:
-                hosts: <% $.vm_fqdn %>
+                hosts: <% $.vm_info.private_ip_address %>
                 cmd: curl -Ss -k -o /tmp/st2_bootstrap.sh <% $.bootstrap_script_url %>
             on-success:
                 - run_bootstrap_script
@@ -94,16 +98,28 @@ st2ci.st2_pkg_e2e_test:
         run_bootstrap_script:
             action: core.remote_sudo
             input:
-                hosts: <% $.vm_fqdn %>
+                hosts: <% $.vm_info.private_ip_address %>
                 cmd: bash /tmp/st2_bootstrap.sh --<% $.pkg_env %> --<% $.release %> --version=<% coalesce($.upgrade_from_version, '') %> --user=<% $.st2_username %> --password=<% $.st2_password %>
                 timeout: 900
+            on-success:
+                - upgrade_to_enterprise: <% $.enterprise %>
+                - get_installed_version: <% not $.enterprise %>
+
+        upgrade_to_enterprise:
+            action: st2cd.st2_upgrade_to_enterprise
+            input:
+                hosts: <% $.vm_info.private_ip_address %>
+                license_key: <% $.enterprise_key %>
+                distro: <% $.distro %>
+                pkg_env: <% $.pkg_env %>
+                release: <% $.release %>
             on-success:
                 - get_installed_version
 
         get_installed_version:
             action: st2cd.st2_get_installed_version
             input:
-                host: <% $.vm_fqdn %>
+                host: <% $.vm_info.private_ip_address %>
             publish:
                 installed:
                     distro: <% task(get_installed_version).result.distro %>
@@ -122,7 +138,7 @@ st2ci.st2_pkg_e2e_test:
             action: st2ci.st2_pkg_upgrade_rpm
             input:
                 host: <% $.vm_fqdn $>
-                pkg_list: "st2 st2mistral st2chatops st2web"
+                pkg_list: "st2 st2mistral st2chatops st2web st2enterprise"
             on-success:
                 run_e2e_tests
 
@@ -130,7 +146,7 @@ st2ci.st2_pkg_e2e_test:
             action: st2ci.st2_pkg_upgrade_deb
             input:
                 host: <% $.vm_fqdn $>
-                pkg_list: "st2 st2mistral st2chatops st2web"
+                pkg_list: "st2 st2mistral st2chatops st2web st2enterprise"
             on-success:
                 run_e2e_tests
 

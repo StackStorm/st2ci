@@ -59,6 +59,11 @@ parameters:
             - staging
             - production
         default: production
+    enterprise:
+        type: boolean
+        default: false
+    enterprise_key:
+        type: string
     bootstrap_branch:
         type: string
         default: master
