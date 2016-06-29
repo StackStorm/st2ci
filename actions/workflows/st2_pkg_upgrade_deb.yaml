@@ -4,7 +4,7 @@ st2ci.st2_pkg_upgrade_deb:
     description: Upgrade StackStorm deb packages on the box using apt-get.
     type: direct
     input:
-        - hosts     # Host on which upgrade should be run
+        - host      # Host on which upgrade should be run
         - pkg_list  # List of packages to upgrade
 
     tasks:

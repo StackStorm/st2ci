@@ -4,7 +4,7 @@ st2ci.st2_pkg_upgrade_rpm:
     description: Upgrade StackStorm rpm packages on the box using yum.
     type: direct
     input:
-        - hosts     # Host on which upgrade should be run
+        - host      # Host on which upgrade should be run
         - pkg_list  # List of packages to upgrade
 
     tasks:

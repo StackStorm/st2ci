@@ -19,3 +19,4 @@ parameters:
             - st2web
             - st2chatops
             - st2mistral
+            - st2enterprise
