@@ -49,8 +49,10 @@ parameters:
         default: stable
     upgrade_from_version:
         type: string
+        required: true
     upgrade_to_version:
         type: string
+        required: true
     pkg_env:
         type: string
         enum:
