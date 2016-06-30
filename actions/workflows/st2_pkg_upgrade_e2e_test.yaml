@@ -102,10 +102,10 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 cmd: bash /tmp/st2_bootstrap.sh --<% $.pkg_env %> --<% $.release %> --version=<% coalesce($.upgrade_from_version, '') %> --user=<% $.st2_username %> --password=<% $.st2_password %>
                 timeout: 900
             on-success:
-                - upgrade_to_enterprise: <% $.enterprise %>
+                - install_enterprise: <% $.enterprise %>
                 - get_installed_version: <% not $.enterprise %>
 
-        upgrade_to_enterprise:
+        install_enterprise:
             action: st2cd.st2_upgrade_to_enterprise
             input:
                 hosts: <% $.vm_info.private_ip_address %>
@@ -143,9 +143,9 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2mistral
                     - st2chatops
                     - st2web
-                    - st2enterprise
             on-success:
-                run_e2e_tests
+                - upgrade_enterprise_packages_rpm: <% $.enterprise %>
+                - run_e2e_tests: <% not $.enterprise %>
 
         upgrade_packages_deb:
             action: st2ci.st2_pkg_upgrade_deb
@@ -156,9 +156,27 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2mistral
                     - st2chatops
                     - st2web
+            on-success:
+                - upgrade_enterprise_packages_deb: <% $.enterprise %>
+                - run_e2e_tests: <% not $.enterprise %>
+
+        upgrade_enterprise_packages_deb:
+            action: st2ci.st2_pkg_upgrade_deb
+            input:
+                host: <% $.vm_info.private_ip_address %>
+                pkg_list:
                     - st2enterprise
             on-success:
-                run_e2e_tests
+                - run_e2e_tests
+
+        upgrade_enterprise_packages_rpm:
+            action: st2ci.st2_pkg_upgrade_rpm
+            input:
+                host: <% $.vm_info.private_ip_address %>
+                pkg_list:
+                    - st2enterprise
+            on-success:
+                - run_e2e_tests
 
         run_e2e_tests:
             action: st2cd.st2_e2e_tests

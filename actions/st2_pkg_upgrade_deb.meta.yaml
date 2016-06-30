@@ -14,9 +14,3 @@ parameters:
     pkg_list:
         type: array
         required: true
-        default:
-            - st2
-            - st2web
-            - st2chatops
-            - st2mistral
-            - st2enterprise
