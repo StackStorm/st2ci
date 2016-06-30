@@ -14,4 +14,4 @@ st2ci.st2_pkg_upgrade_deb:
             action: core.remote
             input:
                 hosts: <% $.host %>
-                cmd: sudo apt-get --only-upgrade <% $.pkg %>
+                cmd: sudo apt-get install --only-upgrade <% $.pkg %>
