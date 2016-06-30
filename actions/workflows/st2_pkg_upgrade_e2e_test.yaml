@@ -212,7 +212,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nFROM_VERSION: <% $upgrade_from_version %>\nTO_VERSION: <% $.upgrade_from_version %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
+                attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nFROM_VERSION: <% $upgrade_from_version %>\nTO_VERSION: <% $.upgrade_to_version %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
 
 
         destroy_vm_on_failure:
@@ -228,6 +228,6 @@ st2ci.st2_pkg_upgrade_e2e_test:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.upgrade_from_version, ''latest'') %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#FF0000"}]'
+                attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nFROM_VERSION: <% $.upgrade_from_version %>\nTO_VERSION: <% $.upgrade_to_version %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#FF0000"}]'
             on-complete:
                 - fail
