@@ -14,4 +14,5 @@ st2ci.st2_pkg_upgrade_rpm:
             action: core.remote
             input:
                 hosts: <% $.host %>
-                cmd: sudo yum update <% $.pkg %>
+                cmd: sudo yum update -y <% $.pkg %>
+                timeout: 180

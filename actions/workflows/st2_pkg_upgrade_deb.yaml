@@ -14,4 +14,5 @@ st2ci.st2_pkg_upgrade_deb:
             action: core.remote
             input:
                 hosts: <% $.host %>
-                cmd: sudo apt-get install --only-upgrade <% $.pkg %>
+                cmd: sudo apt-get -o Dpkg::Options::="--force-confnew" -y install --only-upgrade <% $.pkg %>
+                timeout: 180
