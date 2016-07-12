@@ -1,0 +1,9 @@
+---
+name: st2_pkg_e2e_test_concurrency
+pack: st2ci
+description: Limits the concurrent executions of st2_pkg_e2e_test workflow
+enabled: true
+resource_ref: st2ci.st2_pkg_e2e_test
+policy_type: action.concurrency
+parameters:
+    threshold: 3
