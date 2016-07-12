@@ -6,4 +6,4 @@ enabled: true
 resource_ref: st2ci.st2_pkg_e2e_test
 policy_type: action.concurrency
 parameters:
-    threshold: 3
+    threshold: 4
