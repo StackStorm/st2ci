@@ -168,7 +168,9 @@ st2ci.st2_pkg_upgrade_e2e_test:
             input:
                 host: <% $.vm_info.private_ip_address %>
                 pkg_list:
-                    - st2enterprise
+                    - st2flow
+                    - st2-auth-ldap
+                version: <% $.upgrade_to_version %>
             on-success:
                 - run_e2e_tests
 
@@ -177,7 +179,9 @@ st2ci.st2_pkg_upgrade_e2e_test:
             input:
                 host: <% $.vm_info.private_ip_address %>
                 pkg_list:
-                    - st2enterprise
+                    - st2flow
+                    - st2-auth-ldap
+                version: <% $.upgrade_to_version %>
             on-success:
                 - run_e2e_tests
 

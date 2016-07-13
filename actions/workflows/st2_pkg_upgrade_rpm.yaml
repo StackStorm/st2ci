@@ -38,7 +38,7 @@ workflows:
             cmd: repoquery --show-duplicates <% $.pkg %>-<% $.version %>* | sort --version-sort | tail -n 1
             timeout: 180
           publish:
-            pkg_name_with_revision: <% task(get_latest_revision).get($.host).result.stdout %>
+            pkg_name_with_revision: <% task(get_latest_revision).result.get($.host).stdout %>
           on-complete:
             - upgrade_pkg_via_yum
 
@@ -46,7 +46,7 @@ workflows:
             action: core.remote
             input:
                 hosts: <% $.host %>
-                cmd: sudo yum update -y <% $.pkg_name_with_revision %>
+                cmd: sudo yum install -y <% $.pkg_name_with_revision %>
                 timeout: 180
 
 

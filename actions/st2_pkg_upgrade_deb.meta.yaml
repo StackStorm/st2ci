@@ -18,3 +18,7 @@ parameters:
         type: string
         default: ''
         description: "Version to upgrade to"
+    workflow:
+        default: st2ci.st2_pkg_upgrade_deb.main
+        immutable: true
+        type: string
