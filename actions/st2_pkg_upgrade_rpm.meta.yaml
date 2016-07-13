@@ -14,3 +14,7 @@ parameters:
     pkg_list:
         type: array
         required: true
+    version:
+        type: string
+        default: ''
+        description: "Version to upgrade to"

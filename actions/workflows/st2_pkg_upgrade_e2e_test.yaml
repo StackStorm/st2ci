@@ -144,6 +144,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2mistral
                     - st2chatops
                     - st2web
+                version: <% $.upgrade_to_version %>
             on-success:
                 - upgrade_enterprise_packages_rpm: <% $.enterprise %>
                 - run_e2e_tests: <% not $.enterprise %>
@@ -157,6 +158,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2mistral
                     - st2chatops
                     - st2web
+                version: <% $.upgrade_to_version %>
             on-success:
                 - upgrade_enterprise_packages_deb: <% $.enterprise %>
                 - run_e2e_tests: <% not $.enterprise %>
