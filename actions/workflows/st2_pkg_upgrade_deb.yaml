@@ -21,8 +21,6 @@ st2ci.st2_pkg_upgrade_deb:
                 - upgrade_pkgs_via_apt_get
 
         upgrade_pkgs_via_apt_get:
-            with-items: pkg in <% $.pkg_list %>
-            concurrency: 1
             action: core.remote
             input:
                 hosts: <% $.host %>
