@@ -17,7 +17,7 @@ st2ci.st2_pkg_upgrade_rpm:
                 cmd: apt-cache show <% $.pkg %> | grep Version | awk '{print $2}' | grep <% $.version %> | sort --version-sort | tail -n 1
                 timeout: 180
             on-complete:
-                - updgrade_pkgs_via_apt_get
+                - upgrade_pkgs_via_yum
 
         upgrade_pkgs_via_yum:
             with-items: pkg in <% $.pkg_list %>
