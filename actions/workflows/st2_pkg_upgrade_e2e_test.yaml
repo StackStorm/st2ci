@@ -113,6 +113,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 distro: <% $.distro %>
                 pkg_env: <% $.pkg_env %>
                 release: <% $.release %>
+                version: <% coalesce($.upgrade_from_version, '') %>
             on-success:
                 - get_installed_version
 
@@ -204,6 +205,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
             action: st2cd.destroy_vm
             input:
                 hostname: <% $.hostname %>
+                instance_id: <% $.vm_id %>
             on-complete:
                 - notify_success
         notify_success:
@@ -219,6 +221,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
             action: st2cd.destroy_vm
             input:
                 hostname: <% $.hostname %>
+                instance_id: <% $.vm_id %>
             on-complete:
                 - notify_failure
 

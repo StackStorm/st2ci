@@ -8,6 +8,17 @@ st2ci.st2_pkg_upgrade_rpm:
         - pkg_list  # List of packages to upgrade
 
     tasks:
+        get_latest_revision:
+            with-items: pkg in <% $.pkg_list %>
+            concurrency: 1
+            action: core.remote
+            input:
+                hosts: <% $.host %>
+                cmd: apt-cache show <% $.pkg %> | grep Version | awk '{print $2}' | grep <% $.version %> | sort --version-sort | tail -n 1
+                timeout: 180
+            on-complete:
+                - updgrade_pkgs_via_apt_get
+
         upgrade_pkgs_via_yum:
             with-items: pkg in <% $.pkg_list %>
             concurrency: 1
