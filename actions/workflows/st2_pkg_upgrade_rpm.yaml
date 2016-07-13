@@ -1,6 +1,10 @@
 version: '2.0'
+name: st2ci.st2_pkg_upgrade_rpm
+description: Upgrade rpm packages to latest revision of specified version
 
-st2ci.st2_pkg_upgrade_rpm:
+workflows:
+
+  main:
     description: Upgrade StackStorm rpm packages on the box using yum.
     type: direct
     input:
@@ -9,20 +13,38 @@ st2ci.st2_pkg_upgrade_rpm:
         - version   # Version to upgrade to
 
     tasks:
-        get_latest_revision:
-            with-items: pkg in <% $.pkg_list %>
-            concurrency: 1
-            action: core.remote
-            input:
-                hosts: <% $.host %>
-                cmd: repoquery --show-duplicates <% $.pkg %>-<% $.version %>* | sort --version-sort | tail -n 1
-                timeout: 180
-            on-complete:
-                - upgrade_pkgs_via_yum
+      install_pkg:
+        with-items: pkg in <% $.pkg_list %>
+        workflow: install_latest_revision_of_pkg
+        input:
+          host: <% $.host %>
+          pkg: <% $.pkg %>
+          version: <% $.version %>
+        concurrency: 1
 
-        upgrade_pkgs_via_yum:
+  install_latest_revision_of_pkg:
+      description: Install latest revision of a specified package
+      type: direct
+      input:
+          - host
+          - pkg
+          - version
+
+      tasks:
+        get_latest_revision:
+          action: core.remote
+          input:
+            hosts: <% $.host %>
+            cmd: repoquery --show-duplicates <% $.pkg %>-<% $.version %>* | sort --version-sort | tail -n 1
+            timeout: 180
+          on-complete:
+            - upgrade_pkg_via_yum
+
+        upgrade_pkg_via_yum:
             action: core.remote
             input:
                 hosts: <% $.host %>
                 cmd: sudo yum update -y <% task(get_latest_revision).result.stdout %>
                 timeout: 180
+
+
