@@ -188,7 +188,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
         migrate_models:
             action: core.remote
             input:
-                host: <% $.vm_info.private_ip_address %>
+                hosts: <% $.vm_info.private_ip_address %>
                 cmd: echo /opt/stackstorm/st2/bin/st2-perform migrations --from=<% $.upgrade_from_version %> --to=<% $.upgrade_to_version %>
             on-success:
                 - post_migration_restart
@@ -196,7 +196,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
         post_migration_restart:
             action: core.remote_sudo
             input:
-                host: <% $.vm_info.private_ip_address %>
+                hosts: <% $.vm_info.private_ip_address %>
                 cmd: st2ctl restart
                 timeout: 180
             on-success:
