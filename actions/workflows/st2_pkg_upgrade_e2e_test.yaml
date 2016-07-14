@@ -147,7 +147,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 version: <% $.upgrade_to_version %>
             on-success:
                 - upgrade_enterprise_packages_rpm: <% $.enterprise %>
-                - run_e2e_tests: <% not $.enterprise %>
+                - migrate_models: <% not $.enterprise %>
 
         upgrade_packages_deb:
             action: st2ci.st2_pkg_upgrade_deb
@@ -161,7 +161,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 version: <% $.upgrade_to_version %>
             on-success:
                 - upgrade_enterprise_packages_deb: <% $.enterprise %>
-                - run_e2e_tests: <% not $.enterprise %>
+                - migrate_models: <% not $.enterprise %>
 
         upgrade_enterprise_packages_deb:
             action: st2ci.st2_pkg_upgrade_deb
@@ -172,7 +172,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2-auth-ldap
                 version: <% $.upgrade_to_version %>
             on-success:
-                - run_e2e_tests
+                - migrate_models
 
         upgrade_enterprise_packages_rpm:
             action: st2ci.st2_pkg_upgrade_rpm
@@ -182,6 +182,23 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2flow
                     - st2-auth-ldap
                 version: <% $.upgrade_to_version %>
+            on-success:
+                - migrate_models
+
+        migrate_models:
+            action: core.remote
+            input:
+                host: <% $.vm_info.private_ip_address %>
+                cmd: echo /opt/stackstorm/st2/bin/st2-perform migrations --from=<% $.upgrade_from_version %> --to=<% $.upgrade_to_version %>
+            on-success:
+                - post_migration_restart
+
+        post_migration_restart:
+            action: core.remote_sudo
+            input:
+                host: <% $.vm_info.private_ip_address %>
+                cmd: st2ctl restart
+                timeout: 180
             on-success:
                 - run_e2e_tests
 
