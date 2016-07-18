@@ -81,6 +81,13 @@ st2ci.st2_pkg_e2e_test:
                 hosts: <% $.vm_info.private_ip_address %>
                 cmd: yum-config-manager --enable rhui-REGION-rhel-server-releases-optional
             on-success:
+                - patch_rhel6_curl
+        patch_rhel6_curl:
+            action: core.remote_sudo
+            input:
+                hosts: <% $.vm_info.private_ip_address %>
+                cmd: yum install -y curl nss
+            on-success:
                 - get_bootstrap_script
         get_bootstrap_script:
             action: core.remote_sudo
