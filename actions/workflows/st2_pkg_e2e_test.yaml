@@ -21,11 +21,21 @@ st2ci.st2_pkg_e2e_test:
         - bootstrap_script
         - triggering_commit_url
         - debug
-        - st2_username: st2admin
-        - st2_password: Ch@ngeMe
-        - notify_channels:
+
+    vars:
+        vm_id: null
+        vm_fqdn: <% $.hostname %>.<% $.dns_zone %>
+        installed:
+            version_str: not installed
+        bootstrap_script_url: <% coalesce(
+            $.bootstrap_script,
+            "https://raw.githubusercontent.com/StackStorm/st2-packages/" +
+                $.bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
+        st2_username: st2admin
+        st2_password: Ch@ngeMe
+        notify_channels:
             - "#thunderdome"
-        - notify_failure_channels:
+        notify_failure_channels:
             - "#thunderdome"
             - "#stackstorm"
 
@@ -34,23 +44,10 @@ st2ci.st2_pkg_e2e_test:
 
     task-defaults:
         on-error:
-            - destroy_vm_on_failure: <% not $.debug %>
-            - notify_failure: <% $.debug %>
+            - destroy_vm_on_failure: <% not $.debug and $.vm_id != null %>
+            - notify_failure: <% $.debug or (not $.debug and $.vm_id = null) %>
 
     tasks:
-        init_vars:
-            action: std.noop
-            publish:
-                vm_id: null
-                vm_fqdn: <% $.hostname %>.<% $.dns_zone %>
-                installed:
-                    version_str: not installed
-                bootstrap_script_url: <% coalesce(
-                    $.bootstrap_script,
-                    "https://raw.githubusercontent.com/StackStorm/st2-packages/" +
-                        $.bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
-            on-success:
-                - get_webui_server
         get_webui_server:
             action: core.local cmd="hostname"
             publish:
@@ -70,8 +67,8 @@ st2ci.st2_pkg_e2e_test:
                 distro: pkg_<% $.distro %>
                 role: <% $.role %>
             publish:
-                vm_info: <% task(create_vm).result.tasks[2].result.result[0] %>
-                vm_id: <% task(create_vm).result.tasks[2].result.result[0].id %>
+                vm_info: <% task(create_vm).result.vm_info %>
+                vm_id: <% task(create_vm).result.vm_info.id %>
             on-success:
                 - patch_rhel6: <% $.distro = 'RHEL6' %>
                 - get_bootstrap_script: <% $.distro != 'RHEL6' %>
