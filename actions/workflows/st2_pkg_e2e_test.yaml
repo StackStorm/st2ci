@@ -151,8 +151,28 @@ st2ci.st2_pkg_e2e_test:
             input:
                 hostname: <% $.hostname %>
                 instance_id: <% $.vm_id %>
-            on-complete:
+            retry:
+                count: 2
+                delay: 30
+            on-success:
                 - notify_success
+            on-error:
+                - notify_failure
+
+        destroy_vm_on_failure:
+            action: st2cd.destroy_vm
+            input:
+                hostname: <% $.hostname %>
+                instance_id: <% $.vm_id %>
+            retry:
+                count: 2
+                delay: 30
+            on-complete:
+                - notify_failure
+            on-error:
+                - noop
+
+
         notify_success:
             with-items: channel in <% $.notify_channels %>
             action: slack.chat.postMessage
@@ -161,14 +181,6 @@ st2ci.st2_pkg_e2e_test:
                 text: ""
                 attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
 
-
-        destroy_vm_on_failure:
-            action: st2cd.destroy_vm
-            input:
-                hostname: <% $.hostname %>
-                instance_id: <% $.vm_id %>
-            on-complete:
-                - notify_failure
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>
             action: slack.chat.postMessage
