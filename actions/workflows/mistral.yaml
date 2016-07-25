@@ -42,9 +42,9 @@ workflows:
                 - notify_failure: <% $.debug %>
         tasks:
             init_vars:
-                action: core.local cmd="hostname"
+                action: core.noop
                 publish:
-                    webui_base_url: http://<% task(init_vars).result.stdout %>:8080
+                    webui_base_url: https://st2-build
                     is_infra_setup: False
                 on-success:
                     - notify_start

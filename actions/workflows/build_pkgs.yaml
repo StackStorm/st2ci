@@ -16,14 +16,9 @@ st2ci.build_pkgs:
         - notify_failure_channels:
             - "#thunderdome"
             - "#stackstorm"
+        - webui_base_url: "https://st2-build"
 
     tasks:
-        get_webui_server:
-            action: core.local cmd="hostname"
-            publish:
-                webui_base_url: http://<% task(get_webui_server).result.stdout %>:8080
-            on-success:
-                - build_pkgs_circle_ci
         build_pkgs_circle_ci:
             action: circle_ci.run_build
             input:
