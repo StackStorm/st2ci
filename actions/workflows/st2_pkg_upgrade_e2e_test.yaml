@@ -50,9 +50,9 @@ st2ci.st2_pkg_upgrade_e2e_test:
 
     tasks:
         get_webui_server:
-            action: core.local cmd="hostname"
+            action: core.noop
             publish:
-                webui_base_url: http://<% task(get_webui_server).result.stdout %>:8080
+                webui_base_url: http://st2-build
             on-success:
                 - notify_start
                 - create_vm
