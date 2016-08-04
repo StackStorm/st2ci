@@ -1,5 +1,6 @@
 ---
 name: mistral_os_master
+pack: st2ci
 description: Run integration tests and merge upstream changes from OpenStack Mistral master
 enabled: false
 trigger:
