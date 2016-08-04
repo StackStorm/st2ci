@@ -1,9 +1,10 @@
 ---
 name: mistral_st2_master
+pack: st2ci
 description: Run integration tests using StackStorm's Mistral fork
 enabled: true
 trigger:
-    type: GitHubWebhook.github_event
+    type: githubwebhook.github_event
 criteria:
     trigger.body.ref:
         pattern: refs/heads/master
