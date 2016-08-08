@@ -57,7 +57,7 @@ st2ci.st2_pkg_promote_enterprise:
             input:
                 repo: <% $.stg_repo %>
             publish:
-                pkgs_list: <% task(get_pkgs_list).result.result %>
+                pkgs_list: <% task(get_pkgs_list).result.body %>
             on-success:
                 - get_latest_pkg_rev: <% len($.pkgs_list) > 0 %>
                 - fail: <% len($.pkgs_list) <= 0 %>
