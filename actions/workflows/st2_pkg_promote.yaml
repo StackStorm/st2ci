@@ -50,9 +50,6 @@ st2ci.st2_pkg_promote:
             action: packagecloud.list_packages
             input:
                 repo: <% $.stg_repo %>
-                package: <% $.package %>            
-                distro_version: <% $.distro_version %>
-                version: <% $.version %>
             publish:
                 pkgs_list: <% task(get_pkgs_list).result.body %>
             on-success:
