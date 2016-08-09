@@ -56,6 +56,7 @@ st2ci.st2_pkg_promote_enterprise:
             action: packagecloud.list_packages
             input:
                 repo: <% $.stg_repo %>
+                filename_filter: *<% $.version %>*
             publish:
                 pkgs_list: <% task(get_pkgs_list).result.body %>
             on-success:
