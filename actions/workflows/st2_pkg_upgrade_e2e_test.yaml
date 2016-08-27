@@ -205,6 +205,20 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 cmd: st2ctl restart
                 timeout: 180
             on-success:
+                - get_upgraded_version
+
+        get_upgraded_version:
+            action: st2cd.st2_get_installed_version
+            input:
+                host: <% $.vm_info.private_ip_address %>
+            publish:
+                installed:
+                    distro: <% task(get_upgraded_version).result.distro %>
+                    versions: <% task(get_upgraded_version).result.versions %>
+                    version_str: <%
+                        task(get_upgraded_version).result.versions.items().select(
+                            $[0] + "=" + $[1]).join("\n\t") %>
+            on-success:
                 - run_e2e_tests
 
         run_e2e_tests:
@@ -262,7 +276,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nFROM_VERSION: <% $upgrade_from_version %>\nTO_VERSION: <% $.upgrade_to_version %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
+                attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nFROM_VERSION: <% $.upgrade_from_version %>\nTO_VERSION: <% $.upgrade_to_version %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
 
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>

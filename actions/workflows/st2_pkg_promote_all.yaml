@@ -17,8 +17,6 @@ st2ci.st2_pkg_promote_all:
         - promoted_st2mistral: False
         - promoted_st2web: False
         - promoted_st2flow: False
-        - promoted_st2_auth_ldap: False
-        - promoted_st2enterprise: False
         - notify_channels:
             - "#thunderdome"
         - notify_failure_channels:
@@ -29,9 +27,7 @@ st2ci.st2_pkg_promote_all:
                           st2chatops => $.promoted_st2chatops,
                           st2mistral => $.promoted_st2mistral,
                           st2web => $.promoted_st2web,
-                          st2flow => $.promoted_st2flow,
-                          st2-auth-ldap => $.promoted_st2_auth_ldap,
-                          st2enterprise => $.promoted_st2enterprise) %>
+                          st2flow => $.promoted_st2flow) %>
 
 
     task-defaults:
@@ -66,8 +62,6 @@ st2ci.st2_pkg_promote_all:
                 - promote_st2mistral
                 - promote_st2web
                 - promote_st2flow
-                - promote_st2_auth_ldap
-                - promote_st2enterprise
 
         promote_st2:
             action: st2ci.st2_pkg_promote
@@ -139,34 +133,6 @@ st2ci.st2_pkg_promote_all:
             on-error:
                 - noop
 
-        promote_st2_auth_ldap:
-            action: st2ci.st2_pkg_promote_enterprise
-            input:
-                package: st2-auth-ldap
-                distro_version: <% $.pkg_distro_version %>
-                release: <% $.release %>
-                version: <% $.version %>
-            publish:
-                promoted_st2_auth_ldap: <% $.version + '-' + task(promote_st2_auth_ldap).result.revision %>
-            on-complete:
-                - process_completion
-            on-error:
-                - noop
-
-        promote_st2enterprise:
-            action: st2ci.st2_pkg_promote_enterprise
-            input:
-                package: st2enterprise
-                distro_version: <% $.pkg_distro_version %>
-                release: <% $.release %>
-                version: <% $.version %>
-            publish:
-                promoted_st2enterprise: <% $.version + '-' + task(promote_st2enterprise).result.revision %>
-            on-complete:
-                - process_completion
-            on-error:
-                - noop
-
 
 
         process_completion:
@@ -174,15 +140,17 @@ st2ci.st2_pkg_promote_all:
             action: std.noop
             on-success:
                 - set_notify_failure: <%
-                        not $.promoted_st2 or not $.promoted_st2chatops or
-                        not $.promoted_st2mistral or not $.promoted_st2 or
-                        not $.promoted_st2flow or not $.promoted_st2_auth_ldap or
-                        not $.promoted_st2enterprise %>
+                        not $.promoted_st2 or
+                        not $.promoted_st2chatops or
+                        not $.promoted_st2mistral or
+                        not $.promoted_st2web or
+                        not $.promoted_st2flow %>
                 - set_notify_success: <%
-                        $.promoted_st2 and $.promoted_st2chatops and
-                        $.promoted_st2mistral and $.promoted_st2web and
-                        $.promoted_st2flow and $.promoted_st2_auth_ldap and
-                        $.promoted_st2enterprise %>
+                        $.promoted_st2 and
+                        $.promoted_st2chatops and
+                        $.promoted_st2mistral and
+                        $.promoted_st2web and
+                        $.promoted_st2flow %>
 
         set_notify_failure:
             action: std.noop
@@ -206,7 +174,7 @@ st2ci.st2_pkg_promote_all:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_promote_all: COMPLETED]", "title": "[st2ci.st2_pkg_promote_all: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nPACKAGE PROMOTED:\n\tst2=<% $.promoted_st2 %>\n\tst2chatops=<% $.promoted_st2chatops %>\n\tst2mistral=<% $.promoted_st2mistral %>\n\tst2web=<% $.promoted_st2web %>\n\tst2flow=<% $.promoted_st2flow %>\n\tst2-auth-ldap=<% $.promoted_st2_auth_ldap %>\n\tst2enterprise=<% $.promoted_st2enterprise %>", "color": "<% $.notify_color %>"}]'
+                attachments: '[{"fallback": "[st2ci.st2_pkg_promote_all: COMPLETED]", "title": "[st2ci.st2_pkg_promote_all: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nPACKAGE PROMOTED:\n\tst2=<% $.promoted_st2 %>\n\tst2chatops=<% $.promoted_st2chatops %>\n\tst2mistral=<% $.promoted_st2mistral %>\n\tst2web=<% $.promoted_st2web %>\n\tst2flow=<% $.promoted_st2flow %>", "color": "<% $.notify_color %>"}]'
 
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>
