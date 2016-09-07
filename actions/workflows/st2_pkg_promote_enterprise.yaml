@@ -27,6 +27,7 @@ st2ci.st2_pkg_promote_enterprise:
             production:
                 stable: enterprise
                 unstable: enterprise-unstable
+
     output:
         package: <% $.package %>
         release: <% $.release %>
@@ -38,21 +39,14 @@ st2ci.st2_pkg_promote_enterprise:
         stg_repo: <% $.stg_repo %>
         prd_repo: <% $.prd_repo %>
 
+    vars:
+        prd_repo: StackStorm/<% $.pkg_cloud_repo_map.production.get($.release) %>
+        stg_repo: StackStorm/<% $.pkg_cloud_repo_map.staging.get($.release) %>
+        arch: <% $.distro_arch_map.get($.distro_version.split("/")[0]) %>
+        package_type: <% $.distro_pkg_type_map.get($.distro_version.split("/")[0]) %>
+        packagecloud_api_url: <% "https://" + $.api_token + ":@packagecloud.io"  %>
 
     tasks:
-        init:
-            action: std.noop
-            publish:
-                prd_repo: StackStorm/<% $.pkg_cloud_repo_map.production.get($.release) %>
-                stg_repo: StackStorm/<% $.pkg_cloud_repo_map.staging.get($.release) %>
-                arch: <% $.distro_arch_map.get($.distro_version.split("/")[0]) %>
-                package_type: <% $.distro_pkg_type_map.get($.distro_version.split("/")[0]) %>
-                packagecloud_api_url: <% "https://" + $.api_token + ":@packagecloud.io"  %>
-            on-success:
-                - get_stg_pkg_info: <% $.revision != null %>
-                - get_pkgs_list: <% $.revision = null %>
-
-
         get_pkgs_list:
             action: packagecloud.list_packages
             input:
@@ -60,6 +54,7 @@ st2ci.st2_pkg_promote_enterprise:
                 package: <% $.package %>
                 distro_version: <% $.distro_version %>
                 version: <% $.version %>
+                release: <% $.revision %>
             publish:
                 pkgs_list: <% task(get_pkgs_list).result.result %>
             on-success:
@@ -67,7 +62,7 @@ st2ci.st2_pkg_promote_enterprise:
                 - fail: <% len($.pkgs_list) <= 0 %>
         get_pkg_meta:
             publish:
-                revision: <% $.pkgs_list.first().get('release') %>
+                revision: <% coalesce($.revision, $.pkgs_list.first().get('release')) %>
                 stg_pkg_url: <% $.packagecloud_api_url + $.pkgs_list.first().get('package_url') %>
                 prd_pkg_url: <%
                     $.packagecloud_api_url +
