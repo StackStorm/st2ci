@@ -15,6 +15,7 @@ st2ci.st2_pkg_test_and_promote_enterprise:
             RHEL6: el/6
             RHEL7: el/7
             UBUNTU14: ubuntu/trusty
+            UBUNTU16: ubuntu/xenial
         - promoted_st2: False
         - promoted_st2chatops: False
         - promoted_st2mistral: False

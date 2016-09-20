@@ -12,6 +12,7 @@ st2ci.bwc_pkg_promote_all:
             RHEL6: el/6
             RHEL7: el/7
             UBUNTU14: ubuntu/trusty
+            UBUNTU16: ubuntu/xenial
         - promoted_bwc_enterprise: False
         - promoted_st2_auth_ldap: False
         - promoted_bwc_ipfabric_suite: False
