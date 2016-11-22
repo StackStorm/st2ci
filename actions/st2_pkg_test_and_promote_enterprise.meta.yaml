@@ -24,8 +24,6 @@ parameters:
         enum:
             - stable
             - unstable
-    enterprise_key:
-        type: string
     version:
         type: string
     keyfile:
