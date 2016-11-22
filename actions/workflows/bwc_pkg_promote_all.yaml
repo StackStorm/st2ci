@@ -203,7 +203,7 @@ st2ci.bwc_pkg_promote_all:
         set_notify_failure:
             action: std.noop
             publish:
-                promoted: True
+                promoted: False
                 notify_color: "#FF0000"
                 notify_completion_channels: <% $.notify_failure_channels %>
             on-success:
@@ -212,7 +212,7 @@ st2ci.bwc_pkg_promote_all:
         set_notify_success:
             action: std.noop
             publish:
-                promoted: False
+                promoted: True
                 notify_color: "#008000"
                 notify_completion_channels: <% $.notify_channels %>
             on-success:
