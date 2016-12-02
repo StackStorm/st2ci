@@ -17,7 +17,7 @@ st2cd.promote_package:
       init:
         action: core.local
         input:
-          cmd: "mkdir -p /tmp/st2-up/{ubuntu/trusty,debian/wheezy,debian/jessie,el/6,el/7}"
+          cmd: "mkdir -p /tmp/st2-up/{ubuntu/trusty,ubuntu/xenial,debian/wheezy,debian/jessie,el/6,el/7}"
         publish:
           rpm: "<% $.package %>-<% $.version %>-<% $.revision %>.x86_64.rpm"
           deb: "<% $.package %>_<% $.version %>-<% $.revision %>_amd64.deb"
@@ -43,7 +43,20 @@ st2cd.promote_package:
           timeout: <% $.timeout %>
 #        on-success: cleanup
 #        on-error: cleanup
-
+      download_xenial:
+        action: core.local
+        input:
+          cmd: "wget -O /tmp/st2-up/ubuntu/xenial/<% $.deb %> https://packagecloud.io/StackStorm/<% $.source %>/ubuntu/pool/xenial/main/<% $.package.substring(0,1) %>/<% $.package %>/<% $.deb %>"
+          timeout: <% $.timeout %>
+        on-success: upload_xenial
+#        on-error: cleanup
+      upload_xenial:
+        action: core.local
+        input:
+          cmd: "LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% $.token %> package_cloud push StackStorm/<% $.repo %>/ubuntu/xenial /tmp/st2-up/ubuntu/xenial/<% $.deb %>"
+          timeout: <% $.timeout %>
+#        on-success: cleanup
+#        on-error: cleanup
       download_wheezy:
         action: core.local
         input:

@@ -38,6 +38,7 @@ parameters:
             - RHEL6
             - RHEL7
             - UBUNTU14
+            - UBUNTU16
     role:
         type: string
         default: cislave

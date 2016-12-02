@@ -12,6 +12,7 @@ st2ci.bwc_pkg_promote_all:
             RHEL6: el/6
             RHEL7: el/7
             UBUNTU14: ubuntu/trusty
+            UBUNTU16: ubuntu/xenial
         - promoted: False
         - promoted_bwc_enterprise: False
         - promoted_st2_auth_ldap: False
@@ -192,7 +193,7 @@ st2ci.bwc_pkg_promote_all:
                         not $.promoted_bwc_cli or
                         not $.promoted_bwc_ui %>
                 - set_notify_success: <%
-                        $.promoted_bwc_enterprise and 
+                        $.promoted_bwc_enterprise and
                         $.promoted_st2_auth_ldap and
                         $.promoted_bwc_ipfabric_suite and
                         $.promoted_bwc_ipfabric_packs and
