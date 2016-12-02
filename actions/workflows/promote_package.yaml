@@ -45,12 +45,12 @@ st2cd.promote_package:
 #        on-error: cleanup
       download_xenial:
         action: core.local
-        input:                
+        input:
           cmd: "wget -O /tmp/st2-up/ubuntu/xenial/<% $.deb %> https://packagecloud.io/StackStorm/<% $.source %>/ubuntu/pool/xenial/main/<% $.package.substring(0,1) %>/<% $.package %>/<% $.deb %>"
           timeout: <% $.timeout %>
         on-success: upload_xenial
 #        on-error: cleanup
-      upload_xenial:           
+      upload_xenial:
         action: core.local
         input:
           cmd: "LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% $.token %> package_cloud push StackStorm/<% $.repo %>/ubuntu/xenial /tmp/st2-up/ubuntu/xenial/<% $.deb %>"

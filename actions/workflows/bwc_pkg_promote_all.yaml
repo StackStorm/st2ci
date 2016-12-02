@@ -13,6 +13,7 @@ st2ci.bwc_pkg_promote_all:
             RHEL7: el/7
             UBUNTU14: ubuntu/trusty
             UBUNTU16: ubuntu/xenial
+        - promoted: False
         - promoted_bwc_enterprise: False
         - promoted_st2_auth_ldap: False
         - promoted_bwc_ipfabric_suite: False
@@ -25,14 +26,19 @@ st2ci.bwc_pkg_promote_all:
         - notify_failure_channels:
             - "#thunderdome"
             - "#stackstorm"
+
     output:
-        versions: <% dict(bwc-enterprise-packages => $.promoted_bwc_enterprise,
-                          st2-auth-ldap => $.promoted_st2_auth_ldap,
-                          bwc-ipfabric-suite => $.promoted_bwc_ipfabric_suite,
-                          bwc-ipfabric-packs => $.promoted_bwc_ipfabric_packs,
-                          bwc-topology => $.promoted_bwc_topology,
-                          bwc-cli => $.promoted_bwc_cli,
-                          bwc-ui => $.promoted_bwc_ui) %>
+        promoted: <% $.promoted %>
+        versions: <%
+            dict(
+                'bwc-enterprise' => $.promoted_bwc_enterprise,
+                'st2-auth-ldap' => $.promoted_st2_auth_ldap,
+                'bwc-ipfabric-suite' => $.promoted_bwc_ipfabric_suite,
+                'bwc-ipfabric-packs' => $.promoted_bwc_ipfabric_packs,
+                'bwc-topology' => $.promoted_bwc_topology,
+                'bwc-cli' => $.promoted_bwc_cli,
+                'bwc-ui' => $.promoted_bwc_ui
+            ) %>
 
 
     task-defaults:
@@ -76,7 +82,7 @@ st2ci.bwc_pkg_promote_all:
                 package: bwc-enterprise
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <% $.version.substring(0, $.version.lastIndexOf('.')) %>
+                version: <% $.version %>
             publish:
                 promoted_bwc_enterprise: <% $.version + '-' + task(promote_bwc_enterprise).result.revision %>
             on-complete:
@@ -90,7 +96,11 @@ st2ci.bwc_pkg_promote_all:
                 package: st2-auth-ldap
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <% $.version %>
+                version: <%
+                    switch(
+                        dev in $.version => $.version.substring(0, $.version.indexOf(dev)) + '.dev0',
+                        $.version => $.version
+                    ) %>
             publish:
                 promoted_st2_auth_ldap: <% $.version + '-' + task(promote_st2_auth_ldap).result.revision %>
             on-complete:
@@ -104,7 +114,7 @@ st2ci.bwc_pkg_promote_all:
                 package: bwc-ipfabric-suite
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <% $.version.substring(0, $.version.lastIndexOf('.')) %>
+                version: <% $.version %>
             publish:
                 promoted_bwc_ipfabric_suite: <% $.version + '-' + task(promote_bwc_ipfabric_suite).result.revision %>
             on-complete:
@@ -183,7 +193,7 @@ st2ci.bwc_pkg_promote_all:
                         not $.promoted_bwc_cli or
                         not $.promoted_bwc_ui %>
                 - set_notify_success: <%
-                        $.promoted_bwc_enterprise and 
+                        $.promoted_bwc_enterprise and
                         $.promoted_st2_auth_ldap and
                         $.promoted_bwc_ipfabric_suite and
                         $.promoted_bwc_ipfabric_packs and
@@ -194,6 +204,7 @@ st2ci.bwc_pkg_promote_all:
         set_notify_failure:
             action: std.noop
             publish:
+                promoted: False
                 notify_color: "#FF0000"
                 notify_completion_channels: <% $.notify_failure_channels %>
             on-success:
@@ -202,6 +213,7 @@ st2ci.bwc_pkg_promote_all:
         set_notify_success:
             action: std.noop
             publish:
+                promoted: True
                 notify_color: "#008000"
                 notify_completion_channels: <% $.notify_channels %>
             on-success:
