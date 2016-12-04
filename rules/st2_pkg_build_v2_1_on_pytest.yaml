@@ -1,5 +1,5 @@
 ---
-name: build_pkgs_master_on_pytests
+name: st2_pkg_build_v2_1_on_pytest
 description: Build pkgs on circleci once pytests pass
 pack: st2ci
 enabled: true
