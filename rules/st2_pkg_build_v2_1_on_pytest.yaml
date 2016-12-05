@@ -1,0 +1,29 @@
+---
+name: st2_pkg_build_v2_1_on_pytest
+description: Build pkgs on circleci once pytests pass
+pack: st2ci
+enabled: true
+
+trigger:
+    type: circle_ci.build_event
+
+criteria:
+    trigger.body.payload.branch:
+        type: equals
+        pattern: v2.1
+    trigger.body.payload.vcs_url:
+        type: equals
+        pattern: "https://github.com/StackStorm/st2"
+    trigger.body.payload.status:
+        type: equals
+        pattern: success
+
+action:
+    ref: st2ci.build_pkgs
+    parameters:
+        branch: "{{trigger.body.payload.branch}}"
+        revision: "{{trigger.body.payload.vcs_revision}}"
+        circle_url: "{{trigger.body.payload.build_url}}"
+        github_url: "{{trigger.body.payload.compare}}"
+        committer: "{{trigger.body.payload.committer_name}}"
+        commit_message: "{{trigger.body.payload.subject}}"
