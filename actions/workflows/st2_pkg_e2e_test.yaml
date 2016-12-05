@@ -84,6 +84,7 @@ st2ci.st2_pkg_e2e_test:
             input:
                 hosts: <% $.vm_info.private_ip_address %>
                 cmd: yum install -y curl nss
+                timeout: 180
             on-success:
                 - get_bootstrap_script
         get_bootstrap_script:
