@@ -1,0 +1,11 @@
+---
+name: get_package_cloud_latest
+pack: st2ci
+description: Get latest version of package cloud package from list.
+enabled: true
+runner_type: python-script
+entry_point: get_package_cloud_latest.py
+parameters:
+    revisons:
+        type: object
+        required: true

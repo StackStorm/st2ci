@@ -51,11 +51,25 @@ st2ci.st2_pkg_promote:
             publish:
                 pkgs_list: <% task(get_pkgs_list).result.result %>
             on-success:
-                - get_pkg_meta: <% len($.pkgs_list) > 0 %>
+                - get_package_cloud_latest: <% len($.pkgs_list) > 0 %>
                 - fail: <% len($.pkgs_list) <= 0 %>
+
+
+        get_package_cloud_latest:
+            action: st2ci.get_package_cloud_latest
+            input:
+                revisions: <% $pkg_list %>
+            publish:
+                pkgs_latest: <% task(get_package_cloud_latest).result.result %>
+            on-success:
+                - get_pkg_meta
+            on-fail:
+                - fail
+
+
         get_pkg_meta:
             publish:
-                revision: <% coalesce($.revision, $.pkgs_list.first().get('release')) %>
+                revision: <% coalesce($.revision, $.pkgs_latest) %>
                 stg_pkg_url: <% $.packagecloud_api_url + $.pkgs_list.first().get('package_url') %>
                 prd_pkg_url: <%
                     $.packagecloud_api_url +
