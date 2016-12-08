@@ -1,0 +1,46 @@
+---
+name: st2_u16_install_check
+pack: st2ci
+description: Check st2 installation
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/st2_u16_install_check.yaml
+parameters:
+    count:
+        type: integer
+        description: Number of times to run CI on U16
+        default: 1
+    hostname:
+        type: string
+        required: true
+    distro:
+        type: string
+        # required: true
+        enum:
+            - CENTOS6
+            - CENTOS7
+            - RHEL6
+            - RHEL7
+            - UBUNTU14
+            - UBUNTU16
+        default: UBUNTU16
+    release:
+        type: string
+        enum:
+            - stable
+            - unstable
+        default: stable
+    pkg_env:
+        type: string
+        enum:
+            - staging
+            - production
+        default: production
+    bootstrap_branch:
+        type: string
+        default: master
+    bootstrap_script:
+        type: string
+    debug:
+        type: boolean
+        default: false

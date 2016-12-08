@@ -1,0 +1,33 @@
+---
+version: '2.0'
+
+st2ci.st2_u16_install_check:
+    type: direct
+    input:
+        - count
+        - hostname
+        - distro
+        - release
+        - bootstrap_branch
+        - bootstrap_script
+        - pkg_env
+        - debug
+
+    output:
+        versions: <% $.installed.versions %>
+
+    tasks:
+        run_CI_in_loop:
+            action: st2ci.st2_pkg_e2e_test.yaml
+            with-items: i in <% list(range(0, $.count)) %>
+            input:
+                    hostname: <% $.hostname %>
+                    distro: pkg_<% $.distro %>
+                    release: <% $.release  %>
+                    bootstrap_branch: <% $.bootstrap_branch %>
+                    bootstrap_script: <% $.bootstrap_script %>
+                    pkg_env: <% $.pkg_env %>
+                    debug: <% $.debug %>
+            # publish:
+            # on-success:
+
