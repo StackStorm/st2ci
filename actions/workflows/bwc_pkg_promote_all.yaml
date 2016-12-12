@@ -36,7 +36,7 @@ st2ci.bwc_pkg_promote_all:
                 'bwc-ipfabric-suite' => $.promoted_bwc_ipfabric_suite,
                 'bwc-ipfabric-packs' => $.promoted_bwc_ipfabric_packs,
                 'bwc-topology' => $.promoted_bwc_topology,
-                'bwc-cli' => $.promoted_bwc_cli,
+                'bwc_cli' => $.promoted_bwc_cli,
                 'bwc-ui' => $.promoted_bwc_ui
             ) %>
 
@@ -153,7 +153,7 @@ st2ci.bwc_pkg_promote_all:
         promote_bwc_cli:
             action: st2ci.st2_pkg_promote_enterprise
             input:
-                package: bwc-cli
+                package: bwc_cli
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
                 version: <% $.version %>
@@ -225,7 +225,7 @@ st2ci.bwc_pkg_promote_all:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"fallback": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nPACKAGE PROMOTED:\n\tbwc-enterprise-packages=<% $.promoted_bwc_enterprise %>\n\tst2-auth-ldap=<% $.promoted_st2_auth_ldap %>\n\tbwc-ipfabric-suite=<% $.promoted_bwc_ipfabric_suite %>\n\tbwc-ipfabric-packs=<% $.promoted_bwc_ipfabric_packs %>\n\tbwc-topology=<% $.promoted_bwc_topology %>\n\tbwc-cli=<% $.promoted_bwc_cli %>\n\tbwc-ui=<% $.promoted_bwc_ui %>", "color": "<% $.notify_color %>"}]'
+                attachments: '[{"fallback": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nPACKAGE PROMOTED:\n\tbwc-enterprise-packages=<% $.promoted_bwc_enterprise %>\n\tst2-auth-ldap=<% $.promoted_st2_auth_ldap %>\n\tbwc-ipfabric-suite=<% $.promoted_bwc_ipfabric_suite %>\n\tbwc-ipfabric-packs=<% $.promoted_bwc_ipfabric_packs %>\n\tbwc-topology=<% $.promoted_bwc_topology %>\n\tbwc_cli=<% $.promoted_bwc_cli %>\n\tbwc-ui=<% $.promoted_bwc_ui %>", "color": "<% $.notify_color %>"}]'
 
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>
