@@ -16,10 +16,6 @@ st2ci.bwc_pkg_promote_all:
         - promoted: False
         - promoted_bwc_enterprise: False
         - promoted_st2_auth_ldap: False
-        # - promoted_bwc_ipfabric_suite: False
-        # - promoted_bwc_ipfabric_packs: False
-        # - promoted_bwc_topology: False
-        # - promoted_bwc_cli: False
         - promoted_bwc_ui: False
         - notify_channels:
             - "#thunderdome"
@@ -28,15 +24,11 @@ st2ci.bwc_pkg_promote_all:
             - "#stackstorm"
 
     output:
-        promoted: <% $.promoted %>
+        promoted: "<% $.promoted %>"
         versions: <%
             dict(
                 'bwc-enterprise' => $.promoted_bwc_enterprise,
                 'st2-auth-ldap' => $.promoted_st2_auth_ldap,
-                # 'bwc-ipfabric-suite' => $.promoted_bwc_ipfabric_suite,
-                # 'bwc-ipfabric-packs' => $.promoted_bwc_ipfabric_packs,
-                # 'bwc-topology' => $.promoted_bwc_topology,
-                # 'bwc-cli' => $.promoted_bwc_cli,
                 'bwc-ui' => $.promoted_bwc_ui
             ) %>
 
@@ -70,10 +62,6 @@ st2ci.bwc_pkg_promote_all:
             on-complete:
                 - promote_bwc_enterprise
                 - promote_st2_auth_ldap
-                # - promote_bwc_ipfabric_suite
-                # - promote_bwc_ipfabric_packs
-                # - promote_bwc_topology
-                # - promote_bwc_cli
                 - promote_bwc_ui
 
         promote_bwc_enterprise:
@@ -108,61 +96,6 @@ st2ci.bwc_pkg_promote_all:
             on-error:
                 - noop
 
-        # promote_bwc_ipfabric_suite:
-        #     action: st2ci.st2_pkg_promote_enterprise
-        #     input:
-        #         package: bwc-ipfabric-suite
-        #         distro_version: <% $.pkg_distro_version %>
-        #         release: <% $.release %>
-        #         version: <% $.version %>
-        #     publish:
-        #         promoted_bwc_ipfabric_suite: <% $.version + '-' + task(promote_bwc_ipfabric_suite).result.revision %>
-        #     on-complete:
-        #         - process_completion
-        #     on-error:
-        #         - noop
-
-        # promote_bwc_ipfabric_packs:
-        #     action: st2ci.st2_pkg_promote_enterprise
-        #     input:
-        #         package: bwc-ipfabric-packs
-        #         distro_version: <% $.pkg_distro_version %>
-        #         release: <% $.release %>
-        #         version: <% $.version %>
-        #     publish:
-        #         promoted_bwc_ipfabric_packs: <% $.version + '-' + task(promote_bwc_ipfabric_packs).result.revision %>
-        #     on-complete:
-        #         - process_completion
-        #     on-error:
-        #         - noop
-
-        # promote_bwc_topology:
-        #     action: st2ci.st2_pkg_promote_enterprise
-        #     input:
-        #         package: bwc-topology
-        #         distro_version: <% $.pkg_distro_version %>
-        #         release: <% $.release %>
-        #         version: <% $.version %>
-        #     publish:
-        #         promoted_bwc_topology: <% $.version + '-' + task(promote_bwc_topology).result.revision %>
-        #     on-complete:
-        #         - process_completion
-        #     on-error:
-        #         - noop
-
-        # promote_bwc_cli:
-        #     action: st2ci.st2_pkg_promote_enterprise
-        #     input:
-        #         package: bwc-cli
-        #         distro_version: <% $.pkg_distro_version %>
-        #         release: <% $.release %>
-        #         version: <% $.version %>
-        #     publish:
-        #         promoted_bwc_cli: <% $.version + '-' + task(promote_bwc_cli).result.revision %>
-        #     on-complete:
-        #         - process_completion
-        #     on-error:
-        #         - noop
 
         promote_bwc_ui:
             action: st2ci.st2_pkg_promote_enterprise
@@ -187,18 +120,10 @@ st2ci.bwc_pkg_promote_all:
                 - set_notify_failure: <%
                         not $.promoted_bwc_enterprise or
                         not $.promoted_st2_auth_ldap or
-                        # not $.promoted_bwc_ipfabric_suite or
-                        # not $.promoted_bwc_ipfabric_packs or
-                        # not $.promoted_bwc_topology or
-                        # not $.promoted_bwc_cli or
                         not $.promoted_bwc_ui %>
                 - set_notify_success: <%
                         $.promoted_bwc_enterprise and
                         $.promoted_st2_auth_ldap and
-                        # $.promoted_bwc_ipfabric_suite and
-                        # $.promoted_bwc_ipfabric_packs and
-                        # $.promoted_bwc_topology and
-                        # $.promoted_bwc_cli and
                         $.promoted_bwc_ui %>
 
         set_notify_failure:
