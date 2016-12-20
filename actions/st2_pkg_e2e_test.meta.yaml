@@ -50,6 +50,9 @@ parameters:
         default: stable
     version:
         type: string
+    dev_build:
+        type: integer
+        description: CircleCI build number to install artifacts from. Overrides pkg_env, release and version.
     enterprise:
         type: boolean
         default: false

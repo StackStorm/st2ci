@@ -14,6 +14,7 @@ st2ci.st2_pkg_e2e_test:
         - role
         - release
         - version
+        - dev_build
         - enterprise
         - enterprise_key
         - pkg_env
@@ -93,12 +94,22 @@ st2ci.st2_pkg_e2e_test:
                 hosts: <% $.vm_info.private_ip_address %>
                 cmd: curl -Ss -k -o /tmp/st2_bootstrap.sh <% $.bootstrap_script_url %>
             on-success:
-                - run_bootstrap_script
+                - run_bootstrap_script: <% not $.dev_build %>
+                - run_bootstrap_script_dev: <% $.dev_build %>
         run_bootstrap_script:
             action: core.remote_sudo
             input:
                 hosts: <% $.vm_info.private_ip_address %>
                 cmd: bash /tmp/st2_bootstrap.sh --<% $.pkg_env %> --<% $.release %> --version=<% coalesce($.version, '') %> --user=<% $.st2_username %> --password=<% $.st2_password %>
+                timeout: 900
+            on-success:
+                - upgrade_to_enterprise: <% $.enterprise %>
+                - get_installed_version: <% not $.enterprise %>
+        run_bootstrap_script_dev:
+            action: core.remote_sudo
+            input:
+                hosts: <% $.vm_info.private_ip_address %>
+                cmd: bash /tmp/st2_bootstrap.sh --dev=<% $.dev_build %> --user=<% $.st2_username %> --password=<% $.st2_password %>
                 timeout: 900
             on-success:
                 - upgrade_to_enterprise: <% $.enterprise %>
