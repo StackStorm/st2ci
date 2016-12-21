@@ -33,7 +33,7 @@ st2ci.build_pkgs:
                     "GITHUB_URL": <% $.github_url %>
                     "COMMITTER": <% $.committer %>
                     "COMMIT_MSG": <% $.commit_message %>
-                    "DEPLOY_PACKAGES": <% $.deploy_packages %>
+                    "DEPLOY_PACKAGES": <% $.deploy_packages and '1' or '0' %>
             publish:
                 PKG_BUILD_URL: <% task(build_pkgs_circle_ci).result.result.build_url %>
             on-success:

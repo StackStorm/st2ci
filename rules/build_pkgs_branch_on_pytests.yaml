@@ -9,8 +9,10 @@ trigger:
 
 criteria:
     trigger.body.payload.branch:
-        type: nequals
-        pattern: master
+        type: regex
+        # Ones that do not start with `master` or `v2.1` alike.
+        # Be aware that `v2.1.1` falls into limbo and thus require its own rule.
+        pattern: "^((?!master|v[0-9]+\\.[0-9]+).)*$"
     trigger.body.payload.vcs_url:
         type: equals
         pattern: "https://github.com/StackStorm/st2"
