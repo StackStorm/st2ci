@@ -1,5 +1,5 @@
-name: st2_pkg_test_unstable_u16_enterprise
-description: Run package tests on package build
+name: st2_pkg_test_unstable_u16_enterprise_dev
+description: Run package tests on dev package build
 pack: st2ci
 enabled: true
 
@@ -16,17 +16,19 @@ criteria:
     trigger.body.payload.status:
         type: equals
         pattern: success
+    trigger.body.payload.build_parameters:
+        type: exists
+        pattern: ST2_GITREV
     trigger.body.payload.build_parameters.ST2_GITREV:
-        type: equals
+        type: nequals
         pattern: master
 
 action:
     ref: st2ci.st2_pkg_e2e_test
     parameters:
         distro: UBUNTU16
-        hostname: "st2-pkg-unstable-u16-ent-{% if trigger.body.payload.build_parameters %}{{trigger.body.payload.build_parameters.ST2_COMMIT_SHA | truncate(10, False, '')}}{% else %}{{trigger.body.payload.vcs_revision | truncate(10, False, '')}}{% endif %}"
-        pkg_env: staging
-        release: unstable
+        hostname: "st2-pkg-unstable-u16-ent-dev-{% if trigger.body.payload.build_parameters %}{{trigger.body.payload.build_parameters.ST2_COMMIT_SHA | truncate(10, False, '')}}{% else %}{{trigger.body.payload.vcs_revision | truncate(10, False, '')}}{% endif %}"
+        dev_build: "{{trigger.body.payload.build_num}}"
         enterprise: true
         enterprise_key: "{{system.enterprise_key_stg_unstable}}"
         triggering_commit_url: "PKG_BUILD_URL: {{trigger.body.payload.build_url}} {% if trigger.body.payload.build_parameters %}\n COMMITTER: {{trigger.body.payload.build_parameters.COMMITTER}} \n DIFF: {{trigger.body.payload.build_parameters.GITHUB_URL}} \n CIRCLE: {{trigger.body.payload.build_parameters.CIRCLE_URL}} {% else %} \n COMMITTER: {{trigger.body.payload.author_name}} \n DIFF: {{trigger.body.payload.compare}} {% endif %}"
