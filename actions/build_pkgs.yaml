@@ -9,6 +9,9 @@ parameters:
     branch:
         type: string
         required: true
+    packaging_branch:
+        type: string
+        default: master
     revision:
         type: string
         required: true
@@ -25,3 +28,6 @@ parameters:
     commit_message:
         type: string
         required: false
+    deploy_packages:
+        type: boolean
+        default: true

@@ -5,11 +5,13 @@ st2ci.build_pkgs:
     type: direct
     input:
         - branch
+        - packaging_branch
         - revision
         - circle_url
         - github_url
         - committer
         - commit_message
+        - deploy_packages
         - circle_ci_project: "StackStorm/st2-packages"
         - notify_channels:
             - "#thunderdome"
@@ -23,8 +25,7 @@ st2ci.build_pkgs:
             action: circle_ci.run_build
             input:
                 project: <% $.circle_ci_project %>
-                # branch names on st2 and st2-packages matches. So making this assumption for now.
-                branch: <% $.branch %>
+                branch: <% $.packaging_branch %>
                 build_parameters:
                     "ST2_GITREV": <% $.branch %>
                     "ST2_COMMIT_SHA": <% $.revision %>
@@ -32,6 +33,7 @@ st2ci.build_pkgs:
                     "GITHUB_URL": <% $.github_url %>
                     "COMMITTER": <% $.committer %>
                     "COMMIT_MSG": <% $.commit_message %>
+                    "DEPLOY_PACKAGES": <% $.deploy_packages %>
             publish:
                 PKG_BUILD_URL: <% task(build_pkgs_circle_ci).result.result.build_url %>
             on-success:
