@@ -28,6 +28,8 @@ action:
     parameters:
         distro: UBUNTU14
         hostname: "st2-pkg-unstable-u14-ent-dev-{% if trigger.body.payload.build_parameters %}{{trigger.body.payload.build_parameters.ST2_COMMIT_SHA | truncate(10, False, '')}}{% else %}{{trigger.body.payload.vcs_revision | truncate(10, False, '')}}{% endif %}"
+        pkg_env: staging
+        release: unstable
         dev_build: "{{trigger.body.payload.build_num}}"
         enterprise: true
         enterprise_key: "{{system.enterprise_key_stg_unstable}}"
