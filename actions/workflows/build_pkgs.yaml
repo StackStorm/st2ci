@@ -37,9 +37,23 @@ st2ci.build_pkgs:
             publish:
                 PKG_BUILD_URL: <% task(build_pkgs_circle_ci).result.result.build_url %>
             on-success:
-                - notify_start
+                - set_github_status
             on-error:
                 - notify_failure
+
+        set_github_status:
+          action: github.add_status
+          input:
+            user: StackStorm
+            repo: st2
+            sha: <% $.revision %>
+            state: pending
+            context: st2/packages
+            target_url: <% $.PKG_BUILD_URL %>
+          on-success:
+              - notify_start
+          on-error:
+              - notify_failure
 
         notify_start:
             with-items: channel in <% $.notify_channels %>
