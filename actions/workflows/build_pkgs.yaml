@@ -49,6 +49,7 @@ st2ci.build_pkgs:
             sha: <% $.revision %>
             state: pending
             context: st2/packages
+            description: Packages are building
             target_url: <% $.PKG_BUILD_URL %>
           on-success:
               - notify_start

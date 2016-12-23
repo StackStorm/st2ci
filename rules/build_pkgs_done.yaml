@@ -1,5 +1,5 @@
 ---
-name: build_pkgs_branch_on_pytests
+name: build_pkgs_done
 description: Build pkgs on circleci once pytests pass
 pack: st2ci
 enabled: true

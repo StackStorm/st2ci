@@ -25,6 +25,7 @@ st2ci.build_pkgs_done:
             sha: <% $.revision %>
             state: <% $.status = 'success' and 'success' or 'failure' %>
             context: st2/packages
+            description: Packages <% $.status = 'success' and 'have' or 'have not' %> been built
             target_url: <% $.circle_url %>
           publish:
             RESULT: <% $.status = 'success' and 'SUCCEEDED' or 'FAILED' %>
