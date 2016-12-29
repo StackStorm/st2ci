@@ -61,17 +61,6 @@ st2ci.st2_pkg_e2e_test:
             on-success:
                 - notify_start
                 - create_vm
-                - set_github_status_pending: <% $.initial_commit %>
-        set_github_status_pending:
-            action: github.add_status
-            input:
-                user: <% $.github_status_org %>
-                repo: <% $.github_status_repo %>
-                sha: <% $.initial_commit %>
-                state: pending
-                context: <% $.github_status_context %>
-                description: E2E tests are running...
-                target_url: <% $.github_status_url %>
         create_vm:
             action: st2cd.create_vm_role
             input:
@@ -174,6 +163,26 @@ st2ci.st2_pkg_e2e_test:
                 channel: <% $.channel %>
                 text: ""
                 attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: STARTED]", "title": "[st2ci.st2_pkg_e2e_test: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#808080"}]'
+            on-complete:
+                - generate_build_page: <% $.initial_commit %>
+        generate_build_page:
+            action: jinja.render_file
+            input:
+                template_pack: st2ci
+                template_path: templates/build_page.md.j2
+                include_execution: <% env().st2_execution_id %>
+            on-success:
+                - set_github_status_pending
+        set_github_status_pending:
+            action: github.add_status
+            input:
+                user: <% $.github_status_org %>
+                repo: <% $.github_status_repo %>
+                sha: <% $.initial_commit %>
+                state: pending
+                context: <% $.github_status_context %>
+                description: E2E tests are running...
+                target_url: <% $.github_status_url %>
 
 
         destroy_vm:
@@ -211,7 +220,15 @@ st2ci.st2_pkg_e2e_test:
                 text: ""
                 attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
             on-complete:
-                - set_github_status_success: <% $.initial_commit %>
+                - generate_build_page_success: <% $.initial_commit %>
+        generate_build_page_success:
+            action: jinja.render_file
+            input:
+                template_pack: st2ci
+                template_path: templates/build_page.md.j2
+                include_execution: <% env().st2_execution_id %>
+            on-success:
+                - set_github_status_success
         set_github_status_success:
             action: github.add_status
             input:
@@ -231,8 +248,16 @@ st2ci.st2_pkg_e2e_test:
                 text: ""
                 attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: FAILED]", "title": "[st2ci.st2_pkg_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#FF0000"}]'
             on-complete:
-                - set_github_status_failure: <% $.initial_commit %>
+                - generate_build_page_failure: <% $.initial_commit %>
                 - fail
+        generate_build_page_failure:
+            action: jinja.render_file
+            input:
+                template_pack: st2ci
+                template_path: templates/build_page.md.j2
+                include_execution: <% env().st2_execution_id %>
+            on-success:
+                - set_github_status_failure
         set_github_status_failure:
             action: github.add_status
             input:
