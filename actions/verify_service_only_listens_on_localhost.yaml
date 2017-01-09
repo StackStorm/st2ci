@@ -1,0 +1,12 @@
+---
+  name: "verify_service_only_listens_on_localhost"
+  runner_type: "run-remote-script"
+  description: "Verify that the service listening on the provided port is only bound / listening on localhost."
+  enabled: true
+  entry_point: "verify_service_only_listens_on_localhost.sh"
+  parameters:
+    port:
+      type: "integer"
+      description: "Port to check for."
+      required: true
+      position: 0
