@@ -10,3 +10,5 @@
       description: "Port to check for."
       required: true
       position: 0
+    sudo:
+      default: true
