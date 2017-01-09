@@ -126,6 +126,27 @@ st2ci.st2_pkg_e2e_test:
                         task(get_installed_version).result.versions.items().select(
                             $[0] + "=" + $[1]).join("\n\t") %>
             on-success:
+                - verify_mongodb_only_listening_on_localhost
+        verify_mongodb_only_listening_on_localhost:
+            action: st2cd.verify_service_only_listens_on_localhost
+            input:
+                hosts: <% $.vm_info.private_ip_address %>
+                port: 27017
+            on-success:
+                - verify_rabbitmq_only_listening_on_localhost
+        verify_rabbitmq_only_listening_on_localhost:
+            action: st2cd.verify_service_only_listens_on_localhost
+            input:
+                hosts: <% $.vm_info.private_ip_address %>
+                port: 5672
+            on-success:
+                - verify_postgresql_only_listening_on_localhost
+        verify_postgresql_only_listening_on_localhost:
+            action: st2cd.verify_service_only_listens_on_localhost
+            input:
+                hosts: <% $.vm_info.private_ip_address %>
+                port: 5432
+            on-success:
                 - run_e2e_tests
         run_e2e_tests:
             action: st2cd.st2_e2e_tests
