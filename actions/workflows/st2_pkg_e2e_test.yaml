@@ -14,6 +14,8 @@ st2ci.st2_pkg_e2e_test:
         - role
         - release
         - version
+        - dev_build
+        - initial_commit
         - enterprise
         - enterprise_key
         - pkg_env
@@ -33,6 +35,10 @@ st2ci.st2_pkg_e2e_test:
                 $.bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
         st2_username: st2admin
         st2_password: Ch@ngeMe
+        github_status_org: StackStorm
+        github_status_repo: st2
+        github_status_context: st2/e2e/<% $.distro.toLower() %><% $.enterprise and '-enterprise' or '' %>
+        github_status_url: https://buildstatus.stackstorm.org/execution/<% env().st2_execution_id %>
         notify_channels:
             - "#thunderdome"
         notify_failure_channels:
@@ -55,6 +61,17 @@ st2ci.st2_pkg_e2e_test:
             on-success:
                 - notify_start
                 - create_vm
+                - set_github_status_pending: <% $.initial_commit %>
+        set_github_status_pending:
+            action: github.add_status
+            input:
+                user: <% $.github_status_org %>
+                repo: <% $.github_status_repo %>
+                sha: <% $.initial_commit %>
+                state: pending
+                context: <% $.github_status_context %>
+                description: E2E tests are running...
+                target_url: <% $.github_status_url %>
         create_vm:
             action: st2cd.create_vm_role
             input:
@@ -93,12 +110,22 @@ st2ci.st2_pkg_e2e_test:
                 hosts: <% $.vm_info.private_ip_address %>
                 cmd: curl -Ss -k -o /tmp/st2_bootstrap.sh <% $.bootstrap_script_url %>
             on-success:
-                - run_bootstrap_script
+                - run_bootstrap_script: <% not $.dev_build %>
+                - run_bootstrap_script_dev: <% $.dev_build %>
         run_bootstrap_script:
             action: core.remote_sudo
             input:
                 hosts: <% $.vm_info.private_ip_address %>
                 cmd: bash /tmp/st2_bootstrap.sh --<% $.pkg_env %> --<% $.release %> --version=<% coalesce($.version, '') %> --user=<% $.st2_username %> --password=<% $.st2_password %>
+                timeout: 900
+            on-success:
+                - upgrade_to_enterprise: <% $.enterprise %>
+                - get_installed_version: <% not $.enterprise %>
+        run_bootstrap_script_dev:
+            action: core.remote_sudo
+            input:
+                hosts: <% $.vm_info.private_ip_address %>
+                cmd: bash /tmp/st2_bootstrap.sh --dev=<% $.dev_build %> --user=<% $.st2_username %> --password=<% $.st2_password %>
                 timeout: 900
             on-success:
                 - upgrade_to_enterprise: <% $.enterprise %>
@@ -183,6 +210,18 @@ st2ci.st2_pkg_e2e_test:
                 channel: <% $.channel %>
                 text: ""
                 attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
+            on-complete:
+                - set_github_status_success: <% $.initial_commit %>
+        set_github_status_success:
+            action: github.add_status
+            input:
+                user: <% $.github_status_org %>
+                repo: <% $.github_status_repo %>
+                sha: <% $.initial_commit %>
+                state: success
+                context: <% $.github_status_context %>
+                description: E2E tests have finished successfully
+                target_url: <% $.github_status_url %>
 
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>
@@ -192,4 +231,15 @@ st2ci.st2_pkg_e2e_test:
                 text: ""
                 attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: FAILED]", "title": "[st2ci.st2_pkg_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#FF0000"}]'
             on-complete:
+                - set_github_status_failure: <% $.initial_commit %>
                 - fail
+        set_github_status_failure:
+            action: github.add_status
+            input:
+                user: <% $.github_status_org %>
+                repo: <% $.github_status_repo %>
+                sha: <% $.initial_commit %>
+                state: failure
+                context: <% $.github_status_context %>
+                description: E2E tests have failed
+                target_url: <% $.github_status_url %>

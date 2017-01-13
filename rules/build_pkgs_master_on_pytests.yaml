@@ -14,7 +14,7 @@ criteria:
     trigger.body.payload.vcs_url:
         type: equals
         pattern: "https://github.com/StackStorm/st2"
-    trigger.body.payload.status:
+    trigger.body.payload.outcome:
         type: equals
         pattern: success
 

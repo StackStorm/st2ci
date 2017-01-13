@@ -1,5 +1,5 @@
 ---
-name: st2_pkg_build_v2_1_on_pytest
+name: build_pkgs_branch_on_pytests
 description: Build pkgs on circleci once pytests pass
 pack: st2ci
 enabled: true
@@ -9,8 +9,10 @@ trigger:
 
 criteria:
     trigger.body.payload.branch:
-        type: equals
-        pattern: v2.1
+        type: regex
+        # Ones that do not start with `master`, `v2.1` and `pull/` (pull requests)
+        # Be aware that `v2.1.1` falls into limbo and thus require its own rule.
+        pattern: "^((?!master|v[0-9]+\\.[0-9]+|pull/).)*$"
     trigger.body.payload.vcs_url:
         type: equals
         pattern: "https://github.com/StackStorm/st2"
@@ -27,3 +29,4 @@ action:
         github_url: "{{trigger.body.payload.compare}}"
         committer: "{{trigger.body.payload.committer_name}}"
         commit_message: "{{trigger.body.payload.subject}}"
+        deploy_packages: false
