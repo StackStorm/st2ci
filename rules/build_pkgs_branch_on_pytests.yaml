@@ -10,9 +10,9 @@ trigger:
 criteria:
     trigger.body.payload.branch:
         type: regex
-        # Ones that do not start with `master` or `v2.1` alike.
+        # Ones that do not start with `master`, `v2.1` and `pull/` (pull requests)
         # Be aware that `v2.1.1` falls into limbo and thus require its own rule.
-        pattern: "^((?!master|v[0-9]+\\.[0-9]+).)*$"
+        pattern: "^((?!master|v[0-9]+\\.[0-9]+|pull/).)*$"
     trigger.body.payload.vcs_url:
         type: equals
         pattern: "https://github.com/StackStorm/st2"
