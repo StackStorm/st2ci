@@ -16,6 +16,7 @@ st2ci.bwc_pkg_promote_all:
         - promoted: False
         - promoted_bwc_enterprise: False
         - promoted_st2_auth_ldap: False
+        - promoted_st2flow: False
         - promoted_bwc_ui: False
         - notify_channels:
             - "#thunderdome"
@@ -29,6 +30,7 @@ st2ci.bwc_pkg_promote_all:
             dict(
                 'bwc-enterprise' => $.promoted_bwc_enterprise,
                 'st2-auth-ldap' => $.promoted_st2_auth_ldap,
+                'st2flow' => $.promoted_st2flow,
                 'bwc-ui' => $.promoted_bwc_ui
             ) %>
 
@@ -62,6 +64,7 @@ st2ci.bwc_pkg_promote_all:
             on-complete:
                 - promote_bwc_enterprise
                 - promote_st2_auth_ldap
+                - promote_st2flow
                 - promote_bwc_ui
 
         promote_bwc_enterprise:
@@ -96,6 +99,19 @@ st2ci.bwc_pkg_promote_all:
             on-error:
                 - noop
 
+        promote_st2flow:
+            action: st2ci.st2_pkg_promote_enterprise
+            input:
+                package: st2flow
+                distro_version: <% $.pkg_distro_version %>
+                release: <% $.release %>
+                version: <% $.version %>
+            publish:
+                promoted_st2flow: <% $.version + '-' + task(promote_st2flow).result.revision %>
+            on-complete:
+                - process_completion
+            on-error:
+                - noop
 
         promote_bwc_ui:
             action: st2ci.st2_pkg_promote_enterprise
@@ -120,10 +136,12 @@ st2ci.bwc_pkg_promote_all:
                 - set_notify_failure: <%
                         not $.promoted_bwc_enterprise or
                         not $.promoted_st2_auth_ldap or
+                        not $.promoted_st2flow or
                         not $.promoted_bwc_ui %>
                 - set_notify_success: <%
                         $.promoted_bwc_enterprise and
                         $.promoted_st2_auth_ldap and
+                        $.promoted_st2flow
                         $.promoted_bwc_ui %>
 
         set_notify_failure:
@@ -150,7 +168,7 @@ st2ci.bwc_pkg_promote_all:
             input:
                 channel: <% $.channel %>
                 text: ""
-                attachments: '[{"fallback": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nPACKAGE PROMOTED:\n\tbwc-enterprise-packages=<% $.promoted_bwc_enterprise %>\n\tst2-auth-ldap=<% $.promoted_st2_auth_ldap %>\n\tbwc-ui=<% $.promoted_bwc_ui %>", "color": "<% $.notify_color %>"}]'
+                attachments: '[{"fallback": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nPACKAGE PROMOTED:\n\tbwc-enterprise-packages=<% $.promoted_bwc_enterprise %>\n\tst2-auth-ldap=<% $.promoted_st2_auth_ldap %>\n\tst2flow=<% $.promoted_st2flow %>\n\tbwc-ui=<% $.promoted_bwc_ui %>", "color": "<% $.notify_color %>"}]'
 
         notify_failure:
             with-items: channel in <% $.notify_failure_channels %>
