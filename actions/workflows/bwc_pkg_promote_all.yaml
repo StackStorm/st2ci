@@ -141,7 +141,7 @@ st2ci.bwc_pkg_promote_all:
                 - set_notify_success: <%
                         $.promoted_bwc_enterprise and
                         $.promoted_st2_auth_ldap and
-                        $.promoted_st2flow
+                        $.promoted_st2flow and
                         $.promoted_bwc_ui %>
 
         set_notify_failure:
