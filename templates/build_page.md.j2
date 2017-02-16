@@ -1,0 +1,79 @@
+# StackStorm Build Status
+
+Status: {{ __execution.status }}
+
+{% set ci_trigger = __execution.trigger_instance.payload.body.payload %}
+Repository: [stackstorm/st2](https://github.com/stackstorm/st2)
+Author: [{{ ci_trigger.build_parameters.COMMITTER }}](https://github.com/{{ ci_trigger.build_parameters.COMMITTER }})
+Branch: [{{ ci_trigger.build_parameters.ST2_GITREV }}](https://github.com/StackStorm/st2/tree/{{ ci_trigger.build_parameters.ST2_GITREV }})
+Commit: {{ ci_trigger.build_parameters.COMMIT_MSG }} ([{{ ci_trigger.build_parameters.ST2_COMMIT_SHA }}](https://github.com/StackStorm/st2/commit/{{ ci_trigger.build_parameters.ST2_COMMIT_SHA }}))
+Package Build: [{{ ci_trigger.build_num }}]({{ ci_trigger.build_url }})
+
+{% set create_vm = __execution.result.tasks | selectattr('name', 'equalto', 'create_vm') | first %}
+{% if create_vm %}
+### Create VM
+Status: {{ create_vm.state }}
+Started at: {{ create_vm.created_at }}
+Updated at: {{ create_vm.updated_at }}
+{% endif %}
+
+{% set get_bootstrap_script = __execution.result.tasks | selectattr('name', 'equalto', 'get_bootstrap_script') | first %}
+{% if get_bootstrap_script %}
+### Get bootstrap script
+Status: {{ get_bootstrap_script.state }}
+Started at: {{ get_bootstrap_script.created_at }}
+Updated at: {{ get_bootstrap_script.updated_at }}
+{% endif %}
+
+{% set run_bootstrap_script = __execution.result.tasks | selectattr('name', 'equalto', 'run_bootstrap_script') | first %}
+{% if not run_bootstrap_script %}
+{% set run_bootstrap_script = __execution.result.tasks | selectattr('name', 'equalto', 'run_bootstrap_script_dev') | first %}
+{% endif %}
+{% if run_bootstrap_script %}
+### Run bootstrap script
+Status: {{ run_bootstrap_script.state }}
+Started at: {{ run_bootstrap_script.created_at }}
+Updated at: {{ run_bootstrap_script.updated_at }}
+{% endif %}
+
+{% set upgrade_to_enterprise = __execution.result.tasks | selectattr('name', 'equalto', 'upgrade_to_enterprise') | first %}
+{% if upgrade_to_enterprise %}
+### Upgrade to enterprise
+Status: {{ upgrade_to_enterprise.state }}
+Started at: {{ upgrade_to_enterprise.created_at }}
+Updated at: {{ upgrade_to_enterprise.updated_at }}
+{% endif %}
+
+{% set get_installed_version = __execution.result.tasks | selectattr('name', 'equalto', 'get_installed_version') | first %}
+{% if get_installed_version %}
+### Get installed versions
+Status: {{ get_installed_version.state }}
+Started at: {{ get_installed_version.created_at }}
+Updated at: {{ get_installed_version.updated_at }}
+
+```
+{% for key, value in get_installed_version.result.versions.iteritems() %}
+{{ key }}={{ value }}
+{% endfor %}
+```
+{% endif %}
+
+{% set run_e2e_tests = __execution.result.tasks | selectattr('name', 'equalto', 'run_e2e_tests') | first %}
+{% if run_e2e_tests %}
+### Run e2e tests
+Status: {{ run_e2e_tests.state }}
+Started at: {{ run_e2e_tests.created_at }}
+Updated at: {{ run_e2e_tests.updated_at }}
+
+{% for task in run_e2e_tests.result.tasks %}
+- [{{ task.state }}] {{ task.name }}
+{% endfor %}
+{% endif %}
+
+{% set destroy_vm = __execution.result.tasks | selectattr('name', 'equalto', 'destroy_vm') | first %}
+{% if destroy_vm %}
+### Destroy VM
+Status: {{ destroy_vm.state }}
+Started at: {{ destroy_vm.created_at }}
+Updated at: {{ destroy_vm.updated_at }}
+{% endif %}
