@@ -107,17 +107,8 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 cmd: bash /tmp/st2_bootstrap.sh --<% $.pkg_env %> --<% $.release %> --version=<% coalesce($.upgrade_from_version, '') %> --user=<% $.st2_username %> --password=<% $.st2_password %>
                 timeout: 900
             on-success:
-                - pre_upgrade_stop
-
-        pre_upgrade_stop:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: st2ctl stop
-                timeout: 180
-            on-complete:
               - install_enterprise: <% $.enterprise %>
-              - get_installed_version: <% not $.enterprise %>
+              - pre_upgrade_stop: <% not $.enterprise %>
 
         install_enterprise:
             action: st2cd.st2_upgrade_to_enterprise
@@ -129,6 +120,15 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 release: <% $.release %>
                 version: <% coalesce($.upgrade_from_version, '') %>
             on-success:
+                - pre_upgrade_stop
+
+        pre_upgrade_stop:
+            action: core.remote_sudo
+            input:
+                hosts: <% $.vm_info.private_ip_address %>
+                cmd: st2ctl stop
+                timeout: 180
+            on-complete:
                 - get_installed_version
 
         get_installed_version:
