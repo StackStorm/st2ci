@@ -200,11 +200,11 @@ st2ci.st2_pkg_upgrade_e2e_test:
             on-success:
                 - post_migration_restart
 
-        post_migration_restart:
+        post_migration_start:
             action: core.remote_sudo
             input:
                 hosts: <% $.vm_info.private_ip_address %>
-                cmd: st2ctl restart
+                cmd: st2ctl start
                 timeout: 180
             on-success:
                 - get_upgraded_version
