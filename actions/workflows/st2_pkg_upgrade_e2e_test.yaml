@@ -205,7 +205,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 from: <% $.upgrade_from_version %>
                 to: <% $.upgrade_to_version %>
             on-success:
-                - post_migration_restart
+                - post_migration_start
 
         post_migration_start:
             action: core.remote_sudo
