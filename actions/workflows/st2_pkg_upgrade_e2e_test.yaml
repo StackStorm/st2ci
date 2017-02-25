@@ -107,7 +107,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 cmd: bash /tmp/st2_bootstrap.sh --<% $.pkg_env %> --<% $.release %> --version=<% coalesce($.upgrade_from_version, '') %> --user=<% $.st2_username %> --password=<% $.st2_password %>
                 timeout: 900
             on-success:
-                - pre_migration_stop
+                - pre_upgrade_stop
 
         pre_upgrade_stop:
             action: core.local
