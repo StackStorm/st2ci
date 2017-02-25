@@ -14,13 +14,6 @@ workflows:
 
     tasks:
 
-      pre_migration_stop:
-          action: core.local
-          input:
-              cmd: st2ctl stop
-          on-complete:
-              - install_pkg
-
       install_pkg:
         with-items: pkg in <% $.pkg_list %>
         workflow: install_latest_revision_of_pkg
