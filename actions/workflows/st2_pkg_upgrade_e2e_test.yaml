@@ -110,9 +110,11 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 - pre_upgrade_stop
 
         pre_upgrade_stop:
-            action: core.local
+            action: core.remote_sudo
             input:
+                hosts: <% $.vm_info.private_ip_address %>
                 cmd: st2ctl stop
+                timeout: 180
             on-complete:
               - install_enterprise: <% $.enterprise %>
               - get_installed_version: <% not $.enterprise %>
