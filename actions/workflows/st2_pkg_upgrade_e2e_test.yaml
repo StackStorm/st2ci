@@ -206,6 +206,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 hosts: <% $.vm_info.private_ip_address %>
                 from: <% $.upgrade_from_version %>
                 to: <% $.upgrade_to_version %>
+                timeout: 180
             on-success:
                 - post_migration_start
 
