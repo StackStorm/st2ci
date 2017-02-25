@@ -13,7 +13,6 @@ workflows:
         - version   # Version to upgrade to
 
     tasks:
-
       install_pkg:
         with-items: pkg in <% $.pkg_list %>
         workflow: install_latest_revision_of_pkg
