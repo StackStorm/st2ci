@@ -22,6 +22,7 @@ action:
     ref: st2ci.build_pkgs
     parameters:
         branch: "{{trigger.body.payload.branch}}"
+        packaging_branch: "{{trigger.body.payload.branch}}"
         revision: "{{trigger.body.payload.vcs_revision}}"
         circle_url: "{{trigger.body.payload.build_url}}"
         github_url: "{{trigger.body.payload.compare}}"
