@@ -5,8 +5,8 @@ st2ci.st2_pkg_promote_all:
         - release
         - version
         - enterprise_keys:
-            stable: "{{system.enterprise_key_stg_stable}}"
-            unstable: "{{system.enterprise_key_stg_unstable}}"
+            stable: "{{st2kv.system.enterprise_key_stg_stable}}"
+            unstable: "{{st2kv.system.enterprise_key_stg_unstable}}"
         - pkg_env: staging
         - distro_to_distro_version_map:
             RHEL6: el/6
