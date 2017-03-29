@@ -29,4 +29,4 @@ parameters:
     api_token:
         type: string
         description: Token to upload to the packagecloud production repo
-        default: "{{system.pkg_cloud_token}}"
+        default: "{{st2kv.system.pkg_cloud_token}}"

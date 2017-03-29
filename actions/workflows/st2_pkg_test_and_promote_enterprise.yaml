@@ -8,8 +8,8 @@ st2ci.st2_pkg_test_and_promote_enterprise:
         - keyfile
         - debug
         - enterprise_keys:
-            stable: "{{system.enterprise_key_stg_stable}}"
-            unstable: "{{system.enterprise_key_stg_unstable}}"
+            stable: "{{st2kv.system.enterprise_key_stg_stable}}"
+            unstable: "{{st2kv.system.enterprise_key_stg_unstable}}"
         - pkg_env: staging
         - notify_channels:
             - "#thunderdome"
