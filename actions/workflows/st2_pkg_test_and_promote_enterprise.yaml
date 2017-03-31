@@ -26,7 +26,7 @@ st2ci.st2_pkg_test_and_promote_enterprise:
         init:
             action: core.noop
             publish:
-                webui_base_url: https://st2-build
+                webui_base_url: https://st2cicd
             on-success:
                 - notify_start
         notify_start:

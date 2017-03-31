@@ -57,7 +57,7 @@ st2ci.st2_pkg_e2e_test:
         get_webui_server:
             action: core.noop
             publish:
-                webui_base_url: https://st2-build
+                webui_base_url: https://st2cicd
             on-success:
                 - notify_start
                 - create_vm

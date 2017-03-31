@@ -14,7 +14,7 @@ st2ci.build_pkgs_done:
         - notify_failure_channels:
             - "#thunderdome"
             - "#stackstorm"
-        - webui_base_url: "https://st2-build"
+        - webui_base_url: "https://st2cicd"
 
     tasks:
         set_github_status:

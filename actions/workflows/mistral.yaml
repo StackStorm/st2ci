@@ -44,7 +44,7 @@ workflows:
             init_vars:
                 action: core.noop
                 publish:
-                    webui_base_url: https://st2-build
+                    webui_base_url: https://st2cicd
                     is_infra_setup: False
                 on-success:
                     - notify_start
@@ -203,14 +203,14 @@ workflows:
                 workflow: get_host
                 input:
                     host: <% $.hosts.get(test) %>
-                    type: st2-build-slave-itests-ubuntu.service.consul
+                    type: st2cicd-slave-itests-ubuntu.service.consul
                 on-success:
                     - get_build_host
             get_build_host:
                 workflow: get_host
                 input:
                     host: <% $.hosts.get(build) %>
-                    type: st2-build-slave-ubuntu.service.consul
+                    type: st2cicd-slave-ubuntu.service.consul
                 on-success:
                     - compose_hosts
             compose_hosts:
