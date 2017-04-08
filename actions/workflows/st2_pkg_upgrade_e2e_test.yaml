@@ -119,6 +119,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 pkg_env: <% $.pkg_env %>
                 release: <% $.release %>
                 version: <% coalesce($.upgrade_from_version, '') %>
+                timeout: 120
             on-success:
                 - pre_upgrade_stop
 
