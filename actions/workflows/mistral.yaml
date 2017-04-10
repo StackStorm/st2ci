@@ -89,7 +89,7 @@ workflows:
                     hosts: <% $.hosts.get(test) %>
                     cwd: <% task(setup).result.clones.get(st2) %>
                     cmd: make mistral-itests 2>&1 | tee /tmp/mistral-itests-output.txt
-                    timeout: 900
+                    timeout: 3600
                 on-success:
                     - record_pip_freeze
             record_pip_freeze:
