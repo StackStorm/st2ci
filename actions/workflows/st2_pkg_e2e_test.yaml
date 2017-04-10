@@ -168,6 +168,7 @@ st2ci.st2_pkg_e2e_test:
             input:
                 host_ip: <% $.vm_info.private_ip_address %>
                 host_fqdn: <% $.vm_fqdn %>
+                enterprise: <% $.enterprise  %>
                 version: <% $.version %>
                 st2_username: <% $.st2_username %>
                 st2_password: <% $.st2_password %>
