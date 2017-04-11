@@ -118,6 +118,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 distro: <% $.distro %>
                 pkg_env: <% $.pkg_env %>
                 release: <% $.release %>
+                st2_username: <% $.st2_username %>
                 version: <% coalesce($.upgrade_from_version, '') %>
             on-success:
                 - pre_upgrade_stop
