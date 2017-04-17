@@ -119,6 +119,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 pkg_env: <% $.pkg_env %>
                 release: <% $.release %>
                 version: <% coalesce($.upgrade_from_version, '') %>
+                timeout: 120
             on-success:
                 - pre_upgrade_stop
 
@@ -239,6 +240,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 host_ip: <% $.vm_info.private_ip_address %>
                 host_fqdn: <% $.vm_fqdn %>
                 version: <% $.upgrade_to_version %>
+                enterprise: <% $.enterprise %>
                 st2_username: <% $.st2_username %>
                 st2_password: <% $.st2_password %>
             on-success:
