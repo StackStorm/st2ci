@@ -44,7 +44,7 @@ workflows:
             init_vars:
                 action: core.noop
                 publish:
-                    webui_base_url: https://st2-build
+                    webui_base_url: https://st2cicd
                     is_infra_setup: False
                 on-success:
                     - notify_start
