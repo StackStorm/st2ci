@@ -78,3 +78,4 @@ parameters:
     debug:
         type: boolean
         default: false
+        description: When enabled, it wont delete the VM if workflow failed, leaving the machine alive for further debugging.
