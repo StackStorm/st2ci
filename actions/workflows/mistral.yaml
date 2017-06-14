@@ -261,7 +261,7 @@ workflows:
                 on-success:
                     - setup_mistral
             setup_mistral:
-                action: mistral-dev.setup
+                action: mistral_dev.setup
                 input:
                     host: <% $.host %>
                     distro: <% $.distro %>
@@ -329,7 +329,7 @@ workflows:
                     - teardown_mistral: <% $.clones.get(mistral, '') != '' %>
                     - teardown_st2: <% $.clones.get(st2, '') != '' %>
             teardown_mistral:
-                action: mistral-dev.teardown
+                action: mistral_dev.teardown
                 input:
                     host: <% $.host %>
                     repo_main: <% $.clones.get(mistral) %>
