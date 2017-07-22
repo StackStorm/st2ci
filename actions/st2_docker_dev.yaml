@@ -1,0 +1,17 @@
+---
+name: st2_docker_dev
+pack: st2ci
+description: Build st2-docker dev image and deploy to docker hub
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/st2_docker_dev.yaml
+parameters:
+    branch:
+        type: string
+        required: true
+    project:
+        type: string
+        required: true
+    build_parameters:
+        type: object
+        required: false
