@@ -8,13 +8,13 @@ trigger:
   type: core.st2.CronTimer
   parameters:
       timezone: US/Pacific
-      hour: 10
-      minute: 0
+      hour: 1
+      minute: 30
       second: 0
 
 action:
   parameters:
-      project: StackStorm/st2-docker
+      project: st2-docker
       branch: master
       build_parameters:
         "BUILD_DEV": true

@@ -8,10 +8,14 @@ entry_point: workflows/st2_docker_dev.yaml
 parameters:
     branch:
         type: string
+        default: master
         required: true
     project:
         type: string
+        default: st2-docker
         required: true
     build_parameters:
         type: object
+        default:
+          - BUILD_DEV=true
         required: false

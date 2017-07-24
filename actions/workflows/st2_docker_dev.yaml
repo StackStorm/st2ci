@@ -7,7 +7,7 @@ st2ci.st2_docker_dev:
         - branch: "master"
         - project
         - build_parameters
-        - circle_ci_project: "StackStorm/st2-docker"
+        - circle_ci_project: "st2-docker"
         - notify_channels:
             - "#thunderdome"
         - notify_failure_channels:
