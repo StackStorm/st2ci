@@ -1,0 +1,21 @@
+---
+name: st2_docker_dev_rule
+pack: st2ci
+description: Perform a dev build of st2-docker and deploy image to docker hub
+enabled: true
+
+trigger:
+  type: core.st2.CronTimer
+  parameters:
+      timezone: US/Pacific
+      hour: 1
+      minute: 30
+      second: 0
+
+action:
+  parameters:
+      project: st2-docker
+      branch: master
+      build_parameters:
+        "BUILD_DEV": true
+  ref: st2ci.st2_docker_dev
