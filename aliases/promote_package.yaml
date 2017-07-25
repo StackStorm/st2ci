@@ -6,7 +6,7 @@ formats:
   - display: "promote [deb|rpm] of [package] [version]-[revision] to [stable|unstable|enterprise|enterprise-unstable]"
     representation:
     - "promote {{os}} of {{package}} {{version}}-{{revision}} to {{repo}}"
-  - display: "promote [package] [version]-[revision] for [wheezy|jessie|trusty|el6|el7] to [stable|unstable|enterprise|enterprise-unstable]"
+  - display: "promote [package] [version]-[revision] for [trusty|xenial|el6|el7] to [stable|unstable|enterprise|enterprise-unstable]"
     representation:
     - "promote {{package}} {{version}}-{{revision}} for {{os}} to {{repo}}"
   - display: "promote [package] [version]-[revision] to [stable|unstable|enterprise|enterprise-unstable]"
@@ -18,31 +18,9 @@ ack:
 result:
   format: |
     I'm done promoting the packages. Here's how it went:{~}
-    {% if 'download_wheezy' in execution.result.tasks|map(attribute='name') %}
-    *Wheezy*: {% if 'upload_wheezy' in execution.result.tasks|map(attribute='name') -%}
-        {% if- (execution.result.tasks|selectattr("name", "equalto", "upload_wheezy")).next().result.succeeded -%}
-          success
-        {%- else -%}
-          upload failed
-        {%- endif -%}
-      {%- else -%}
-        download failed
-      {%- endif -%}.
-    {% endif %}
     {% if 'download_trusty' in execution.result.tasks|map(attribute='name') %}
     *Trusty*: {% if 'upload_trusty' in execution.result.tasks|map(attribute='name') -%}
         {% if- (execution.result.tasks|selectattr("name", "equalto", "upload_trusty")).next().result.succeeded -%}
-          success
-        {%- else -%}
-          upload failed
-        {%- endif -%}
-      {%- else -%}
-        download failed
-      {%- endif -%}.
-    {% endif %}
-    {% if 'download_jessie' in execution.result.tasks|map(attribute='name') %}
-    *Jessie*: {% if 'upload_jessie' in execution.result.tasks|map(attribute='name') -%}
-        {% if- (execution.result.tasks|selectattr("name", "equalto", "upload_jessie")).next().result.succeeded -%}
           success
         {%- else -%}
           upload failed
