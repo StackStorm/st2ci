@@ -46,5 +46,5 @@ workflows:
             action: core.remote
             input:
                 hosts: <% $.host %>
-                cmd: sudo apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y install --only-upgrade <% $.pkg_name_with_revision %>
+                cmd: sudo apt-get -o Dpkg::Options::="--force-confold" -y install --only-upgrade <% $.pkg_name_with_revision %>
                 timeout: 180
