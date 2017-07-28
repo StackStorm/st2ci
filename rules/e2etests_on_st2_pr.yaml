@@ -1,6 +1,6 @@
 ---
-name: e2etests_on_st2_pr.yaml
-description: Run e2etests when
+name: e2etests_on_st2_pr
+description: Run e2etests for StackStorm/st2 GitHub PRs
 pack: st2ci
 enabled: true
 
@@ -11,8 +11,8 @@ criteria:
   trigger.body.payload.vcs_url:
     type: equals
     pattern: "https://github.com/StackStorm/st2"
-  trigger.body.payload.pull_requests:
-    type: icontains
+  trigger.body.payload.pull_requests[0]:
+    type: contains
     pattern: url
   trigger.body.payload.outcome:
     type: equals
@@ -20,4 +20,5 @@ criteria:
 
 action:
   ref: core.local
-  cmd: "echo {{trigger.body.payload}}"
+  parameters:
+    cmd: "echo {{trigger.body.payload}}"
