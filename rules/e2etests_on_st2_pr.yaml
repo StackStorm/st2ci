@@ -1,0 +1,23 @@
+---
+name: e2etests_on_st2_pr.yaml
+description: Run e2etests when
+pack: st2ci
+enabled: true
+
+trigger:
+  type: circle_ci.build_event
+
+criteria:
+  trigger.body.payload.vcs_url:
+    type: equals
+    pattern: "https://github.com/StackStorm/st2"
+  trigger.body.payload.pull_requests:
+    type: icontains
+    pattern: url
+  trigger.body.payload.outcome:
+    type: equals
+    pattern: success
+
+action:
+  ref: core.local
+  cmd: "echo {{trigger.body.payload}}"
