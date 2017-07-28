@@ -12,7 +12,7 @@ st2ci.build_pkgs:
         - committer
         - commit_message
         - deploy_packages
-        - circle_ci_project: "StackStorm/st2-packages"
+        - circle_ci_project: "st2-packages"
         - notify_channels:
             - "#thunderdome"
         - notify_failure_channels:
@@ -26,6 +26,7 @@ st2ci.build_pkgs:
             input:
                 project: <% $.circle_ci_project %>
                 branch: <% $.packaging_branch %>
+                username: StackStorm
                 build_parameters:
                     "ST2_GITREV": <% $.branch %>
                     "ST2_COMMIT_SHA": <% $.revision %>
