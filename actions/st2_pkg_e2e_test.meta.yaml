@@ -51,8 +51,8 @@ parameters:
     version:
         type: string
     dev_build:
-        type: integer
-        description: CircleCI build number to install artifacts from. Overrides pkg_env, release and version.
+        type: string
+        description: Repo name + CircleCI build number ('st2/3126') to install artifacts from. Overrides pkg_env, release and version.
     initial_commit:
         type: string
         description: Git hash of an initial commit from st2 repo. If provided, the workflow will update status of this commit.
