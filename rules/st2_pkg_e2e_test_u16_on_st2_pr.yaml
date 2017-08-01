@@ -1,0 +1,33 @@
+---
+name: st2_pkg_e2e_test_u16_on_st2_pr
+description: Run Ubuntu 16 end-to-end test on 'StackStorm/st2' PRs and update GitHub status
+pack: st2ci
+enabled: true
+
+trigger:
+    type: circle_ci.build_event
+
+criteria:
+    trigger.body.payload.vcs_url:
+        type: equals
+        pattern: "https://github.com/StackStorm/st2"
+    trigger.body.payload.has_artifacts:
+        type: equals
+        pattern: true
+    trigger.body.payload.pull_requests[0]:
+        type: contains
+        pattern: url
+    trigger.body.payload.outcome:
+        type: equals
+        pattern: success
+
+action:
+    ref: st2ci.st2_pkg_e2e_test
+    parameters:
+        hostname: "st2-pkg-pr-u16-dev-{{trigger.body.payload.build_num}}"
+        distro: UBUNTU16
+        pkg_env: staging
+        release: unstable
+        dev_build: "st2/{{trigger.body.payload.build_num}}"
+        initial_commit: "{{trigger.body.payload.build_parameters.vcs_revision}}"
+        triggering_commit_url: "PKG_BUILD_URL: {{trigger.body.payload.build_url}} {% if trigger.body.payload.build_parameters %}\n COMMITTER: {{trigger.body.payload.build_parameters.COMMITTER}} \n DIFF: {{trigger.body.payload.build_parameters.GITHUB_URL}} \n CIRCLE: {{trigger.body.payload.build_parameters.CIRCLE_URL}} {% else %} \n COMMITTER: {{trigger.body.payload.author_name}} \n DIFF: {{trigger.body.payload.compare}} {% endif %}"
