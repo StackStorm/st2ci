@@ -30,4 +30,8 @@ action:
         release: unstable
         dev_build: "st2/{{trigger.body.payload.build_num}}"
         initial_commit: "{{trigger.body.payload.build_parameters.vcs_revision}}"
-        triggering_commit_url: "PKG_BUILD_URL: {{trigger.body.payload.build_url}} {% if trigger.body.payload.build_parameters %}\n COMMITTER: {{trigger.body.payload.build_parameters.COMMITTER}} \n DIFF: {{trigger.body.payload.build_parameters.GITHUB_URL}} \n CIRCLE: {{trigger.body.payload.build_parameters.CIRCLE_URL}} {% else %} \n COMMITTER: {{trigger.body.payload.author_name}} \n DIFF: {{trigger.body.payload.compare}} {% endif %}"
+        triggering_commit_url: |
+          PULL_REQUEST: {{trigger.body.payload.pull_requests[0].url}}
+          PKG_BUILD_URL: {{trigger.body.payload.build_url}}
+          COMMITTER: {{trigger.body.payload.author_name}}
+          DIFF: {{trigger.body.payload.compare}}
