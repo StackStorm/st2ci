@@ -125,7 +125,7 @@ st2ci.st2_pkg_e2e_test:
             action: core.remote_sudo
             input:
                 hosts: <% $.vm_info.private_ip_address %>
-                cmd: bash /tmp/st2_bootstrap.sh --dev=<% $.dev_build %> --user=<% $.st2_username %> --password=<% $.st2_password %>
+                cmd: bash /tmp/st2_bootstrap.sh --dev=<% $.dev_build %> --<% $.pkg_env %> --<% $.release %> --user=<% $.st2_username %> --password=<% $.st2_password %>
                 timeout: 900
             on-success:
                 - upgrade_to_enterprise: <% $.enterprise %>
