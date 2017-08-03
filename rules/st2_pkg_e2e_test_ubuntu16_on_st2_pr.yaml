@@ -11,9 +11,21 @@ criteria:
     trigger.body.payload.vcs_url:
         type: equals
         pattern: "https://github.com/StackStorm/st2"
+    # branch not starting with 'master' or 'vX.Y'
+    trigger.body.payload.branch:
+        type: regex
+        pattern: "^(?!master|v[0-9]+\\.[0-9]+).*$"
     trigger.body.payload.has_artifacts:
         type: equals
         pattern: true
+    trigger.body.payload.build_parameters:
+        type: exists
+        pattern: CIRCLE_JOB
+    # limit to 'packages' sub-task in CircleCI workflow
+    trigger.body.payload.build_parameters.CIRCLE_JOB:
+        type: equals
+        pattern: packages
+    # 
     trigger.body.payload.pull_requests[0]:
         type: contains
         pattern: url
