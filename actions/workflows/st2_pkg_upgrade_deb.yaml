@@ -13,6 +13,14 @@ workflows:
         - version   # Version to upgrade to
 
     tasks:
+      upgrade_nodejs:
+        action: core.remote
+        input:
+          hosts: <% $.host %>
+          cmd: "curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -"
+          timeout: 180
+        on-success:
+          - install_pkg
       install_pkg:
         with-items: pkg in <% $.pkg_list %>
         workflow: install_latest_revision_of_pkg
