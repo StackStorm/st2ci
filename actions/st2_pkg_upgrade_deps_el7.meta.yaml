@@ -1,0 +1,29 @@
+---
+name: st2_pkg_upgrade_deps_el7
+pack: st2ci
+description: Upgrade dependencies on el7
+enabled: true
+runner_type: remote-shell-script
+entry_point: st2_pkg_upgrade_deps_el7.sh
+parameters:
+    version:
+        type: string
+        default: ''
+        description: Version to upgrade to
+        position: 0
+    enterprise:
+        type: boolean
+        default: false
+        position: 1
+    dir:
+        immutable: true
+        default: /home/stanley/
+    sudo:
+        immutable: true
+        default: false
+    cmd:
+        immutable: true
+        default: ""
+    kwarg_op:
+        immutable: true
+        default: "--"
