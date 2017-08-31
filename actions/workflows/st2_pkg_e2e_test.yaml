@@ -60,7 +60,6 @@ st2ci.st2_pkg_e2e_test:
                 webui_base_url: https://st2cicd
             on-success:
                 - notify_start
-                - create_vm
                 - set_github_status_pending: <% $.initial_commit %>
         set_github_status_pending:
             action: github.add_status
@@ -72,6 +71,8 @@ st2ci.st2_pkg_e2e_test:
                 context: <% $.github_status_context %>
                 description: E2E tests are running...
                 target_url: <% $.github_status_url %>
+            on-success:
+                - create_vm
         create_vm:
             action: st2cd.create_vm_role
             input:
@@ -222,6 +223,7 @@ st2ci.st2_pkg_e2e_test:
                 attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
             on-complete:
                 - set_github_status_success: <% $.initial_commit %>
+
         set_github_status_success:
             action: github.add_status
             input:
@@ -243,6 +245,7 @@ st2ci.st2_pkg_e2e_test:
             on-complete:
                 - set_github_status_failure: <% $.initial_commit %>
                 - fail
+
         set_github_status_failure:
             action: github.add_status
             input:
