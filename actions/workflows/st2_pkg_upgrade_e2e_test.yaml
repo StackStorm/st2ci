@@ -161,6 +161,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2chatops
                     - st2web
                 version: <% $.upgrade_to_version %>
+                distro: <% $.distro %>
             on-success:
                 - upgrade_enterprise_packages_rpm: <% $.enterprise %>
                 - migrate_models: <% not $.enterprise %>
@@ -175,6 +176,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2chatops
                     - st2web
                 version: <% $.upgrade_to_version %>
+                distro: <% $.distro %>
             on-success:
                 - upgrade_enterprise_packages_deb: <% $.enterprise %>
                 - migrate_models: <% not $.enterprise %>
@@ -187,6 +189,8 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2flow
                     - st2-auth-ldap
                 version: <% $.upgrade_to_version %>
+                distro: <% $.distro %>
+                enterprise: true
             on-success:
                 - migrate_models
 
@@ -198,6 +202,8 @@ st2ci.st2_pkg_upgrade_e2e_test:
                     - st2flow
                     - st2-auth-ldap
                 version: <% $.upgrade_to_version %>
+                distro: <% $.distro %>
+                enterprise: true
             on-success:
                 - migrate_models
 

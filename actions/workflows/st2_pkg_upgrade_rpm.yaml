@@ -11,16 +11,35 @@ workflows:
         - host      # Host on which upgrade should be run
         - pkg_list  # List of packages to upgrade
         - version   # Version to upgrade to
+        - distro
+        - enterprise
 
     tasks:
-      upgrade_nodejs:
-        action: core.remote
+      init:
+        action: std.noop
+        on-complete:
+          - upgrade_deps_el7: <% $.distro = 'CENTOS7' or $.distro = 'RHEL7' %>
+          - upgrade_deps_el6: <% $.distro = 'CENTOS6' or $.distro = 'RHEL6' %>
+      
+      upgrade_deps_el7:
+        action: st2ci.st2_pkg_upgrade_deps_el7
         input:
           hosts: <% $.host %>
-          cmd: "curl -sL https://rpm.nodesource.com/setup_6.x | sudo -E bash -; sudo yum clean all; sudo rpm -e --nodeps npm; sudo yum update -y nodejs || true"
+          version: <% $.version %>
+          enterprise: <% $.enterprise %>
           timeout: 180
         on-success:
           - install_pkg
+      upgrade_deps_el6:
+        action: st2ci.st2_pkg_upgrade_deps_el6
+        input:
+          hosts: <% $.host %>
+          version: <% $.version %>
+          enterprise: <% $.enterprise %>
+          timeout: 180
+        on-success:
+          - install_pkg
+
       install_pkg:
         with-items: pkg in <% $.pkg_list %>
         workflow: install_latest_revision_of_pkg

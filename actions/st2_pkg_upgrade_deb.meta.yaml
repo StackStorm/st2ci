@@ -18,6 +18,15 @@ parameters:
         type: string
         default: ''
         description: "Version to upgrade to"
+    distro:
+        type: string
+        required: true
+        enum:
+            - UBUNTU14
+            - UBUNTU16
+    enterprise:
+        type: boolean
+        default: false
     workflow:
         default: st2ci.st2_pkg_upgrade_deb.main
         immutable: true

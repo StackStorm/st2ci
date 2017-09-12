@@ -11,16 +11,35 @@ workflows:
         - host      # Host on which upgrade should be run
         - pkg_list  # List of packages to upgrade
         - version   # Version to upgrade to
+        - distro
+        - enterprise
 
     tasks:
-      upgrade_nodejs:
-        action: core.remote
+      init:
+        action: std.noop
+        on-complete:
+          - upgrade_deps_u16: <% $.distro = 'UBUNTU16' %>
+          - upgrade_deps_u14: <% $.distro = 'UBUNTU14' %>
+
+      upgrade_deps_u16:
+        action: st2ci.st2_pkg_upgrade_deps_u16
         input:
           hosts: <% $.host %>
-          cmd: "curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -"
+          version: <% $.version %>
+          enterprise: <% $.enterprise %>
           timeout: 180
         on-success:
           - install_pkg
+      upgrade_deps_u14:
+        action: st2ci.st2_pkg_upgrade_deps_u14
+        input:
+          hosts: <% $.host %>
+          version: <% $.version %>
+          enterprise: <% $.enterprise %>
+          timeout: 180
+        on-success:
+          - install_pkg
+
       install_pkg:
         with-items: pkg in <% $.pkg_list %>
         workflow: install_latest_revision_of_pkg
