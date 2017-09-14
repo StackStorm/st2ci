@@ -60,7 +60,8 @@ st2ci.st2_pkg_e2e_test:
                 webui_base_url: https://st2cicd
             on-success:
                 - notify_start
-                - set_github_status_pending: <% $.initial_commit %>
+                - set_github_status_pending: <% $.initial_commit != null %>
+                - create_vm: <% $.initial_commit = null %>
         set_github_status_pending:
             action: github.add_status
             input:
