@@ -193,3 +193,5 @@ st2ci.st2_pkg_test_and_promote:
                 channel: <% $.channel %>
                 text: ""
                 attachments: '[{"fallback": "[st2ci.st2_pkg_test_and_promote: FAILED]", "title": "[st2ci.st2_pkg_test_and_promote: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "HOSTNAME: <% coalesce($.hostname, "unspecified") %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#FF0000"}]'
+            on-complete:
+                - fail
