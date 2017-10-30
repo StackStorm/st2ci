@@ -44,7 +44,7 @@ workflows:
             init_vars:
                 action: core.noop
                 publish:
-                    webui_base_url: https://st2cicd
+                    webui_base_url: https://st2cicd.uswest2.stackstorm.net
                     is_infra_setup: False
                 on-success:
                     - notify_start

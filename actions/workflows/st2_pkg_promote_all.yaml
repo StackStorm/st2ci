@@ -40,7 +40,7 @@ st2ci.st2_pkg_promote_all:
         init:
             action: core.noop
             publish:
-                webui_base_url: https://st2cicd
+                webui_base_url: https://st2cicd.uswest2.stackstorm.net
                 pkg_distro_version: <% $.distro_to_distro_version_map.get($.distro) %>
             on-success:
                 - notify_start
