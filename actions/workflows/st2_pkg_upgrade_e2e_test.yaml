@@ -52,7 +52,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
         get_webui_server:
             action: core.noop
             publish:
-                webui_base_url: http://st2cicd
+                webui_base_url: http://st2cicd.uswest2.stackstorm.net
             on-success:
                 - notify_start
                 - create_vm
