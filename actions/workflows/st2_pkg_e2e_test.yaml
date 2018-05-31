@@ -140,6 +140,7 @@ st2ci.st2_pkg_e2e_test:
                 distro: <% $.distro %>
                 pkg_env: <% $.pkg_env %>
                 release: <% $.release %>
+                version: <% coalesce($.version, '') %>
                 timeout: 150
             on-success:
                 - get_installed_version
