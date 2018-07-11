@@ -172,7 +172,7 @@ st2ci.st2_pkg_e2e_test:
                 timeout: 120
             on-success:
                 - create_vm_windows
-                
+
         create_vm_windows:
             action: st2cd.create_vm_windows
             input:
@@ -191,7 +191,7 @@ st2ci.st2_pkg_e2e_test:
                 vm_windows_password: <% task(create_vm_windows).result.vm_password %>
             on-success:
                 - run_e2e_tests
-                
+
         run_e2e_tests:
             action: st2cd.st2_e2e_tests
             input:
@@ -253,7 +253,7 @@ st2ci.st2_pkg_e2e_test:
                 delay: 30
             on-complete:
                 - destroy_vm_on_failure_windows
-                
+
         destroy_vm_on_failure_windows:
             action: st2cd.destroy_vm
             input:
