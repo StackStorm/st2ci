@@ -162,16 +162,15 @@ st2ci.st2_pkg_e2e_test:
                         task(get_installed_version).result.versions.items().select(
                             $[0] + "=" + $[1]).join("\n\t") %>
             on-success:
-                - run_e2e_tests: <% not $.debug %>
+                - create_vm_windows: <% not $.debug %>
                 - enable_debug_mode: <% $.debug %>
+
         enable_debug_mode:
             action: core.remote_sudo
             input:
                 hosts: <% $.vm_info.private_ip_address %>
                 cmd: crudini --set /etc/st2/st2.conf system debug True && st2ctl restart
                 timeout: 120
-            on-success:
-                - create_vm_windows
 
         create_vm_windows:
             action: st2cd.create_vm_windows
