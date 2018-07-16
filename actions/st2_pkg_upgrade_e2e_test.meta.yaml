@@ -29,6 +29,12 @@ parameters:
     keyfile:
         type: string
         default: /home/stanley/.ssh/stanley_rsa
+    windows_key_name:
+        type: string
+        default: st2_deploy_windows
+    windows_keyfile:
+        type: string
+        default: /home/stanley/st2_deploy_windows.pem
     distro:
         type: string
         required: true
@@ -39,6 +45,11 @@ parameters:
             - RHEL7
             - UBUNTU14
             - UBUNTU16
+    windows_distro:
+        type: string
+        enum:
+            - windows2016
+        default: windows2016
     role:
         type: string
         default: cislave
