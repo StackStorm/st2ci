@@ -28,7 +28,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
 
     vars:
         vm_id: null
-        - windows_distro
+        vm_windows_id: null
         vm_fqdn: <% $.hostname %>.<% $.dns_zone %>
         windows_hostname: <% $.hostname %>win
         vm_windows_fqdn: <% $.hostname %>win.<% $.dns_zone %>
