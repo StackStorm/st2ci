@@ -238,6 +238,25 @@ st2ci.st2_pkg_upgrade_e2e_test:
                         task(get_upgraded_version).result.versions.items().select(
                             $[0] + "=" + $[1]).join("\n\t") %>
             on-success:
+                - create_vm_windows
+
+        create_vm_windows:
+            action: st2cd.create_vm_windows
+            input:
+                hostname: <% $.windows_hostname %>
+                instance_type: <% $.instance_type %>
+                environment: <% $.environment %>
+                key_name: <% $.windows_key_name %>
+                keyfile: <% $.windows_keyfile %>
+                dns_zone: <% $.dns_zone %>
+                distro: <% $.windows_distro %>
+                role: <% $.role %>
+            publish:
+                vm_windows_info: <% task(create_vm_windows).result.vm_info %>
+                vm_windows_id: <% task(create_vm_windows).result.vm_info.id %>
+                vm_windows_username: <% task(create_vm_windows).result.vm_username %>
+                vm_windows_password: <% task(create_vm_windows).result.vm_password %>
+            on-success:
                 - run_e2e_tests
 
         run_e2e_tests:
@@ -249,12 +268,15 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 enterprise: <% $.enterprise %>
                 st2_username: <% $.st2_username %>
                 st2_password: <% $.st2_password %>
+                windows_host_ip: <% $.vm_windows_info.private_ip_address %>
+                windows_host_fqdn: <% $.vm_windows_fqdn %>
+                windows_username: <% $.vm_windows_username %>
+                windows_password: <% $.vm_windows_password %>
             on-success:
                 - destroy_vm: <% not $.debug %>
                 - notify_success: <% $.debug %>
 
         # Notify tasks
-
         notify_start:
             with-items: channel in <% $.notify_channels %>
             action: slack.chat.postMessage
@@ -263,12 +285,22 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 text: ""
                 attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nFROM_VERSION: <% $.upgrade_from_version %>\nTO_VERSION: <% $.upgrade_to_version %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#808080"}]'
 
-
         destroy_vm:
             action: st2cd.destroy_vm
             input:
                 hostname: <% $.hostname %>
                 instance_id: <% $.vm_id %>
+            retry:
+                count: 2
+                delay: 30
+            on-complete:
+                - destroy_vm_windows
+
+        destroy_vm_windows:
+            action: st2cd.destroy_vm
+            input:
+                hostname: <% $.windows_hostname %>
+                instance_id: <% $.vm_windows_id %>
             retry:
                 count: 2
                 delay: 30
@@ -286,10 +318,20 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 count: 2
                 delay: 30
             on-complete:
+                - destroy_vm_on_failure_windows
+
+        destroy_vm_on_failure_windows:
+            action: st2cd.destroy_vm
+            input:
+                hostname: <% $.windows_hostname %>
+                instance_id: <% $.vm_windows_id %>
+            retry:
+                count: 2
+                delay: 30
+            on-complete:
                 - notify_failure
             on-error:
                 - noop
-
 
         notify_success:
             with-items: channel in <% $.notify_channels %>
