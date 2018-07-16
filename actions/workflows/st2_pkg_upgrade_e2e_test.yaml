@@ -10,7 +10,10 @@ st2ci.st2_pkg_upgrade_e2e_test:
         - environment
         - key_name
         - keyfile
+        - windows_key_name
+        - windows_keyfile
         - distro
+        - windows_distro
         - role
         - release
         - upgrade_from_version
@@ -25,7 +28,10 @@ st2ci.st2_pkg_upgrade_e2e_test:
 
     vars:
         vm_id: null
+        - windows_distro
         vm_fqdn: <% $.hostname %>.<% $.dns_zone %>
+        windows_hostname: <% $.hostname %>win
+        vm_windows_fqdn: <% $.hostname %>win.<% $.dns_zone %>
         installed:
             version_str: not installed
         bootstrap_script_url: <% coalesce(
