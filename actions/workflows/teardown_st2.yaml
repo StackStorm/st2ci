@@ -1,39 +1,38 @@
-version: '2.0'
-
-st2ci.teardown_st2:
-    description: Teardown a running instance of StackStorm.
-    type: direct
+---
+version: '1.0'
+description: Teardown a running instance of StackStorm.
+input:
+  - host
+  - repo
+tasks:
+  stop_service:
+    action: core.remote
     input:
-        - host
-        - repo
-
-    tasks:
-        stop_service:
-            action: core.remote
-            input:
-                hosts: <% $.host %>
-                cmd: <% $.repo %>/tools/launchdev.sh stop || true
-            on-complete:
-                - teardown_db
-
-        teardown_db:
-            action: core.remote
-            input:
-                hosts: <% $.host %>
-                cmd: mongo st2 --eval "db.dropDatabase();"
-            on-success:
-                - remove_packs
-
-        remove_packs:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.host %>
-                cmd: rm -rf /opt/stackstorm/packs
-            on-success:
-                - remove_repo
-
-        remove_repo:
-            action: st2cd.git_clean
-            input:
-                hosts: <% $.host %>
-                repo: <% $.repo %>
+      hosts: <% ctx().host %>
+      cmd: <% ctx().repo %>/tools/launchdev.sh stop || true
+    next:
+      - do:
+          - teardown_db
+  teardown_db:
+    action: core.remote
+    input:
+      hosts: <% ctx().host %>
+      cmd: mongo st2 --eval "db.dropDatabase();"
+    next:
+      - when: <% succeeded() %>
+        do:
+          - remove_packs
+  remove_packs:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().host %>
+      cmd: rm -rf /opt/stackstorm/packs
+    next:
+      - when: <% succeeded() %>
+        do:
+          - remove_repo
+  remove_repo:
+    action: st2cd.git_clean
+    input:
+      hosts: <% ctx().host %>
+      repo: <% ctx().repo %>

@@ -1,147 +1,146 @@
 ---
-version: '2.0'
-
-st2ci.st2_pkg_promote:
-    description: Promote a StackStorm package from staging to production repo
-    type: direct
+version: '1.0'
+description: Promote a StackStorm package from staging to production repo
+input:
+  - package
+  - release
+  - version
+  - revision
+  - distro_version
+  - api_token
+  - timeout:
+  - distro_arch_map:
+      debian: amd64
+      el: x86_64
+      ubuntu: amd64
+  - distro_pkg_type_map:
+      debian: deb
+      el: rpm
+      ubuntu: deb
+vars:
+  - prd_repo: StackStorm/<% ctx().release %>
+  - stg_repo: StackStorm/staging-<% ctx().release %>
+  - arch: <% ctx().distro_arch_map.get(ctx().distro_version.split("/")[0]) %>
+  - package_type: <% ctx().distro_pkg_type_map.get(ctx().distro_version.split("/")[0]) %>
+  - packagecloud_api_url: <% "https://" + ctx().api_token + ":@packagecloud.io"  %>
+output:
+  - package: <% ctx().package %>
+  - release: <% ctx().release %>
+  - version: <% ctx().version %>
+  - revision: <% ctx().revision %>
+  - distro_version: <% ctx().distro_version %>
+  - arch: <% ctx().arch %>
+  - package_type: <% ctx().package_type %>
+  - stg_repo: <% ctx().stg_repo %>
+  - prd_repo: <% ctx().prd_repo %>
+tasks:
+  get_pkgs_list:
+    action: packagecloud.list_packages
     input:
-        - package
-        - release
-        - version
-        - revision
-        - distro_version
-        - api_token
-        - timeout: 900
-        - distro_arch_map:
-            debian: amd64
-            el: x86_64
-            ubuntu: amd64
-        - distro_pkg_type_map:
-            debian: deb
-            el: rpm
-            ubuntu: deb
-
-    output:
-        package: <% $.package %>
-        release: <% $.release %>
-        version: <% $.version %>
-        revision: <% $.revision %>
-        distro_version: <% $.distro_version %>
-        arch: <% $.arch %>
-        package_type: <% $.package_type %>
-        stg_repo: <% $.stg_repo %>
-        prd_repo: <% $.prd_repo %>
-
-    vars:
-        prd_repo: StackStorm/<% $.release %>
-        stg_repo: StackStorm/staging-<% $.release %>
-        arch: <% $.distro_arch_map.get($.distro_version.split("/")[0]) %>
-        package_type: <% $.distro_pkg_type_map.get($.distro_version.split("/")[0]) %>
-        packagecloud_api_url: <% "https://" + $.api_token + ":@packagecloud.io"  %>
-
-    tasks:
-        get_pkgs_list:
-            action: packagecloud.list_packages
-            input:
-                repo: <% $.stg_repo %>
-                package: <% $.package %>
-                distro_version: <% $.distro_version %>
-                version: <% $.version %>
-                release: <% $.revision %>
-            publish:
-                pkgs_list: <% task(get_pkgs_list).result.result %>
-            on-success:
-                - get_pkg_meta: <% len($.pkgs_list) > 0 %>
-                - fail: <% len($.pkgs_list) <= 0 %>
-        get_pkg_meta:
-            publish:
-                revision: <% coalesce($.revision, $.pkgs_list.first().get('release')) %>
-                stg_pkg_url: <% $.packagecloud_api_url + $.pkgs_list.first().get('package_url') %>
-                prd_pkg_url: <%
-                    $.packagecloud_api_url +
-                    $.pkgs_list.first().get('package_url').replace($.stg_repo, $.prd_repo) %>
-            on-success:
-                - get_stg_pkg_info
-
-
-        get_stg_pkg_info:
-            action: core.http
-            input:
-                url: <% $.stg_pkg_url %>
-            publish:
-                download_url: <% task(get_stg_pkg_info).result.body.download_url %>
-                filename: <% task(get_stg_pkg_info).result.body.filename %>
-                url: <% task(get_stg_pkg_info).result.body.package_html_url %>
-            on-success:
-                - get_prd_pkg_info
-        get_prd_pkg_info:
-            action: core.http
-            input:
-                url: <% $.prd_pkg_url %>
-            on-error:
-                - promote: <% task(get_prd_pkg_info).result.get(status_code, 0) = 404 %>
-                - notify_failure: <% task(get_prd_pkg_info).result.get(status_code, 0) != 404 %>
-            on-success:
-                - checksum
-
-
-        checksum:
-            action: std.noop
-            on-complete:
-                - notify_success: <%
-                    task(get_prd_pkg_info).result.body.sha512sum =
-                    task(get_stg_pkg_info).result.body.sha512sum %>
-                - notify_failure: <%
-                    task(get_prd_pkg_info).result.body.sha512sum !=
-                    task(get_stg_pkg_info).result.body.sha512sum %>
-
-
-        promote:
-            on-complete:
-                - get_pkg_filename
-        get_pkg_filename:
-            action: core.local
-            input:
-                cmd: date +'%s'
-            publish:
-                target: <%
-                    str(task(get_pkg_filename).result.stdout) + '-' +
-                    str(random(100000, 999999)) + '-' +
-                    $.filename %>
-            on-success:
-                - download_stg_pkg
-        download_stg_pkg:
-            action: core.local
-            input:
-                cmd: wget -O /tmp/<% $.target %> <% $.download_url %>
-                timeout: <% $.timeout %>
-            on-success:
-                - upload_stg_pkg_to_prd
-        upload_stg_pkg_to_prd:
-            action: core.local
-            input:
-                env:
-                    LANG: en_US.utf8
-                    PACKAGECLOUD_TOKEN: <% $.api_token %>
-                cmd: package_cloud push <% $.prd_repo %>/<% $.distro_version %> /tmp/<% $.target %>
-                timeout: <% $.timeout %>
-            on-success:
-                - notify_success
-            on-error:
-                - notify_failure
-            on-complete:
-                - cleanup
-
-
-        cleanup:
-            action: core.local
-            input:
-                cmd: rm -rf /tmp/<% $.target %>
-
-
-        notify_success:
-            action: std.noop
-
-
-        notify_failure:
-            action: std.fail
+      repo: <% ctx().stg_repo %>
+      package: <% ctx().package %>
+      distro_version: <% ctx().distro_version %>
+      version: <% ctx().version %>
+      release: <% ctx().revision %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - pkgs_list: <% result().result %>
+      - when: <% succeeded() and (len(ctx().pkgs_list) > 0) %>
+        do:
+          - get_pkg_meta
+      - when: <% succeeded() and (len(ctx().pkgs_list) <= 0) %>
+        do:
+          - fail
+  get_pkg_meta:
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - revision: <% coalesce(ctx().revision, ctx().pkgs_list.first().get('release')) %>
+          - stg_pkg_url: <% ctx().packagecloud_api_url + ctx().pkgs_list.first().get('package_url') %>
+          - prd_pkg_url: <% ctx().packagecloud_api_url + ctx().pkgs_list.first().get('package_url').replace(ctx().stg_repo, ctx().prd_repo) %>
+        do:
+          - get_stg_pkg_info
+  get_stg_pkg_info:
+    action: core.http
+    input:
+      url: <% ctx().stg_pkg_url %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - download_url: <% result().body.download_url %>
+          - filename: <% result().body.filename %>
+          - url: <% result().body.package_html_url %>
+        do:
+          - get_prd_pkg_info
+  get_prd_pkg_info:
+    action: core.http
+    input:
+      url: <% ctx().prd_pkg_url %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - checksum
+      - when: <% failed() and (result().get(status_code, 0) = 404) %>
+        do:
+          - promote
+      - when: <% failed() and (result().get(status_code, 0) != 404) %>
+        do:
+          - notify_failure
+  checksum:
+    action: std.noop
+    next:
+      - when: <% result().body.sha512sum = result().body.sha512sum %>
+        do:
+          - notify_success
+      - when: <% result().body.sha512sum != result().body.sha512sum %>
+        do:
+          - notify_failure
+  promote:
+    next:
+      - do:
+          - get_pkg_filename
+  get_pkg_filename:
+    action: core.local
+    input:
+      cmd: date +'%s'
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - target: <% str(result().stdout) + '-' + str(random(100000, 999999)) + '-' + ctx().filename %>
+        do:
+          - download_stg_pkg
+  download_stg_pkg:
+    action: core.local
+    input:
+      cmd: wget -O /tmp/<% ctx().target %> <% ctx().download_url %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - upload_stg_pkg_to_prd
+  upload_stg_pkg_to_prd:
+    action: core.local
+    input:
+      env:
+        LANG: en_US.utf8
+        PACKAGECLOUD_TOKEN: <% ctx().api_token %>
+      cmd: package_cloud push <% ctx().prd_repo %>/<% ctx().distro_version %> /tmp/<% ctx().target %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - notify_success
+      - when: <% failed() %>
+        do:
+          - notify_failure
+      - do:
+          - cleanup
+  cleanup:
+    action: core.local
+    input:
+      cmd: rm -rf /tmp/<% ctx().target %>
+  notify_success:
+    action: std.noop
+  notify_failure:
+    action: std.fail
