@@ -87,11 +87,7 @@ st2ci.bwc_pkg_promote_all:
                 package: st2-auth-ldap
                 distro_version: <% $.pkg_distro_version %>
                 release: <% $.release %>
-                version: <%
-                    switch(
-                        dev in $.version => $.version.substring(0, $.version.indexOf(dev)) + '.dev0',
-                        $.version => $.version
-                    ) %>
+                version: <% $.version %>
             publish:
                 promoted_st2_auth_ldap: <% $.version + '-' + task(promote_st2_auth_ldap).result.revision %>
             on-complete:
