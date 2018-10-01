@@ -1,61 +1,64 @@
-version: '2.0'
-
-st2ci.setup_st2:
-    description: Setup a running instance of StackStorm from git repo.
-    type: direct
+---
+version: '1.0'
+description: Setup a running instance of StackStorm from git repo.
+input:
+  - host
+  - repo
+  - repo_branch
+  - repo_dir
+  - debug
+vars:
+  - clone_repo_iteration_count: 0
+output:
+  - clone_path: <% ctx().clone_path %>
+tasks:
+  clone_repo:
+    action: st2cd.git_clone
     input:
-        - host
-        - repo
-        - repo_branch
-        - repo_dir
-        - debug
-
-    output:
-        clone_path: <% $.clone_path %>
-
-    task-defaults:
-        on-error:
-            - teardown: <% not $.debug %>
-            - fail: <% $.debug %>
-
-    tasks:
-        clone_repo:
-            action: st2cd.git_clone
-            input:
-                hosts: <% $.host %>
-                repo: <% $.repo %>
-                branch: <% $.repo_branch %>
-                target: <% $.repo_dir %>/st2_<% $.repo_branch %>
-                timeout: 120
-            retry:
-                count: 3
-                delay: 3
-            publish:
-                clone_path: <% task(clone_repo).result.get($.host).stdout %>
-            on-success:
-                - install
-
-        install:
-            action: st2ci.install_st2
-            input:
-                hosts: <% $.host %>
-                repo: <% $.clone_path %>
-            on-success:
-                - start_service
-
-        start_service:
-            action: core.remote
-            input:
-                hosts: <% $.host %>
-                cmd: <% $.clone_path %>/tools/launchdev.sh stop & <% $.clone_path %>/tools/launchdev.sh startclean -g -x
-
-
-
-        # Declare error handler(s) here
-        teardown:
-            action: st2ci.teardown_st2
-            input:
-                host: <% $.host %>
-                repo: <% $.clone_path %>
-            on-complete:
-                - fail
+      hosts: <% ctx().host %>
+      repo: <% ctx().repo %>
+      branch: <% ctx().repo_branch %>
+      target: <% ctx().repo_dir %>/st2_<% ctx().repo_branch %>
+      timeout:
+    next:
+      - when: <% failed() and ctx().clone_repo_iteration_count < 3 %>
+        publish:
+          - clone_repo_iteration_count: <% ctx().clone_repo_iteration_count + 1 %>
+        do:
+          - sleep_for_clone_repo
+      - when: <% succeeded() %>
+        publish:
+          - clone_path: <% result().get(ctx().host).stdout %>
+        do:
+          - install
+  sleep_for_clone_repo:
+    action: core.local
+    input:
+      cmd: sleep 3
+      timeout: null
+    next:
+      - when: <% succeeded() %>
+        do:
+          - clone_repo
+  install:
+    action: st2ci.install_st2
+    input:
+      hosts: <% ctx().host %>
+      repo: <% ctx().clone_path %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - start_service
+  start_service:
+    action: core.remote
+    input:
+      hosts: <% ctx().host %>
+      cmd: <% ctx().clone_path %>/tools/launchdev.sh stop & <% ctx().clone_path %>/tools/launchdev.sh startclean -g -x
+  teardown:
+    action: st2ci.teardown_st2
+    input:
+      host: <% ctx().host %>
+      repo: <% ctx().clone_path %>
+    next:
+      - do:
+          - fail

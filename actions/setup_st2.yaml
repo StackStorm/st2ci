@@ -2,7 +2,7 @@
 name: setup_st2
 description: Install and configure a running instance of StackStorm from git repo.
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/setup_st2.yaml
 parameters:
   host:
