@@ -3,7 +3,7 @@ name: install_latest_revision_of_rpm_pkg
 pack: st2ci
 description: Install latest revision of a specified rpm package
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/install_latest_revision_of_rpm_pkg.yaml
 parameters:
   host:

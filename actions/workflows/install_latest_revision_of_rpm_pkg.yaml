@@ -1,28 +1,26 @@
-version: '2.0'
-
-st2ci.install_latest_revision_of_rpm_pkg:
-  description: Install latest revision of a specified rpm package
-  type: direct
-  input:
-    - host
-    - pkg
-    - version
-
-  tasks:
-    get_latest_revision:
-      action: core.remote
-      input:
-        hosts: <% $.host %>
-        cmd: repoquery --show-duplicates <% $.pkg %>-<% $.version %>* | sort --version-sort | tail -n 1
-        timeout: 180
-      publish:
-        pkg_name_with_revision: <% task(get_latest_revision).result.get($.host).stdout %>
-      on-complete:
-        - upgrade_pkg_via_yum
-
-    upgrade_pkg_via_yum:
-      action: core.remote
-      input:
-        hosts: <% $.host %>
-        cmd: sudo yum install -y <% $.pkg_name_with_revision %>
-        timeout: 180
+---
+version: '1.0'
+description: Install latest revision of a specified rpm package
+input:
+  - host
+  - pkg
+  - version
+tasks:
+  get_latest_revision:
+    action: core.remote
+    input:
+      hosts: <% ctx().host %>
+      cmd: repoquery --show-duplicates <% ctx().pkg %>-<% ctx().version %>* | sort --version-sort | tail -n 1
+      timeout:
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - pkg_name_with_revision: <% result().get(ctx().host).stdout %>
+      - do:
+          - upgrade_pkg_via_yum
+  upgrade_pkg_via_yum:
+    action: core.remote
+    input:
+      hosts: <% ctx().host %>
+      cmd: sudo yum install -y <% ctx().pkg_name_with_revision %>
+      timeout:
