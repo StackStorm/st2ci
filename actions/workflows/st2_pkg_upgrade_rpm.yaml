@@ -1,79 +1,45 @@
 version: '2.0'
-name: st2ci.st2_pkg_upgrade_rpm
-description: Upgrade rpm packages to latest revision of specified version
 
-workflows:
+st2ci.st2_pkg_upgrade_rpm:
+  description: Upgrade rpm packages to latest revision of specified version
+  type: direct
+  input:
+    - host      # Host on which upgrade should be run
+    - pkg_list  # List of packages to upgrade
+    - version   # Version to upgrade to
+    - distro
+    - enterprise
+  tasks:
+    init:
+      action: std.noop
+      on-complete:
+        - upgrade_deps_el7: <% $.distro = 'CENTOS7' or $.distro = 'RHEL7' %>
+        - upgrade_deps_el6: <% $.distro = 'CENTOS6' or $.distro = 'RHEL6' %>
 
-  main:
-    description: Upgrade StackStorm rpm packages on the box using yum.
-    type: direct
-    input:
-        - host      # Host on which upgrade should be run
-        - pkg_list  # List of packages to upgrade
-        - version   # Version to upgrade to
-        - distro
-        - enterprise
-
-    tasks:
-      init:
-        action: std.noop
-        on-complete:
-          - upgrade_deps_el7: <% $.distro = 'CENTOS7' or $.distro = 'RHEL7' %>
-          - upgrade_deps_el6: <% $.distro = 'CENTOS6' or $.distro = 'RHEL6' %>
-      
-      upgrade_deps_el7:
-        action: st2ci.st2_pkg_upgrade_deps_el7
-        input:
-          hosts: <% $.host %>
-          version: <% $.version %>
-          enterprise: <% $.enterprise %>
-          timeout: 180
-        on-success:
-          - install_pkg
-      upgrade_deps_el6:
-        action: st2ci.st2_pkg_upgrade_deps_el6
-        input:
-          hosts: <% $.host %>
-          version: <% $.version %>
-          enterprise: <% $.enterprise %>
-          timeout: 180
-        on-success:
-          - install_pkg
-
-      install_pkg:
-        with-items: pkg in <% $.pkg_list %>
-        workflow: install_latest_revision_of_pkg
-        input:
-          host: <% $.host %>
-          pkg: <% $.pkg %>
-          version: <% $.version %>
-        concurrency: 1
-
-  install_latest_revision_of_pkg:
-      description: Install latest revision of a specified package
-      type: direct
+    upgrade_deps_el7:
+      action: st2ci.st2_pkg_upgrade_deps_el7
       input:
-          - host
-          - pkg
-          - version
+        hosts: <% $.host %>
+        version: <% $.version %>
+        enterprise: <% $.enterprise %>
+        timeout: 180
+      on-success:
+        - install_pkg
+    upgrade_deps_el6:
+      action: st2ci.st2_pkg_upgrade_deps_el6
+      input:
+        hosts: <% $.host %>
+        version: <% $.version %>
+        enterprise: <% $.enterprise %>
+        timeout: 180
+      on-success:
+        - install_pkg
 
-      tasks:
-        get_latest_revision:
-          action: core.remote
-          input:
-            hosts: <% $.host %>
-            cmd: repoquery --show-duplicates <% $.pkg %>-<% $.version %>* | sort --version-sort | tail -n 1
-            timeout: 180
-          publish:
-            pkg_name_with_revision: <% task(get_latest_revision).result.get($.host).stdout %>
-          on-complete:
-            - upgrade_pkg_via_yum
-
-        upgrade_pkg_via_yum:
-            action: core.remote
-            input:
-                hosts: <% $.host %>
-                cmd: sudo yum install -y <% $.pkg_name_with_revision %>
-                timeout: 180
-
-
+    install_pkg:
+      with-items: pkg in <% $.pkg_list %>
+      action: st2ci.install_latest_revision_of_rpm_pkg
+      input:
+        host: <% $.host %>
+        pkg: <% $.pkg %>
+        version: <% $.version %>
+      concurrency: 1

@@ -29,7 +29,3 @@ parameters:
     enterprise:
         type: boolean
         default: false
-    workflow:
-        default: st2ci.st2_pkg_upgrade_rpm.main
-        immutable: true
-        type: string

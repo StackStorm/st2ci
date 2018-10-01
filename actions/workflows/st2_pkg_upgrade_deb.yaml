@@ -1,87 +1,55 @@
 version: '2.0'
-name: st2ci.st2_pkg_upgrade_deb
-description: Upgrade deb packages to latest revision of specified version
 
-workflows:
+st2ci.st2_pkg_upgrade_deb:
+  description: Upgrade deb packages to latest revision of specified version
+  type: direct
+  input:
+    - host      # Host on which upgrade should be run
+    - pkg_list  # List of packages to upgrade
+    - version   # Version to upgrade to
+    - distro
+    - enterprise
+  tasks:
+    init:
+      action: std.noop
+      on-complete:
+        - upgrade_deps_u18: <% $.distro = 'UBUNTU18' %>
+        - upgrade_deps_u16: <% $.distro = 'UBUNTU16' %>
+        - upgrade_deps_u14: <% $.distro = 'UBUNTU14' %>
 
-  main:
-    description: Upgrade StackStorm deb packages on the box using yum.
-    type: direct
-    input:
-        - host      # Host on which upgrade should be run
-        - pkg_list  # List of packages to upgrade
-        - version   # Version to upgrade to
-        - distro
-        - enterprise
-
-    tasks:
-      init:
-        action: std.noop
-        on-complete:
-          - upgrade_deps_u18: <% $.distro = 'UBUNTU18' %>
-          - upgrade_deps_u16: <% $.distro = 'UBUNTU16' %>
-          - upgrade_deps_u14: <% $.distro = 'UBUNTU14' %>
-
-      upgrade_deps_u18:
-        action: st2ci.st2_pkg_upgrade_deps_u18
-        input:
-          hosts: <% $.host %>
-          version: <% $.version %>
-          enterprise: <% $.enterprise %>
-          timeout: 180
-        on-success:
-          - install_pkg
-      upgrade_deps_u16:
-        action: st2ci.st2_pkg_upgrade_deps_u16
-        input:
-          hosts: <% $.host %>
-          version: <% $.version %>
-          enterprise: <% $.enterprise %>
-          timeout: 180
-        on-success:
-          - install_pkg
-      upgrade_deps_u14:
-        action: st2ci.st2_pkg_upgrade_deps_u14
-        input:
-          hosts: <% $.host %>
-          version: <% $.version %>
-          enterprise: <% $.enterprise %>
-          timeout: 180
-        on-success:
-          - install_pkg
-
-      install_pkg:
-        with-items: pkg in <% $.pkg_list %>
-        workflow: install_latest_revision_of_pkg
-        input:
-          host: <% $.host %>
-          pkg: <% $.pkg %>
-          version: <% $.version %>
-        concurrency: 1
-
-  install_latest_revision_of_pkg:
-      description: Install latest revision of a specified package
-      type: direct
+    upgrade_deps_u18:
+      action: st2ci.st2_pkg_upgrade_deps_u18
       input:
-          - host
-          - pkg
-          - version
+        hosts: <% $.host %>
+        version: <% $.version %>
+        enterprise: <% $.enterprise %>
+        timeout: 180
+      on-success:
+        - install_pkg
+    upgrade_deps_u16:
+      action: st2ci.st2_pkg_upgrade_deps_u16
+      input:
+        hosts: <% $.host %>
+        version: <% $.version %>
+        enterprise: <% $.enterprise %>
+        timeout: 180
+      on-success:
+        - install_pkg
+    upgrade_deps_u14:
+      action: st2ci.st2_pkg_upgrade_deps_u14
+      input:
+        hosts: <% $.host %>
+        version: <% $.version %>
+        enterprise: <% $.enterprise %>
+        timeout: 180
+      on-success:
+        - install_pkg
 
-      tasks:
-        get_latest_revision:
-          action: core.remote
-          input:
-            hosts: <% $.host %>
-            cmd: apt-cache show <% $.pkg %> | grep Version | awk '{print $2}' | grep <% $.version %> | sort --version-sort | tail -n 1
-            timeout: 180
-          publish:
-            pkg_name_with_revision: '<% [$.pkg, task(get_latest_revision).result.get($.host).stdout].join("=") %>'
-          on-complete:
-            - upgrade_pkg_via_apt_get
-
-        upgrade_pkg_via_apt_get:
-            action: core.remote
-            input:
-                hosts: <% $.host %>
-                cmd: sudo apt-get -o Dpkg::Options::="--force-confold" -y install --only-upgrade <% $.pkg_name_with_revision %>
-                timeout: 180
+    install_pkg:
+      with-items: pkg in <% $.pkg_list %>
+      action: st2ci.install_latest_revision_of_deb_pkg
+      input:
+        host: <% $.host %>
+        pkg: <% $.pkg %>
+        version: <% $.version %>
+      concurrency: 1
