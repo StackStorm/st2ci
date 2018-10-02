@@ -2,7 +2,7 @@
 name: mistral_get_build_hosts
 description: Mistral get build hosts subworkflow
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/mistral_get_build_hosts.yaml
 parameters:
   hosts:

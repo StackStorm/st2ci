@@ -2,7 +2,7 @@
 name: mistral_merge_upstreams
 description: Mistral merge upstreams subworkflow
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/mistral_merge_upstreams.yaml
 parameters:
   host:

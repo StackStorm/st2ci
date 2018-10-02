@@ -2,7 +2,7 @@
 name: mistral_get_commit_shas
 description: Mistral get commit SHAs subworkflow
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/mistral_get_commit_shas.yaml
 parameters:
   host:

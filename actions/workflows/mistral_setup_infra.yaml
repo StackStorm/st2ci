@@ -1,84 +1,86 @@
-version: '2.0'
-
-st2ci.mistral_setup_infra:
-    description: Mistral setup infra subworkflow
-    type: direct
+---
+version: '1.0'
+description: Mistral setup infra subworkflow
+input:
+  - host
+  - distro
+  - mis_repo_base
+  - mis_repo_main
+  - mis_repo_client
+  - mis_repo_action
+  - mis_repo_branch
+  - mis_repo_dir
+  - mis_db_type
+  - mis_db_name
+  - mis_db_user_name
+  - mis_db_user_pass
+  - mis_db_root_pass
+  - mis_api_port
+  - st2_repo
+  - st2_repo_branch
+  - st2_repo_dir
+  - debug
+output:
+  - is_mistral_setup: <% ctx().is_mistral_setup %>
+  - is_st2_setup: <% ctx().is_st2_setup %>
+  - clones: <% dict(mistral=>ctx().mistral_clone_path, mistralclient=>ctx().mistralclient_clone_path, st2mistral=>ctx().st2mistral_clone_path, st2=>ctx().st2_clone_path) %>
+tasks:
+  init_vars:
+    action: std.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - is_mistral_setup:
+          - is_st2_setup:
+          - mistral_clone_path:
+          - mistralclient_clone_path:
+          - st2mistral_clone_path:
+          - st2_clone_path:
+        do:
+          - setup_mistral
+  setup_mistral:
+    action: mistral_dev.setup
     input:
-        - host
-        - distro
-        - mis_repo_base
-        - mis_repo_main
-        - mis_repo_client
-        - mis_repo_action
-        - mis_repo_branch
-        - mis_repo_dir
-        - mis_db_type
-        - mis_db_name
-        - mis_db_user_name
-        - mis_db_user_pass
-        - mis_db_root_pass
-        - mis_api_port
-        - st2_repo
-        - st2_repo_branch
-        - st2_repo_dir
-        - debug
-    output:
-        is_mistral_setup: <% $.is_mistral_setup %>
-        is_st2_setup: <% $.is_st2_setup %>
-        clones: <% dict(mistral=>$.mistral_clone_path,
-                        mistralclient=>$.mistralclient_clone_path,
-                        st2mistral=>$.st2mistral_clone_path,
-                        st2=>$.st2_clone_path) %>
-    tasks:
-        init_vars:
-            action: std.noop
-            publish:
-                is_mistral_setup: False
-                is_st2_setup: False
-                mistral_clone_path: null
-                mistralclient_clone_path: null
-                st2mistral_clone_path: null
-                st2_clone_path: null
-            on-success:
-                - setup_mistral
-        setup_mistral:
-            action: mistral_dev.setup
-            input:
-                host: <% $.host %>
-                distro: <% $.distro %>
-                repo_base: <% $.mis_repo_base %>
-                repo_main: <% $.mis_repo_main %>
-                repo_client: <% $.mis_repo_client %>
-                repo_action: <% $.mis_repo_action %>
-                repo_branch: <% $.mis_repo_branch %>
-                repo_dir: <% $.mis_repo_dir %>
-                db_type: <% $.mis_db_type %>
-                db_name: <% $.mis_db_name %>
-                db_user_name: <% $.mis_db_user_name %>
-                db_user_pass: <% $.mis_db_user_pass %>
-                db_root_pass: <% $.mis_db_root_pass %>
-                api_port: <% $.mis_api_port %>
-                debug: <% $.debug %>
-            publish:
-                mistral_clone_path: <% task(setup_mistral).result.clone_paths.get(mistral) %>
-                mistralclient_clone_path: <% task(setup_mistral).result.clone_paths.get(mistralclient) %>
-                st2mistral_clone_path: <% task(setup_mistral).result.clone_paths.get(st2mistral) %>
-                is_mistral_setup: True
-            on-success:
-                - setup_st2
-            on-error:
-                - noop
-        setup_st2:
-            action: st2ci.setup_st2
-            input:
-                host: <% $.host %>
-                repo: <% $.st2_repo %>
-                repo_branch: <% $.st2_repo_branch %>
-                repo_dir: <% $.st2_repo_dir %>
-                debug: <% $.debug %>
-            publish:
-                st2_clone_path: <% task(setup_st2).result.clone_path %>
-                is_st2_setup: True
-            on-error:
-                - noop
-
+      host: <% ctx().host %>
+      distro: <% ctx().distro %>
+      repo_base: <% ctx().mis_repo_base %>
+      repo_main: <% ctx().mis_repo_main %>
+      repo_client: <% ctx().mis_repo_client %>
+      repo_action: <% ctx().mis_repo_action %>
+      repo_branch: <% ctx().mis_repo_branch %>
+      repo_dir: <% ctx().mis_repo_dir %>
+      db_type: <% ctx().mis_db_type %>
+      db_name: <% ctx().mis_db_name %>
+      db_user_name: <% ctx().mis_db_user_name %>
+      db_user_pass: <% ctx().mis_db_user_pass %>
+      db_root_pass: <% ctx().mis_db_root_pass %>
+      api_port: <% ctx().mis_api_port %>
+      debug: <% ctx().debug %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - mistral_clone_path: <% result().clone_paths.get(mistral) %>
+          - mistralclient_clone_path: <% result().clone_paths.get(mistralclient) %>
+          - st2mistral_clone_path: <% result().clone_paths.get(st2mistral) %>
+          - is_mistral_setup:
+        do:
+          - setup_st2
+      - when: <% failed() %>
+        do:
+          - noop
+  setup_st2:
+    action: st2ci.setup_st2
+    input:
+      host: <% ctx().host %>
+      repo: <% ctx().st2_repo %>
+      repo_branch: <% ctx().st2_repo_branch %>
+      repo_dir: <% ctx().st2_repo_dir %>
+      debug: <% ctx().debug %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - st2_clone_path: <% result().clone_path %>
+          - is_st2_setup:
+      - when: <% failed() %>
+        do:
+          - noop

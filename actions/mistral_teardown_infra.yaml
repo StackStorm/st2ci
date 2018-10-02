@@ -2,7 +2,7 @@
 name: mistral_teardown_infra
 description: Mistral teardown infra subworkflow
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/mistral_teardown_infra.yaml
 parameters:
   host:
