@@ -1,0 +1,30 @@
+version: '2.0'
+
+st2ci.mistral_get_commit_shas:
+    description: Mistral get commit shas subworkflow
+    type: direct
+    input:
+        - host
+        - repos
+    output:
+        shas: <% $.shas %>
+    tasks:
+        get_mistral_sha:
+            action: core.remote
+            input:
+                hosts: <% $.host %>
+                cmd: cd <% $.repos.get(mistral) %> && echo `git rev-parse HEAD`
+            on-success:
+                - get_mistralclient_sha
+        get_mistralclient_sha:
+            action: core.remote
+            input:
+                hosts: <% $.host %>
+                cmd: cd <% $.repos.get(mistralclient) %> && echo `git rev-parse HEAD`
+            on-success:
+                - compose_shas
+        compose_shas:
+            action: std.noop
+            publish:
+                shas: <% dict(mistral=>task(get_mistral_sha).result.get($.host).stdout,
+                              mistralclient=>task(get_mistralclient_sha).result.get($.host).stdout) %>

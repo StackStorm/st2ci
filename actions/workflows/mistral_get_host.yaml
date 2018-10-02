@@ -1,0 +1,24 @@
+version: '2.0'
+
+st2ci.mistral_get_host:
+    description: Mistral get host subworkflow
+    type: direct
+    input:
+        - host
+        - type
+    output:
+        host: <% $.host %>
+    tasks:
+        has_host:
+            action: std.noop
+            on-success:
+                - get_host: <% $.host = null or $.host = '' or $.host = 'None' %>
+                - succeed: <% $.host != null and $.host != '' and $.host != 'None' %>
+        get_host:
+            action: linux.dig
+            input:
+                hostname: <% $.type %>
+                rand: true
+                count: 1
+            publish:
+                host: <% task(get_host).result.result[0] %>

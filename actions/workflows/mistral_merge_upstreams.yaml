@@ -1,0 +1,27 @@
+version: '2.0'
+
+st2ci.mistral_merge_upstreams:
+    description: Mistral merge upstreams subworkflow
+    type: direct
+    input:
+        - host
+        - shas
+    tasks:
+        merge_mistral:
+            action: st2ci.git_merge_upstream
+            input:
+                hosts: <% $.host %>
+                name: mistral
+                repo: git@github.com:stackstorm/mistral.git
+                repo_upstream: git@github.com:openstack/mistral.git
+                commit_sha: <% $.shas.get(mistral) %>
+            on-success:
+                - merge_mistralclient
+        merge_mistralclient:
+            action: st2ci.git_merge_upstream
+            input:
+                hosts: <% $.host %>
+                name: python-mistralclient
+                repo: git@github.com:stackstorm/python-mistralclient.git
+                repo_upstream: git@github.com:openstack/python-mistralclient.git
+                commit_sha: <% $.shas.get(mistralclient) %>

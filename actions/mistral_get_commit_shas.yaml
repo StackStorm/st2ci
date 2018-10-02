@@ -1,0 +1,22 @@
+---
+name: mistral_get_commit_shas
+description: Mistral get commit SHAs subworkflow
+enabled: true
+runner_type: mistral-v2
+entry_point: workflows/mistral_get_commit_shas.yaml
+parameters:
+  host:
+    type: string
+    description: The host to run
+    required: true
+  repos:
+    type: object
+    properties:
+      mistral:
+        type: string
+        description: Specifies the name of the mistral repository
+        required: true
+      mistralclient:
+        type: string
+        description: Specifies the name of the mistralclient repository
+        required: true

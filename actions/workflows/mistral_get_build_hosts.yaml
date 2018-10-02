@@ -1,0 +1,30 @@
+version: '2.0'
+
+st2ci.mistral_get_build_hosts:
+    description: Mistral get build hosts subworkflow
+    type: direct
+    input:
+        - hosts
+    output:
+        hosts: <% $.hosts %>
+    tasks:
+        get_test_host:
+            action: st2ci.mistral_get_host
+            input:
+                host: <% $.hosts.get(test) %>
+                type: st2-build-slave-itests-ubuntu.service.consul
+            on-success:
+                - get_build_host
+        get_build_host:
+            action: st2ci.mistral_get_host
+            input:
+                host: <% $.hosts.get(build) %>
+                type: st2-build-slave-ubuntu.service.consul
+            on-success:
+                - compose_hosts
+        compose_hosts:
+            action: std.noop
+            publish:
+                hosts: <% dict(test=>task(get_test_host).result.host,
+                               build=>task(get_build_host).result.host) %>
+
