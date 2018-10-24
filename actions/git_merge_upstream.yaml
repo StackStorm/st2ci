@@ -1,6 +1,6 @@
 ---
   name: "git_merge_upstream"
-  runner_type: "run-remote-script"
+  runner_type: "remote-shell-script"
   description: "Merge git repo with upstream."
   enabled: true
   entry_point: "git_merge_upstream.sh"

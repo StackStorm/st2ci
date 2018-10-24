@@ -1,6 +1,6 @@
 ---
   name: "backup_logs"
-  runner_type: "run-remote-script"
+  runner_type: "remote-shell-script"
   description: "Backup logs for StackStorm and related components."
   enabled: true
   entry_point: "backup_logs.sh"
