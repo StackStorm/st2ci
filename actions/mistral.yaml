@@ -2,7 +2,7 @@
 name: mistral
 description: Run the continuous integration for Mistral.
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/mistral.yaml
 parameters:
   test_host:

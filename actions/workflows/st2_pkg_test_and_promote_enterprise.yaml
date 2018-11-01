@@ -1,99 +1,99 @@
-version: '2.0'
-st2ci.st2_pkg_test_and_promote_enterprise:
+---
+version: '1.0'
+input:
+  - hostname
+  - distro
+  - release
+  - version
+  - keyfile
+  - debug
+  - enterprise_keys:
+      stable: "{{st2kv('system.enterprise_key_stg_stable')}}"
+      unstable: "{{st2kv('system.enterprise_key_stg_unstable')}}"
+  - pkg_env: staging
+  - notify_channels:
+      - '#thunderdome'
+  - notify_failure_channels:
+      - '#thunderdome'
+      - '#stackstorm'
+tasks:
+  init:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - webui_base_url: https://st2cicd.uswest2.stackstorm.net
+        do:
+          - notify_start
+  notify_start:
+    with:
+      items: channel in <% $.notify_channels %>
+    action: slack.chat.postMessage
     input:
-        - hostname
-        - distro
-        - release
-        - version
-        - keyfile
-        - debug
-        - enterprise_keys:
-            stable: "{{st2kv.system.enterprise_key_stg_stable}}"
-            unstable: "{{st2kv.system.enterprise_key_stg_unstable}}"
-        - pkg_env: staging
-        - notify_channels:
-            - "#thunderdome"
-        - notify_failure_channels:
-            - "#thunderdome"
-            - "#stackstorm"
-
-    task-defaults:
-        on-error:
-            - notify_failure
-
-
-    tasks:
-        init:
-            action: core.noop
-            publish:
-                webui_base_url: https://st2cicd.uswest2.stackstorm.net
-            on-success:
-                - notify_start
-        notify_start:
-            with-items: channel in <% $.notify_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_test_and_promote_enterprise: STARTED]", "title": "[st2ci.st2_pkg_test_and_promote_enterprise: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "HOSTNAME: <% coalesce($.hostname, "unspecified") %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#808080"}]'
-            on-success:
-                - get_hostname_suffix
-
-
-
-        get_hostname_suffix:
-            action: core.local
-            input:
-                cmd: "date +'%s'"
-            publish:
-                suffix: <% task(get_hostname_suffix).result.stdout %>
-            on-success:
-                - run_e2e_test
-        run_e2e_test:
-            action: st2ci.st2_pkg_e2e_test
-            input:
-                hostname: <% coalesce(
-                    $.hostname,
-                    "st2-ent-pkg-" + $.release + "-" + $.distro.toLower() + "-" + str($.suffix)
-                    ) %>
-                distro: <% $.distro %>
-                release: <% $.release %>
-                version: <% $.version %>
-                enterprise: true
-                enterprise_key: <% $.enterprise_keys.get($.release) %>
-                pkg_env: <% $.pkg_env %>
-                keyfile: <% $.keyfile %>
-                debug: <% $.debug %>
-            publish:
-                version: <% task(run_e2e_test).result.versions.get(st2).split('-')[0] %>
-            on-success:
-                - promote_all
-        promote_all:
-            action: st2ci.bwc_pkg_promote_all
-            input:
-                distro: <% $.distro %>
-                release: <% $.release %>
-                version: <% $.version %>
-            on-complete:
-                - notify_success: <% task(promote_all).result.promoted %>
-                - notify_failure: <% not task(promote_all).result.promoted %>
-
-
-
-        notify_success:
-            with-items: channel in <% $.notify_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_test_and_promote_enterprise: SUCCEEDED]", "title": "[st2ci.st2_pkg_test_and_promote_enterprise: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "HOSTNAME: <% coalesce($.hostname, "unspecified") %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#008000"}]'
-
-        notify_failure:
-            with-items: channel in <% $.notify_failure_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_test_and_promote_enterprise: FAILED]", "title": "[st2ci.st2_pkg_test_and_promote_enterprise: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "HOSTNAME: <% coalesce($.hostname, "unspecified") %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#FF0000"}]'
-            on-complete:
-                - fail
+      channel: <% ctx().channel %>
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote_enterprise: STARTED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote_enterprise: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#808080\"}]"
+    next:
+      - when: <% succeeded() %>
+        do:
+          - get_hostname_suffix
+  get_hostname_suffix:
+    action: core.local
+    input:
+      cmd: date +'%s'
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - suffix: <% result().stdout %>
+        do:
+          - run_e2e_test
+  run_e2e_test:
+    action: st2ci.st2_pkg_e2e_test
+    input:
+      hostname: <% coalesce( ctx().hostname, "st2-ent-pkg-" + ctx().release + "-" + ctx().distro.toLower() + "-" + str(ctx().suffix) ) %>
+      distro: <% ctx().distro %>
+      release: <% ctx().release %>
+      version: <% ctx().version %>
+      enterprise: true
+      enterprise_key: <% ctx().enterprise_keys.get(ctx().release) %>
+      pkg_env: <% ctx().pkg_env %>
+      keyfile: <% ctx().keyfile %>
+      debug: <% ctx().debug %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - version: <% result().versions.get(st2).split('-')[0] %>
+        do:
+          - promote_all
+  promote_all:
+    action: st2ci.bwc_pkg_promote_all
+    input:
+      distro: <% ctx().distro %>
+      release: <% ctx().release %>
+      version: <% ctx().version %>
+    next:
+      - when: <% result().promoted %>
+        do:
+          - notify_success
+      - when: <% not result().promoted %>
+        do:
+          - notify_failure
+  notify_success:
+    with:
+      items: channel in <% $.notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote_enterprise: SUCCEEDED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote_enterprise: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#008000\"}]"
+  notify_failure:
+    with:
+      items: channel in <% $.notify_failure_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote_enterprise: FAILED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote_enterprise: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
+    next:
+      - do:
+          - fail

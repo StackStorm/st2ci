@@ -1,55 +1,64 @@
-version: '2.0'
-
-st2ci.st2_pkg_upgrade_deb:
-  description: Upgrade deb packages to latest revision of specified version
-  type: direct
-  input:
-    - host      # Host on which upgrade should be run
-    - pkg_list  # List of packages to upgrade
-    - version   # Version to upgrade to
-    - distro
-    - enterprise
-  tasks:
-    init:
-      action: std.noop
-      on-complete:
-        - upgrade_deps_u18: <% $.distro = 'UBUNTU18' %>
-        - upgrade_deps_u16: <% $.distro = 'UBUNTU16' %>
-        - upgrade_deps_u14: <% $.distro = 'UBUNTU14' %>
-
-    upgrade_deps_u18:
-      action: st2ci.st2_pkg_upgrade_deps_u18
-      input:
-        hosts: <% $.host %>
-        version: <% $.version %>
-        enterprise: <% $.enterprise %>
-        timeout: 180
-      on-success:
-        - install_pkg
-    upgrade_deps_u16:
-      action: st2ci.st2_pkg_upgrade_deps_u16
-      input:
-        hosts: <% $.host %>
-        version: <% $.version %>
-        enterprise: <% $.enterprise %>
-        timeout: 180
-      on-success:
-        - install_pkg
-    upgrade_deps_u14:
-      action: st2ci.st2_pkg_upgrade_deps_u14
-      input:
-        hosts: <% $.host %>
-        version: <% $.version %>
-        enterprise: <% $.enterprise %>
-        timeout: 180
-      on-success:
-        - install_pkg
-
-    install_pkg:
-      with-items: pkg in <% $.pkg_list %>
-      action: st2ci.install_latest_revision_of_deb_pkg
-      input:
-        host: <% $.host %>
-        pkg: <% $.pkg %>
-        version: <% $.version %>
+---
+version: '1.0'
+description: Upgrade deb packages to latest revision of specified version
+input:
+  - host      # Host on which upgrade should be run
+  - pkg_list  # List of packages to upgrade
+  - version   # Version to upgrade to
+  - distro
+  - enterprise
+tasks:
+  init:
+    action: core.noop
+    next:
+      - when: <% ctx().distro = 'UBUNTU18' %>
+        do:
+          - upgrade_deps_u18
+      - when: <% ctx().distro = 'UBUNTU16' %>
+        do:
+          - upgrade_deps_u16
+      - when: <% ctx().distro = 'UBUNTU14' %>
+        do:
+          - upgrade_deps_u14
+  upgrade_deps_u18:
+    action: st2ci.st2_pkg_upgrade_deps_u18
+    input:
+      hosts: <% ctx().host %>
+      version: <% ctx().version %>
+      enterprise: <% ctx().enterprise %>
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do:
+          - install_pkg
+  upgrade_deps_u16:
+    action: st2ci.st2_pkg_upgrade_deps_u16
+    input:
+      hosts: <% ctx().host %>
+      version: <% ctx().version %>
+      enterprise: <% ctx().enterprise %>
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do:
+          - install_pkg
+  upgrade_deps_u14:
+    action: st2ci.st2_pkg_upgrade_deps_u14
+    input:
+      hosts: <% ctx().host %>
+      version: <% ctx().version %>
+      enterprise: <% ctx().enterprise %>
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do:
+          - install_pkg
+  install_pkg:
+    with:
+      items: pkg in <% $.pkg_list %>  # TODO: Convert to ctx()
       concurrency: 1
+    action: st2ci.install_latest_revision_of_deb_pkg
+    input:
+      host: <% ctx().host %>
+      pkg: <% ctx().pkg %>  # TODO: Convert to item()
+      version: <% ctx().version %>

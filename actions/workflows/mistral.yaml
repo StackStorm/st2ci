@@ -1,166 +1,180 @@
-version: '2.0'
-
-st2ci.mistral:
-    description: Run the continuous integration for Mistral.
-    type: direct
+---
+version: '1.0'
+description: Run the continuous integration for Mistral.
+input:
+  - test_host
+  - build_host
+  - distro
+  - mis_repo_base
+  - mis_repo_main
+  - mis_repo_client
+  - mis_repo_action
+  - mis_repo_branch
+  - mis_repo_dir
+  - mis_db_type
+  - mis_db_name
+  - mis_db_user_name
+  - mis_db_user_pass
+  - mis_db_root_pass
+  - mis_api_port
+  - st2_repo
+  - st2_repo_branch
+  - st2_repo_dir
+  - merge_upstream
+  - debug
+  - notify_channels:
+      - '#thunderdome'
+  - notify_failure_channels:
+      - '#thunderdome'
+      - '#stackstorm'
+output:
+  - hosts: <% ctx().hosts %>
+  - shas: <% ctx().shas %>
+  - deps: <% ctx().deps %>
+tasks:
+  init_vars:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - webui_base_url: https://st2cicd.uswest2.stackstorm.net
+          - is_infra_setup: false
+        do:
+          - notify_start
+          - get_hosts
+  get_hosts:
+    action: st2ci.mistral_get_build_hosts
     input:
-        - test_host
-        - build_host
-        - distro
-        - mis_repo_base
-        - mis_repo_main
-        - mis_repo_client
-        - mis_repo_action
-        - mis_repo_branch
-        - mis_repo_dir
-        - mis_db_type
-        - mis_db_name
-        - mis_db_user_name
-        - mis_db_user_pass
-        - mis_db_root_pass
-        - mis_api_port
-        - st2_repo
-        - st2_repo_branch
-        - st2_repo_dir
-        - merge_upstream
-        - debug
-        - notify_channels:
-            - "#thunderdome"
-        - notify_failure_channels:
-            - "#thunderdome"
-            - "#stackstorm"
-    output:
-        hosts: <% $.hosts %>
-        shas: <% $.shas %>
-        deps: <% $.deps %>
-    task-defaults:
-        on-error:
-            - teardown_on_failure: <% not $.debug %>
-            - notify_failure: <% $.debug %>
-    tasks:
-        init_vars:
-            action: core.noop
-            publish:
-                webui_base_url: https://st2cicd.uswest2.stackstorm.net
-                is_infra_setup: False
-            on-success:
-                - notify_start
-                - get_hosts
-        get_hosts:
-            action: st2ci.mistral_get_build_hosts
-            input:
-                hosts: <% dict(test=>$.test_host, build=>$.build_host) %>
-            publish:
-                hosts: <% task(get_hosts).result.hosts %>
-            on-success:
-                - setup
-        setup:
-            action: st2ci.mistral_setup_infra
-            input:
-                host: <% $.hosts.get(test) %>
-                distro: <% $.distro %>
-                mis_repo_base: <% $.mis_repo_base %>
-                mis_repo_main: <% $.mis_repo_main %>
-                mis_repo_client: <% $.mis_repo_client %>
-                mis_repo_action: <% $.mis_repo_action %>
-                mis_repo_branch: <% $.mis_repo_branch %>
-                mis_repo_dir: <% $.mis_repo_dir %>
-                mis_db_type: <% $.mis_db_type %>
-                mis_db_name: <% $.mis_db_name %>
-                mis_db_user_name: <% $.mis_db_user_name %>
-                mis_db_user_pass: <% $.mis_db_user_pass %>
-                mis_db_root_pass: <% $.mis_db_root_pass %>
-                mis_api_port: <% $.mis_api_port %>
-                st2_repo: <% $.st2_repo %>
-                st2_repo_branch: <% $.st2_repo_branch %>
-                st2_repo_dir: <% $.st2_repo_dir %>
-                debug: <% $.debug %>
-            publish:
-                is_infra_setup: <% task(setup).result.is_mistral_setup and task(setup).result.is_st2_setup %>
-            on-success:
-                - run_tests: <% $.is_infra_setup %>
-                - teardown_on_failure: <% not $.is_infra_setup and not $.debug %>
-        run_tests:
-            action: core.remote
-            input:
-                hosts: <% $.hosts.get(test) %>
-                cwd: <% task(setup).result.clones.get(st2) %>
-                cmd: make mistral-itests 2>&1 | tee /tmp/mistral-itests-output.txt
-                timeout: 3600
-            on-success:
-                - record_pip_freeze
-        record_pip_freeze:
-            action: core.remote
-            input:
-                hosts: <% $.hosts.get(test) %>
-                cmd: . <% task(setup).result.clones.get(mistral) %>/.venv/bin/activate && pip freeze
-            publish:
-                deps: <% task(record_pip_freeze).result.get($.hosts.get(test)).stdout %>
-            on-success:
-                - get_commit_shas
-        get_commit_shas:
-            action: st2ci.mistral_get_commit_shas
-            input:
-                host: <% $.hosts.get(test) %>
-                repos: <% task(setup).result.clones %>
-            publish:
-                shas: <% task(get_commit_shas).result.shas %>
-            on-success:
-                - merge_upstreams: <% $.merge_upstream and $.mis_repo_base = openstack %>
-                - teardown: <% not $.merge_upstream or $.mis_repo_base = stackstorm %>
-        merge_upstreams:
-            action: st2ci.mistral_merge_upstreams
-            input:
-                host: <% $.hosts.get(build) %>
-                shas: <% $.shas %>
-            on-success:
-                - teardown
-        teardown:
-            action: st2ci.mistral_teardown_infra
-            input:
-                host: <% $.hosts.get(test) %>
-                clones: <% task(setup).result.clones %>
-                backup: False
-            on-success:
-                - notify_success
-            on-error:
-                - notify_failure
-
-
-        # Declare error handler(s) for the main workflow here.
-        teardown_on_failure:
-            action: st2ci.mistral_teardown_infra
-            input:
-                host: <% $.hosts.get(test) %>
-                clones: <% task(setup).result.clones %>
-                backup: <% $.is_infra_setup %>
-            on-complete:
-                - notify_failure
-
-
-        # Declare notification handler(s) for the main workflow here.
-        notify_start:
-            with-items: channel in <% $.notify_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.mistral: STARTED]", "title": "[st2ci.mistral: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>", "color": "#808080"}]'
-
-        notify_success:
-            with-items: channel in <% $.notify_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.mistral: SUCCEEDED]", "title": "[st2ci.mistral: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>", "color": "#008000"}]'
-
-        notify_failure:
-            with-items: channel in <% $.notify_failure_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.mistral: FAILED]", "title": "[st2ci.mistral: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% $.mis_repo_base %>\nMERGE UPSTREAM: <% $.merge_upstream %>\nHOSTNAME: <% $.hosts.get(test) %>\nINFRA SETUP: <% $.is_infra_setup %>", "color": "#FF0000"}]'
-            on-complete:
-                - fail
+      hosts: <% dict(test=>ctx().test_host, build=>ctx().build_host) %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - hosts: <% result().hosts %>
+        do:
+          - setup
+  setup:
+    action: st2ci.mistral_setup_infra
+    input:
+      host: <% ctx().hosts.get(test) %>
+      distro: <% ctx().distro %>
+      mis_repo_base: <% ctx().mis_repo_base %>
+      mis_repo_main: <% ctx().mis_repo_main %>
+      mis_repo_client: <% ctx().mis_repo_client %>
+      mis_repo_action: <% ctx().mis_repo_action %>
+      mis_repo_branch: <% ctx().mis_repo_branch %>
+      mis_repo_dir: <% ctx().mis_repo_dir %>
+      mis_db_type: <% ctx().mis_db_type %>
+      mis_db_name: <% ctx().mis_db_name %>
+      mis_db_user_name: <% ctx().mis_db_user_name %>
+      mis_db_user_pass: <% ctx().mis_db_user_pass %>
+      mis_db_root_pass: <% ctx().mis_db_root_pass %>
+      mis_api_port: <% ctx().mis_api_port %>
+      st2_repo: <% ctx().st2_repo %>
+      st2_repo_branch: <% ctx().st2_repo_branch %>
+      st2_repo_dir: <% ctx().st2_repo_dir %>
+      debug: <% ctx().debug %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - is_infra_setup: <% result().is_mistral_setup and result().is_st2_setup %>
+      - when: <% succeeded() and (ctx().is_infra_setup) %>
+        do:
+          - run_tests
+      - when: <% succeeded() and (not ctx().is_infra_setup and not ctx().debug) %>
+        do:
+          - teardown_on_failure
+  run_tests:
+    action: core.remote
+    input:
+      hosts: <% ctx().hosts.get(test) %>
+      cwd: <% result().clones.get(st2) %>
+      cmd: make mistral-itests 2>&1 | tee /tmp/mistral-itests-output.txt
+      timeout: 3600
+    next:
+      - when: <% succeeded() %>
+        do:
+          - record_pip_freeze
+  record_pip_freeze:
+    action: core.remote
+    input:
+      hosts: <% ctx().hosts.get(test) %>
+      cmd: . <% result().clones.get(mistral) %>/.venv/bin/activate && pip freeze
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - deps: <% result().get(ctx().hosts.get(test)).stdout %>
+        do:
+          - get_commit_shas
+  get_commit_shas:
+    action: st2ci.mistral_get_commit_shas
+    input:
+      host: <% ctx().hosts.get(test) %>
+      repos: <% result().clones %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - shas: <% result().shas %>
+      - when: <% succeeded() and (ctx().merge_upstream and ctx().mis_repo_base = openstack) %>
+        do:
+          - merge_upstreams
+      - when: <% succeeded() and (not ctx().merge_upstream or ctx().mis_repo_base = stackstorm) %>
+        do:
+          - teardown
+  merge_upstreams:
+    action: st2ci.mistral_merge_upstreams
+    input:
+      host: <% ctx().hosts.get(build) %>
+      shas: <% ctx().shas %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - teardown
+  teardown:
+    action: st2ci.mistral_teardown_infra
+    input:
+      host: <% ctx().hosts.get(test) %>
+      clones: <% result().clones %>
+      backup: false
+    next:
+      - when: <% succeeded() %>
+        do:
+          - notify_success
+      - when: <% failed() %>
+        do:
+          - notify_failure
+  teardown_on_failure:
+    action: st2ci.mistral_teardown_infra
+    input:
+      host: <% ctx().hosts.get(test) %>
+      clones: <% result().clones %>
+      backup: <% ctx().is_infra_setup %>
+    next:
+      - do:
+          - notify_failure
+  notify_start:
+    with:
+      items: channel in <% $.notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>
+      text: ''
+      attachments: '[{"fallback": "[st2ci.mistral: STARTED]", "title": "[st2ci.mistral: STARTED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>", "color": "#808080"}]'
+  notify_success:
+    with:
+      items: channel in <% $.notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>
+      text: ''
+      attachments: '[{"fallback": "[st2ci.mistral: SUCCEEDED]", "title": "[st2ci.mistral: SUCCEEDED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>", "color": "#008000"}]'
+  notify_failure:
+    with:
+      items: channel in <% $.notify_failure_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>
+      text: ''
+      attachments: '[{"fallback": "[st2ci.mistral: FAILED]", "title": "[st2ci.mistral: FAILED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>\nHOSTNAME: <% ctx().hosts.get(test) %>\nINFRA SETUP: <% ctx().is_infra_setup %>", "color": "#FF0000"}]'
+    next:
+      - do:
+          - fail

@@ -3,25 +3,25 @@ name: st2_pkg_promote_all
 pack: st2ci
 description: Promote all st2 packages from staging for a given distro
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/st2_pkg_promote_all.yaml
 parameters:
-    distro:
-        type: string
-        required: true
-        enum:
-            - RHEL6
-            - RHEL7
-            - UBUNTU14
-            - UBUNTU16
-            # TODO: Uncomment when we officially support Bionic
-            - UBUNTU18
-    release:
-        type: string
-        required: true
-        enum:
-            - stable
-            - unstable
-    version:
-        type: string
-        required: true
+  distro:
+    type: string
+    required: true
+    enum:
+      - RHEL6
+      - RHEL7
+      - UBUNTU14
+      - UBUNTU16
+      # TODO: Uncomment when we officially support Bionic
+      - UBUNTU18
+  release:
+    type: string
+    required: true
+    enum:
+      - stable
+      - unstable
+  version:
+    type: string
+    required: true

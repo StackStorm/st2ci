@@ -1,45 +1,50 @@
-version: '2.0'
-
-st2ci.st2_pkg_upgrade_rpm:
-  description: Upgrade rpm packages to latest revision of specified version
-  type: direct
-  input:
-    - host      # Host on which upgrade should be run
-    - pkg_list  # List of packages to upgrade
-    - version   # Version to upgrade to
-    - distro
-    - enterprise
-  tasks:
-    init:
-      action: std.noop
-      on-complete:
-        - upgrade_deps_el7: <% $.distro = 'CENTOS7' or $.distro = 'RHEL7' %>
-        - upgrade_deps_el6: <% $.distro = 'CENTOS6' or $.distro = 'RHEL6' %>
-
-    upgrade_deps_el7:
-      action: st2ci.st2_pkg_upgrade_deps_el7
-      input:
-        hosts: <% $.host %>
-        version: <% $.version %>
-        enterprise: <% $.enterprise %>
-        timeout: 180
-      on-success:
-        - install_pkg
-    upgrade_deps_el6:
-      action: st2ci.st2_pkg_upgrade_deps_el6
-      input:
-        hosts: <% $.host %>
-        version: <% $.version %>
-        enterprise: <% $.enterprise %>
-        timeout: 180
-      on-success:
-        - install_pkg
-
-    install_pkg:
-      with-items: pkg in <% $.pkg_list %>
-      action: st2ci.install_latest_revision_of_rpm_pkg
-      input:
-        host: <% $.host %>
-        pkg: <% $.pkg %>
-        version: <% $.version %>
+---
+version: '1.0'
+description: Upgrade rpm packages to latest revision of specified version
+input:
+  - host
+  - pkg_list
+  - version
+  - distro
+  - enterprise
+tasks:
+  init:
+    action: core.noop
+    next:
+      - when: <% ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL7' %>
+        do:
+          - upgrade_deps_el7
+      - when: <% ctx().distro = 'CENTOS6' or ctx().distro = 'RHEL6' %>
+        do:
+          - upgrade_deps_el6
+  upgrade_deps_el7:
+    action: st2ci.st2_pkg_upgrade_deps_el7
+    input:
+      hosts: <% ctx().host %>
+      version: <% ctx().version %>
+      enterprise: <% ctx().enterprise %>
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do:
+          - install_pkg
+  upgrade_deps_el6:
+    action: st2ci.st2_pkg_upgrade_deps_el6
+    input:
+      hosts: <% ctx().host %>
+      version: <% ctx().version %>
+      enterprise: <% ctx().enterprise %>
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do:
+          - install_pkg
+  install_pkg:
+    with:
+      items: pkg in <% $.pkg_list %>
       concurrency: 1
+    action: st2ci.install_latest_revision_of_rpm_pkg
+    input:
+      host: <% ctx().host %>
+      pkg: <% ctx().pkg %>
+      version: <% ctx().version %>

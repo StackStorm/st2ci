@@ -3,29 +3,29 @@ name: st2_pkg_upgrade_rpm
 pack: st2ci
 description: Upgrade rpm packages on a box using yum
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/st2_pkg_upgrade_rpm.yaml
 parameters:
-    host:
-        type: string
-        required: true
-        description: >
-            Host on which upgrade should be performed
-    pkg_list:
-        type: array
-        required: true
-    version:
-        type: string
-        default: ''
-        description: "Version to upgrade to"
-    distro:
-        type: string
-        required: true
-        enum:
-            - CENTOS6
-            - CENTOS7
-            - RHEL6
-            - RHEL7
-    enterprise:
-        type: boolean
-        default: false
+  host:
+    type: string
+    required: true
+    description: >
+      Host on which upgrade should be performed
+  pkg_list:
+    type: array
+    required: true
+  version:
+    type: string
+    default: ''
+    description: Version to upgrade to
+  distro:
+    type: string
+    required: true
+    enum:
+      - CENTOS6
+      - CENTOS7
+      - RHEL6
+      - RHEL7
+  enterprise:
+    type: boolean
+    default: false

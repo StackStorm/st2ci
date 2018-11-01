@@ -1,176 +1,173 @@
-version: '2.0'
-st2ci.bwc_pkg_promote_all:
+---
+version: '1.0'
+input:
+  - distro
+  - release
+  - version
+  - enterprise_keys:
+      stable: "{{st2kv('system.enterprise_key_stg_stable')}}"
+      unstable: "{{st2kv('system.enterprise_key_stg_unstable')}}"
+  - pkg_env: staging
+  - distro_to_distro_version_map:
+      RHEL6: el/6
+      RHEL7: el/7
+      UBUNTU14: ubuntu/trusty
+      UBUNTU16: ubuntu/xenial
+      UBUNTU18: ubuntu/bionic
+  - promoted: false
+  - promoted_bwc_enterprise: false
+  - promoted_st2_auth_ldap: false
+  - promoted_st2flow: false
+  - promoted_bwc_ui: false
+  - notify_channels:
+      - '#thunderdome'
+  - notify_failure_channels:
+      - '#thunderdome'
+      - '#stackstorm'
+output:
+  - promoted: <% ctx().promoted %>
+  - versions: <% dict( 'bwc-enterprise' => ctx().promoted_bwc_enterprise, 'st2-auth-ldap' => ctx().promoted_st2_auth_ldap, 'st2flow' => ctx().promoted_st2flow, 'bwc-ui' => ctx().promoted_bwc_ui ) %>
+tasks:
+  init:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - webui_base_url: https://st2cicd.uswest2.stackstorm.net
+          - pkg_distro_version: <% ctx().distro_to_distro_version_map.get(ctx().distro) %>
+        do:
+          - notify_start
+  notify_start:
+    with:
+      items: channel in <% $.notify_channels %>
+    action: slack.chat.postMessage
     input:
-        - distro
-        - release
-        - version
-        - enterprise_keys:
-            stable: "{{st2kv.system.enterprise_key_stg_stable}}"
-            unstable: "{{st2kv.system.enterprise_key_stg_unstable}}"
-        - pkg_env: staging
-        - distro_to_distro_version_map:
-            RHEL6: el/6
-            RHEL7: el/7
-            UBUNTU14: ubuntu/trusty
-            UBUNTU16: ubuntu/xenial
-            UBUNTU18: ubuntu/bionic
-        - promoted: False
-        - promoted_bwc_enterprise: False
-        - promoted_st2_auth_ldap: False
-        - promoted_st2flow: False
-        - promoted_bwc_ui: False
-        - notify_channels:
-            - "#thunderdome"
-        - notify_failure_channels:
-            - "#thunderdome"
-            - "#stackstorm"
-
-    output:
-        promoted: "<% $.promoted %>"
-        versions: <%
-            dict(
-                'bwc-enterprise' => $.promoted_bwc_enterprise,
-                'st2-auth-ldap' => $.promoted_st2_auth_ldap,
-                'st2flow' => $.promoted_st2flow,
-                'bwc-ui' => $.promoted_bwc_ui
-            ) %>
-
-
-    task-defaults:
-        on-error:
-            - notify_failure
-
-
-    tasks:
-        init:
-            action: core.noop
-            publish:
-                webui_base_url: https://st2cicd.uswest2.stackstorm.net
-                pkg_distro_version: <% $.distro_to_distro_version_map.get($.distro) %>
-            on-success:
-                - notify_start
-        notify_start:
-            with-items: channel in <% $.notify_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.bwc_pkg_promote_all: STARTED]", "title": "[st2ci.bwc_pkg_promote_all: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#808080"}]'
-            on-success:
-                - promote_all
-
-
-
-        promote_all:
-            on-complete:
-                - promote_bwc_enterprise
-                - promote_st2_auth_ldap
-                - promote_st2flow
-                - promote_bwc_ui
-
-        promote_bwc_enterprise:
-            action: st2ci.st2_pkg_promote_enterprise
-            input:
-                package: bwc-enterprise
-                distro_version: <% $.pkg_distro_version %>
-                release: <% $.release %>
-                version: <% $.version %>
-            publish:
-                promoted_bwc_enterprise: <% $.version + '-' + task(promote_bwc_enterprise).result.revision %>
-            on-complete:
-                - process_completion
-            on-error:
-                - noop
-
-        promote_st2_auth_ldap:
-            action: st2ci.st2_pkg_promote_enterprise
-            input:
-                package: st2-auth-ldap
-                distro_version: <% $.pkg_distro_version %>
-                release: <% $.release %>
-                version: <% $.version %>
-            publish:
-                promoted_st2_auth_ldap: <% $.version + '-' + task(promote_st2_auth_ldap).result.revision %>
-            on-complete:
-                - process_completion
-            on-error:
-                - noop
-
-        promote_st2flow:
-            action: st2ci.st2_pkg_promote_enterprise
-            input:
-                package: st2flow
-                distro_version: <% $.pkg_distro_version %>
-                release: <% $.release %>
-                version: <% $.version %>
-            publish:
-                promoted_st2flow: <% $.version + '-' + task(promote_st2flow).result.revision %>
-            on-complete:
-                - process_completion
-            on-error:
-                - noop
-
-        promote_bwc_ui:
-            action: st2ci.st2_pkg_promote_enterprise
-            input:
-                package: bwc-ui
-                distro_version: <% $.pkg_distro_version %>
-                release: <% $.release %>
-                version: <% $.version %>
-            publish:
-                promoted_bwc_ui: <% $.version + '-' + task(promote_bwc_ui).result.revision %>
-            on-complete:
-                - process_completion
-            on-error:
-                - noop
-
-
-
-        process_completion:
-            join: all
-            action: std.noop
-            on-success:
-                - set_notify_failure: <%
-                        not $.promoted_bwc_enterprise or
-                        not $.promoted_st2_auth_ldap or
-                        not $.promoted_st2flow or
-                        not $.promoted_bwc_ui %>
-                - set_notify_success: <%
-                        $.promoted_bwc_enterprise and
-                        $.promoted_st2_auth_ldap and
-                        $.promoted_st2flow and
-                        $.promoted_bwc_ui %>
-
-        set_notify_failure:
-            action: std.noop
-            publish:
-                promoted: False
-                notify_color: "#FF0000"
-                notify_completion_channels: <% $.notify_failure_channels %>
-            on-success:
-                - notify_completion
-
-        set_notify_success:
-            action: std.noop
-            publish:
-                promoted: True
-                notify_color: "#008000"
-                notify_completion_channels: <% $.notify_channels %>
-            on-success:
-                - notify_completion
-
-        notify_completion:
-            with-items: channel in <% $.notify_completion_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title": "[st2ci.bwc_pkg_promote_all: COMPLETED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nPACKAGE PROMOTED:\n\tbwc-enterprise-packages=<% $.promoted_bwc_enterprise %>\n\tst2-auth-ldap=<% $.promoted_st2_auth_ldap %>\n\tst2flow=<% $.promoted_st2flow %>\n\tbwc-ui=<% $.promoted_bwc_ui %>", "color": "<% $.notify_color %>"}]'
-
-        notify_failure:
-            with-items: channel in <% $.notify_failure_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.bwc_pkg_promote_all: FAILED]", "title": "[st2ci.bwc_pkg_promote_all: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "DISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>", "color": "#FF0000"}]'
+      channel: <% ctx().channel %>  # TODO: Change to item()
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.bwc_pkg_promote_all: STARTED]\", \"title\": \"[st2ci.bwc_pkg_promote_all: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#808080\"}]"
+    next:
+      - when: <% succeeded() %>
+        do:
+          - promote_all
+  promote_all:
+    # TODO: Do we need an explicit core.noop action here?
+    next:
+      - do:
+          - promote_bwc_enterprise
+          - promote_st2_auth_ldap
+          - promote_st2flow
+          - promote_bwc_ui
+  promote_bwc_enterprise:
+    action: st2ci.st2_pkg_promote_enterprise
+    input:
+      package: bwc-enterprise
+      distro_version: <% ctx().pkg_distro_version %>
+      release: <% ctx().release %>
+      version: <% ctx().version %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - promoted_bwc_enterprise: <% ctx().version + '-' + result().revision %>
+      - when: <% failed() %>
+        do:
+          - noop
+      # TODO: Move this do into both the succeeded and failed branches?
+      - do:
+          - process_completion
+  promote_st2_auth_ldap:
+    action: st2ci.st2_pkg_promote_enterprise
+    input:
+      package: st2-auth-ldap
+      distro_version: <% ctx().pkg_distro_version %>
+      release: <% ctx().release %>
+      version: <% switch( dev in ctx().version => ctx().version.substring(0, ctx().version.indexOf(dev)) + '.dev0', ctx().version => ctx().version ) %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - promoted_st2_auth_ldap: <% ctx().version + '-' + result().revision %>
+      - when: <% failed() %>
+        do:
+          - noop
+      # TODO: Move this do into both the succeeded and failed branches?
+      - do:
+          - process_completion
+  promote_st2flow:
+    action: st2ci.st2_pkg_promote_enterprise
+    input:
+      package: st2flow
+      distro_version: <% ctx().pkg_distro_version %>
+      release: <% ctx().release %>
+      version: <% ctx().version %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - promoted_st2flow: <% ctx().version + '-' + result().revision %>
+      - when: <% failed() %>
+        do:
+          - noop
+      # TODO: Move this do into both the succeeded and failed branches?
+      - do:
+          - process_completion
+  promote_bwc_ui:
+    action: st2ci.st2_pkg_promote_enterprise
+    input:
+      package: bwc-ui
+      distro_version: <% ctx().pkg_distro_version %>
+      release: <% ctx().release %>
+      version: <% ctx().version %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - promoted_bwc_ui: <% ctx().version + '-' + result().revision %>
+      - when: <% failed() %>
+        do:
+          - noop
+      # TODO: Move this do into both the succeeded and failed branches?
+      - do:
+          - process_completion
+  process_completion:
+    action: core.noop
+    join: all
+    next:
+      - when: <% succeeded() and (not ctx().promoted_bwc_enterprise or not ctx().promoted_st2_auth_ldap or not ctx().promoted_st2flow or not ctx().promoted_bwc_ui) %>
+        do:
+          - set_notify_failure
+      - when: <% succeeded() and (ctx().promoted_bwc_enterprise and ctx().promoted_st2_auth_ldap and ctx().promoted_st2flow and ctx().promoted_bwc_ui) %>
+        do:
+          - set_notify_success
+  set_notify_failure:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - promoted: false
+          - notify_color: '#FF0000'
+          - notify_completion_channels: <% ctx().notify_failure_channels %>
+        do:
+          - notify_completion
+  set_notify_success:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - promoted: true
+          - notify_color: '#008000'
+          - notify_completion_channels: <% ctx().notify_channels %>
+        do:
+          - notify_completion
+  notify_completion:
+    with:
+      items: channel in <% $.notify_completion_channels %>  # TODO: Change to ctx()
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>  # TODO: Change to item()
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.bwc_pkg_promote_all: COMPLETED]\", \"title\": \"[st2ci.bwc_pkg_promote_all: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nPACKAGE PROMOTED:\\n\\tbwc-enterprise-packages=<% ctx().promoted_bwc_enterprise %>\\n\\tst2-auth-ldap=<% ctx().promoted_st2_auth_ldap %>\\n\\tst2flow=<% ctx().promoted_st2flow %>\\n\\tbwc-ui=<% ctx().promoted_bwc_ui %>\", \"color\": \"<% ctx().notify_color %>\"}]"
+  notify_failure:
+    with:
+      items: channel in <% $.notify_failure_channels %>  # TODO: Change to ctx()
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>  # TODO: Change to item()
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.bwc_pkg_promote_all: FAILED]\", \"title\": \"[st2ci.bwc_pkg_promote_all: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
