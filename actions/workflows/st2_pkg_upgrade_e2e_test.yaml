@@ -1,359 +1,437 @@
 ---
-version: '2.0'
-
-st2ci.st2_pkg_upgrade_e2e_test:
-    type: direct
+version: '1.0'
+input:
+  - hostname
+  - dns_zone
+  - instance_type
+  - environment
+  - key_name
+  - keyfile
+  - windows_key_name
+  - windows_keyfile
+  - distro
+  - windows_distro
+  - role
+  - release
+  - upgrade_from_version
+  - upgrade_to_version
+  - enterprise
+  - enterprise_key
+  - pkg_env
+  - bootstrap_branch
+  - bootstrap_script
+  - triggering_commit_url
+  - debug
+vars:
+  - vm_id:
+  - vm_windows_id:
+  - vm_fqdn: <% ctx().hostname %>.<% ctx().dns_zone %>
+  - windows_hostname: <% ctx().hostname %>win
+  - vm_windows_fqdn: <% ctx().hostname %>win.<% ctx().dns_zone %>
+  - installed:
+      version_str: not installed
+  - bootstrap_script_url: <% coalesce( ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
+  - st2_username: st2admin
+  - st2_password: Ch@ngeMe
+  - destroy_vm_iteration_count: 0
+  - destroy_vm_windows_iteration_count: 0
+  - destroy_vm_on_failure_iteration_count: 0
+  - destroy_vm_on_failure_windows_iteration_count: 0
+  - notify_channels:
+      - '#thunderdome'
+  - notify_failure_channels:
+      - '#thunderdome'
+      - '#stackstorm'
+output:
+  - versions: <% ctx().installed.versions %>
+tasks:
+  get_webui_server:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - webui_base_url: http://st2cicd.uswest2.stackstorm.net
+        do:
+          - notify_start
+          - create_vm
+  create_vm:
+    action: st2cd.create_vm_role
     input:
-        - hostname
-        - dns_zone
-        - instance_type
-        - environment
-        - key_name
-        - keyfile
-        - windows_key_name
-        - windows_keyfile
-        - distro
-        - windows_distro
-        - role
-        - release
-        - upgrade_from_version
-        - upgrade_to_version
-        - enterprise
-        - enterprise_key
-        - pkg_env
-        - bootstrap_branch
-        - bootstrap_script
-        - triggering_commit_url
-        - debug
-
-    vars:
-        vm_id: null
-        vm_windows_id: null
-        vm_fqdn: <% $.hostname %>.<% $.dns_zone %>
-        windows_hostname: <% $.hostname %>win
-        vm_windows_fqdn: <% $.hostname %>win.<% $.dns_zone %>
-        installed:
-            version_str: not installed
-        bootstrap_script_url: <% coalesce(
-            $.bootstrap_script,
-            "https://raw.githubusercontent.com/StackStorm/st2-packages/" +
-                $.bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
-        st2_username: st2admin
-        st2_password: Ch@ngeMe
-        notify_channels:
-            - "#thunderdome"
-        notify_failure_channels:
-            - "#thunderdome"
-            - "#stackstorm"
-
-    output:
-        versions: <% $.installed.versions %>
-
-    task-defaults:
-        on-error:
-            - destroy_vm_on_failure: <% not $.debug and $.vm_id != null %>
-            - notify_failure: <% $.debug or (not $.debug and $.vm_id = null) %>
-
-    tasks:
-        get_webui_server:
-            action: core.noop
-            publish:
-                webui_base_url: http://st2cicd.uswest2.stackstorm.net
-            on-success:
-                - notify_start
-                - create_vm
-
-        create_vm:
-            action: st2cd.create_vm_role
-            input:
-                hostname: <% $.hostname %>
-                instance_type: <% $.instance_type %>
-                environment: <% $.environment %>
-                key_name: <% $.key_name %>
-                keyfile: <% $.keyfile %>
-                dns_zone: <% $.dns_zone %>
-                distro: pkg_<% $.distro %>
-                role: <% $.role %>
-            publish:
-                vm_info: <% task(create_vm).result.vm_info %>
-                vm_id: <% task(create_vm).result.vm_info.id %>
-            on-success:
-                - patch_rhel6: <% $.distro = 'RHEL6' %>
-                - get_bootstrap_script: <% $.distro != 'RHEL6' %>
-
-        patch_rhel6:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: yum-config-manager --enable rhui-REGION-rhel-server-releases-optional
-            on-success:
-                - patch_rhel6_curl
-
-        patch_rhel6_curl:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: yum install -y curl nss
-                timeout: 180
-            on-success:
-                - get_bootstrap_script
-
-        get_bootstrap_script:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: curl -Ss -k -o /tmp/st2_bootstrap.sh <% $.bootstrap_script_url %>
-            on-success:
-                - run_bootstrap_script
-
-        run_bootstrap_script:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: bash /tmp/st2_bootstrap.sh --<% $.pkg_env %> --<% $.release %> --version=<% coalesce($.upgrade_from_version, '') %> --user=<% $.st2_username %> --password=<% $.st2_password %>
-                timeout: 900
-            on-success:
-              - install_enterprise: <% $.enterprise %>
-              - pre_upgrade_stop: <% not $.enterprise %>
-
-        install_enterprise:
-            action: st2cd.st2_upgrade_to_enterprise
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                license_key: <% $.enterprise_key %>
-                distro: <% $.distro %>
-                pkg_env: <% $.pkg_env %>
-                release: <% $.release %>
-                version: <% coalesce($.upgrade_from_version, '') %>
-                timeout: 150
-            on-success:
-                - pre_upgrade_stop
-
-        pre_upgrade_stop:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: st2ctl stop
-                timeout: 180
-            on-complete:
-                - get_installed_version
-
-        get_installed_version:
-            action: st2cd.st2_get_installed_version
-            input:
-                host: <% $.vm_info.private_ip_address %>
-            publish:
-                installed:
-                    distro: <% task(get_installed_version).result.distro %>
-                    versions: <% task(get_installed_version).result.versions %>
-                    version_str: <%
-                        task(get_installed_version).result.versions.items().select(
-                            $[0] + "=" + $[1]).join("\n\t") %>
-            on-success:
-                - upgrade_packages_rpm: <% $.distro = 'RHEL6' %>
-                - upgrade_packages_rpm: <% $.distro = 'RHEL7' %>
-                - upgrade_packages_rpm: <% $.distro = 'CENTOS6' %>
-                - upgrade_packages_rpm: <% $.distro = 'CENTOS7' %>
-                - upgrade_packages_deb: <% $.distro = 'UBUNTU14' %>
-                - upgrade_packages_deb: <% $.distro = 'UBUNTU16' %>
-                - upgrade_packages_deb: <% $.distro = 'UBUNTU18' %>
-
-        upgrade_packages_rpm:
-            action: st2ci.st2_pkg_upgrade_rpm
-            input:
-                host: <% $.vm_info.private_ip_address %>
-                pkg_list:
-                    - st2
-                    - st2mistral
-                    - st2chatops
-                    - st2web
-                version: <% $.upgrade_to_version %>
-                distro: <% $.distro %>
-            on-success:
-                - upgrade_enterprise_packages_rpm: <% $.enterprise %>
-                - migrate_models: <% not $.enterprise %>
-
-        upgrade_packages_deb:
-            action: st2ci.st2_pkg_upgrade_deb
-            input:
-                host: <% $.vm_info.private_ip_address %>
-                pkg_list:
-                    - st2
-                    - st2mistral
-                    - st2chatops
-                    - st2web
-                version: <% $.upgrade_to_version %>
-                distro: <% $.distro %>
-            on-success:
-                - upgrade_enterprise_packages_deb: <% $.enterprise %>
-                - migrate_models: <% not $.enterprise %>
-
-        upgrade_enterprise_packages_deb:
-            action: st2ci.st2_pkg_upgrade_deb
-            input:
-                host: <% $.vm_info.private_ip_address %>
-                pkg_list:
-                    - st2flow
-                    - st2-auth-ldap
-                version: <% $.upgrade_to_version %>
-                distro: <% $.distro %>
-                enterprise: true
-            on-success:
-                - migrate_models
-
-        upgrade_enterprise_packages_rpm:
-            action: st2ci.st2_pkg_upgrade_rpm
-            input:
-                host: <% $.vm_info.private_ip_address %>
-                pkg_list:
-                    - st2flow
-                    - st2-auth-ldap
-                version: <% $.upgrade_to_version %>
-                distro: <% $.distro %>
-                enterprise: true
-            on-success:
-                - migrate_models
-
-        migrate_models:
-            action: st2cd.st2_perform_migrations
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                from: <% $.upgrade_from_version %>
-                to: <% $.upgrade_to_version %>
-                timeout: 180
-            on-success:
-                - post_migration_start
-
-        post_migration_start:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: st2ctl start
-                timeout: 180
-            on-success:
-                - get_upgraded_version
-
-        get_upgraded_version:
-            action: st2cd.st2_get_installed_version
-            input:
-                host: <% $.vm_info.private_ip_address %>
-            publish:
-                installed:
-                    distro: <% task(get_upgraded_version).result.distro %>
-                    versions: <% task(get_upgraded_version).result.versions %>
-                    version_str: <%
-                        task(get_upgraded_version).result.versions.items().select(
-                            $[0] + "=" + $[1]).join("\n\t") %>
-            on-success:
-                - create_vm_windows
-
-        create_vm_windows:
-            action: st2cd.create_vm_windows
-            input:
-                hostname: <% $.windows_hostname %>
-                instance_type: <% $.instance_type %>
-                environment: <% $.environment %>
-                key_name: <% $.windows_key_name %>
-                keyfile: <% $.windows_keyfile %>
-                dns_zone: <% $.dns_zone %>
-                distro: <% $.windows_distro %>
-                role: <% $.role %>
-            publish:
-                vm_windows_info: <% task(create_vm_windows).result.vm_info %>
-                vm_windows_id: <% task(create_vm_windows).result.vm_info.id %>
-                vm_windows_username: <% task(create_vm_windows).result.vm_username %>
-                vm_windows_password: <% task(create_vm_windows).result.vm_password %>
-            on-success:
-                - run_e2e_tests
-
-        run_e2e_tests:
-            action: st2cd.st2_e2e_tests
-            input:
-                host_ip: <% $.vm_info.private_ip_address %>
-                host_fqdn: <% $.vm_fqdn %>
-                version: <% $.upgrade_to_version %>
-                enterprise: <% $.enterprise %>
-                st2_username: <% $.st2_username %>
-                st2_password: <% $.st2_password %>
-                windows_host_ip: <% $.vm_windows_info.private_ip_address %>
-                windows_host_fqdn: <% $.vm_windows_fqdn %>
-                windows_username: <% $.vm_windows_username %>
-                windows_password: <% $.vm_windows_password %>
-            on-success:
-                - destroy_vm: <% not $.debug %>
-                - notify_success: <% $.debug %>
-
-        # Notify tasks
-        notify_start:
-            with-items: channel in <% $.notify_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nFROM_VERSION: <% $.upgrade_from_version %>\nTO_VERSION: <% $.upgrade_to_version %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#808080"}]'
-
-        destroy_vm:
-            action: st2cd.destroy_vm
-            input:
-                hostname: <% $.hostname %>
-                instance_id: <% $.vm_id %>
-            retry:
-                count: 2
-                delay: 30
-            on-complete:
-                - destroy_vm_windows
-
-        destroy_vm_windows:
-            action: st2cd.destroy_vm
-            input:
-                hostname: <% $.windows_hostname %>
-                instance_id: <% $.vm_windows_id %>
-            retry:
-                count: 2
-                delay: 30
-            on-success:
-                - notify_success
-            on-error:
-                - notify_failure
-
-        destroy_vm_on_failure:
-            action: st2cd.destroy_vm
-            input:
-                hostname: <% $.hostname %>
-                instance_id: <% $.vm_id %>
-            retry:
-                count: 2
-                delay: 30
-            on-complete:
-                - destroy_vm_on_failure_windows
-
-        destroy_vm_on_failure_windows:
-            action: st2cd.destroy_vm
-            input:
-                hostname: <% $.windows_hostname %>
-                instance_id: <% $.vm_windows_id %>
-            retry:
-                count: 2
-                delay: 30
-            on-complete:
-                - notify_failure
-            on-error:
-                - noop
-
-        notify_success:
-            with-items: channel in <% $.notify_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nFROM_VERSION: <% $.upgrade_from_version %>\nTO_VERSION: <% $.upgrade_to_version %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
-
-        notify_failure:
-            with-items: channel in <% $.notify_failure_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"title": "[st2ci.st2_pkg_upgrade_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nFROM_VERSION: <% $.upgrade_from_version %>\nTO_VERSION: <% $.upgrade_to_version %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#FF0000"}]'
-            on-complete:
-                - fail
+      hostname: <% ctx().hostname %>
+      instance_type: <% ctx().instance_type %>
+      environment: <% ctx().environment %>
+      key_name: <% ctx().key_name %>
+      keyfile: <% ctx().keyfile %>
+      dns_zone: <% ctx().dns_zone %>
+      distro: pkg_<% ctx().distro %>
+      role: <% ctx().role %>
+    next:
+      # TODO: Fix publishing conditions
+      - when: <% succeeded() %>
+        publish:
+          - vm_info: <% result().vm_info %>
+          - vm_id: <% result().vm_info.id %>
+      - when: <% succeeded() and (ctx().distro = 'RHEL6') %>
+        do:
+          - patch_rhel6
+      - when: <% succeeded() and (ctx().distro != 'RHEL6') %>
+        do:
+          - get_bootstrap_script
+  patch_rhel6:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: yum-config-manager --enable rhui-REGION-rhel-server-releases-optional
+    next:
+      - when: <% succeeded() %>
+        do:
+          - patch_rhel6_curl
+  patch_rhel6_curl:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: yum install -y curl nss
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do:
+          - get_bootstrap_script
+  get_bootstrap_script:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: curl -Ss -k -o /tmp/st2_bootstrap.sh <% ctx().bootstrap_script_url %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - run_bootstrap_script
+  run_bootstrap_script:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: bash /tmp/st2_bootstrap.sh --<% ctx().pkg_env %> --<% ctx().release %> --version=<% coalesce(ctx().upgrade_from_version, '') %> --user=<% ctx().st2_username %> --password=<% ctx().st2_password %>
+      timeout: 900
+    next:
+      - when: <% succeeded() and (ctx().enterprise) %>
+        do:
+          - install_enterprise
+      - when: <% succeeded() and (not ctx().enterprise) %>
+        do:
+          - pre_upgrade_stop
+  install_enterprise:
+    action: st2cd.st2_upgrade_to_enterprise
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      license_key: <% ctx().enterprise_key %>
+      distro: <% ctx().distro %>
+      pkg_env: <% ctx().pkg_env %>
+      release: <% ctx().release %>
+      version: <% coalesce(ctx().upgrade_from_version, '') %>
+      timeout: 150
+    next:
+      - when: <% succeeded() %>
+        do:
+          - pre_upgrade_stop
+  pre_upgrade_stop:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: st2ctl stop
+      timeout: 180
+    next:
+      - do:
+          - get_installed_version
+  get_installed_version:
+    action: st2cd.st2_get_installed_version
+    input:
+      host: <% ctx().vm_info.private_ip_address %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - installed:
+              distro: <% result().distro %>
+              versions: <% result().versions %>
+              version_str: <% result().versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
+      - when: <% succeeded() and (ctx().distro = 'RHEL6') %>
+        do:
+          - upgrade_packages_rpm
+      - when: <% succeeded() and (ctx().distro = 'RHEL7') %>
+        do:
+          - upgrade_packages_rpm
+      - when: <% succeeded() and (ctx().distro = 'CENTOS6') %>
+        do:
+          - upgrade_packages_rpm
+      - when: <% succeeded() and (ctx().distro = 'CENTOS7') %>
+        do:
+          - upgrade_packages_rpm
+      - when: <% succeeded() and (ctx().distro = 'UBUNTU14') %>
+        do:
+          - upgrade_packages_deb
+      - when: <% succeeded() and (ctx().distro = 'UBUNTU16') %>
+        do:
+          - upgrade_packages_deb
+      - when: <% succeeded() and (ctx().distro = 'UBUNTU18') %>
+        do:
+          - upgrade_packages_deb
+  upgrade_packages_rpm:
+    action: st2ci.st2_pkg_upgrade_rpm
+    input:
+      host: <% ctx().vm_info.private_ip_address %>
+      pkg_list:
+        - st2
+        - st2mistral
+        - st2chatops
+        - st2web
+      version: <% ctx().upgrade_to_version %>
+      distro: <% ctx().distro %>
+    next:
+      - when: <% succeeded() and (ctx().enterprise) %>
+        do:
+          - upgrade_enterprise_packages_rpm
+      - when: <% succeeded() and (not ctx().enterprise) %>
+        do:
+          - migrate_models
+  upgrade_packages_deb:
+    action: st2ci.st2_pkg_upgrade_deb
+    input:
+      host: <% ctx().vm_info.private_ip_address %>
+      pkg_list:
+        - st2
+        - st2mistral
+        - st2chatops
+        - st2web
+      version: <% ctx().upgrade_to_version %>
+      distro: <% ctx().distro %>
+    next:
+      - when: <% succeeded() and (ctx().enterprise) %>
+        do:
+          - upgrade_enterprise_packages_deb
+      - when: <% succeeded() and (not ctx().enterprise) %>
+        do:
+          - migrate_models
+  upgrade_enterprise_packages_deb:
+    action: st2ci.st2_pkg_upgrade_deb
+    input:
+      host: <% ctx().vm_info.private_ip_address %>
+      pkg_list:
+        - st2flow
+        - st2-auth-ldap
+      version: <% ctx().upgrade_to_version %>
+      distro: <% ctx().distro %>
+      enterprise: true
+    next:
+      - when: <% succeeded() %>
+        do:
+          - migrate_models
+  upgrade_enterprise_packages_rpm:
+    action: st2ci.st2_pkg_upgrade_rpm
+    input:
+      host: <% ctx().vm_info.private_ip_address %>
+      pkg_list:
+        - st2flow
+        - st2-auth-ldap
+      version: <% ctx().upgrade_to_version %>
+      distro: <% ctx().distro %>
+      enterprise: true
+    next:
+      - when: <% succeeded() %>
+        do:
+          - migrate_models
+  migrate_models:
+    action: st2cd.st2_perform_migrations
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      from: <% ctx().upgrade_from_version %>
+      to: <% ctx().upgrade_to_version %>
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do:
+          - post_migration_start
+  post_migration_start:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: st2ctl start
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do:
+          - get_upgraded_version
+  get_upgraded_version:
+    action: st2cd.st2_get_installed_version
+    input:
+      host: <% ctx().vm_info.private_ip_address %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - installed:
+              distro: <% result().distro %>
+              versions: <% result().versions %>
+              version_str: <% result().versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
+        do:
+          - create_vm_windows
+  create_vm_windows:
+    action: st2cd.create_vm_windows
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_type: <% ctx().instance_type %>
+      environment: <% ctx().environment %>
+      key_name: <% ctx().windows_key_name %>
+      keyfile: <% ctx().windows_keyfile %>
+      dns_zone: <% ctx().dns_zone %>
+      distro: <% ctx().windows_distro %>
+      role: <% ctx().role %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - vm_windows_info: <% result().vm_info %>
+          - vm_windows_id: <% result().vm_info.id %>
+          - vm_windows_username: <% result().vm_username %>
+          - vm_windows_password: <% result().vm_password %>
+        do:
+          - run_e2e_tests
+  run_e2e_tests:
+    action: st2cd.st2_e2e_tests
+    input:
+      host_ip: <% ctx().vm_info.private_ip_address %>
+      host_fqdn: <% ctx().vm_fqdn %>
+      version: <% ctx().upgrade_to_version %>
+      enterprise: <% ctx().enterprise %>
+      st2_username: <% ctx().st2_username %>
+      st2_password: <% ctx().st2_password %>
+      windows_host_ip: <% ctx().vm_windows_info.private_ip_address %>
+      windows_host_fqdn: <% ctx().vm_windows_fqdn %>
+      windows_username: <% ctx().vm_windows_username %>
+      windows_password: <% ctx().vm_windows_password %>
+    next:
+      - when: <% succeeded() and (not ctx().debug) %>
+        do:
+          - destroy_vm
+      - when: <% succeeded() and (ctx().debug) %>
+        do:
+          - notify_success
+  notify_start:
+    with:
+      items: channel in <% $.notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>  # TODO: Convert this to item()
+      text: ''
+      attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
+  destroy_vm:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().hostname %>
+      instance_id: <% ctx().vm_id %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_windows
+      - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) %>
+        do:
+          - fail
+      - when: <% failed() and (ctx().destroy_vm_iteration_count < 2) %>
+        publish:
+          - destroy_vm_iteration_count: <% ctx().destroy_vm_iteration_count + 1 %>
+        do:
+          - sleep_destroy_vm
+  sleep_destroy_vm:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm
+  destroy_vm_windows:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_id: <% ctx().vm_windows_id %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - notify_success
+      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
+        do:
+          - notify_failure
+      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count < 2) %>
+        publish:
+          - destroy_vm_windows_iteration_count: <% ctx().destroy_vm_windows_iteration_count + 1 %>
+        do:
+          - sleep_destroy_vm_windows
+  sleep_destroy_vm_windows:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_windows
+  destroy_vm_on_failure:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().hostname %>
+      instance_id: <% ctx().vm_id %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_on_failure_windows
+      - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count >= 2) %>
+        do:
+          # TODO: Run destroy_vm_on_failure_windows here before failing
+          - fail
+      - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count < 2) %>
+        do:
+          - sleep_destroy_vm_on_failure
+  sleep_destroy_vm_on_failure:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_on_failure
+  destroy_vm_on_failure_windows:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_id: <% ctx().vm_windows_id %>
+    next:
+      - when: <% succeeded() or (failed() and(ctx().destroy_vm_on_failure_windows_iteration_count >= 2)) %>
+        do:
+          - notify_failure
+          - fail
+      - when: <% failed() and (ctx().destroy_vm_on_failure_windows_iteration_count < 2) %>
+        publish:
+          - destroy_vm_on_failure_windows_iteration_count: <% ctx().destroy_vm_on_failure_windows_iteration_count + 1 %>
+        do:
+          - sleep_destroy_vm_on_failure_windows
+  sleep_destroy_vm_on_failure_windows:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_on_failure_windows
+  notify_success:
+    with:
+      items: channel in <% $.notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>  # TODO: Convert to item()
+      text: ''
+      attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#008000\"}]"
+  notify_failure:
+    with:
+      items: channel in <% $.notify_failure_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>  # TODO: Convert to item()
+      text: ''
+      attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#FF0000\"}]"
+    next:
+      - do:
+          - fail

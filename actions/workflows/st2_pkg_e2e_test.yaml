@@ -1,310 +1,386 @@
 ---
-version: '2.0'
-
-st2ci.st2_pkg_e2e_test:
-    type: direct
+version: '1.0'
+input:
+  - hostname
+  - dns_zone
+  - instance_type
+  - environment
+  - key_name
+  - keyfile
+  - windows_key_name
+  - windows_keyfile
+  - distro
+  - windows_distro
+  - role
+  - release
+  - version
+  - dev_build
+  - initial_commit
+  - enterprise
+  - enterprise_key
+  - pkg_env
+  - bootstrap_branch
+  - bootstrap_script
+  - triggering_commit_url
+  - debug
+vars:
+  - vm_id:
+  - vm_windows_id:
+  - vm_fqdn: <% ctx().hostname %>.<% ctx().dns_zone %>
+  - windows_hostname: <% ctx().hostname %>win
+  - vm_windows_fqdn: <% ctx().hostname %>win.<% ctx().dns_zone %>
+  - installed:
+      version_str: not installed
+  - bootstrap_script_url: <% coalesce( ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
+  - st2_username: st2admin
+  - st2_password: Ch@ngeMe
+  - github_status_org: StackStorm
+  - github_status_repo: st2
+  - github_status_context: st2/e2e/<% ctx().distro.toLower() %><% ctx().enterprise and '-enterprise' or '' %>
+  - github_status_url: https://buildstatus.stackstorm.org/execution/<% env().st2_execution_id %>
+  - destroy_vm_iteration_count: 0
+  - destroy_vm_windows_iteration_count: 0
+  - destroy_vm_on_failure_iteration_count: 0
+  - destroy_vm_on_failure_windows_iteration_count: 0
+  - notify_channels:
+      - '#thunderdome'
+  - notify_failure_channels:
+      - '#thunderdome'
+      - '#stackstorm'
+output:
+  - versions: <% ctx().installed.versions %>
+tasks:
+  get_webui_server:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - webui_base_url: https://st2cicd.uswest2.stackstorm.net
+        do:
+          - notify_start
+      - when: <% succeeded() and (ctx().initial_commit != null) %>
+        do:
+          - set_github_status_pending
+      - when: <% succeeded() and (ctx().initial_commit = null) %>
+        do:
+          - create_vm
+  set_github_status_pending:
+    action: github.add_status
     input:
-        - hostname
-        - dns_zone
-        - instance_type
-        - environment
-        - key_name
-        - keyfile
-        - windows_key_name
-        - windows_keyfile
-        - distro
-        - windows_distro
-        - role
-        - release
-        - version
-        - dev_build
-        - initial_commit
-        - enterprise
-        - enterprise_key
-        - pkg_env
-        - bootstrap_branch
-        - bootstrap_script
-        - triggering_commit_url
-        - debug
-
-    vars:
-        vm_id: null
-        vm_windows_id: null
-        vm_fqdn: <% $.hostname %>.<% $.dns_zone %>
-        windows_hostname: <% $.hostname %>win
-        vm_windows_fqdn: <% $.hostname %>win.<% $.dns_zone %>
-        installed:
-            version_str: not installed
-        bootstrap_script_url: <% coalesce(
-            $.bootstrap_script,
-            "https://raw.githubusercontent.com/StackStorm/st2-packages/" +
-                $.bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
-        st2_username: st2admin
-        st2_password: Ch@ngeMe
-        github_status_org: StackStorm
-        github_status_repo: st2
-        github_status_context: st2/e2e/<% $.distro.toLower() %><% $.enterprise and '-enterprise' or '' %>
-        github_status_url: https://buildstatus.stackstorm.org/execution/<% env().st2_execution_id %>
-        notify_channels:
-            - "#thunderdome"
-        notify_failure_channels:
-            - "#thunderdome"
-            - "#stackstorm"
-
-    output:
-        versions: <% $.installed.versions %>
-
-    task-defaults:
-        on-error:
-            - destroy_vm_on_failure: <% not $.debug and $.vm_id != null %>
-            - notify_failure: <% $.debug or (not $.debug and $.vm_id = null) %>
-
-    tasks:
-        get_webui_server:
-            action: core.noop
-            publish:
-                webui_base_url: https://st2cicd.uswest2.stackstorm.net
-            on-success:
-                - notify_start
-                - set_github_status_pending: <% $.initial_commit != null %>
-                - create_vm: <% $.initial_commit = null %>
-        set_github_status_pending:
-            action: github.add_status
-            input:
-                user: <% $.github_status_org %>
-                repo: <% $.github_status_repo %>
-                sha: <% $.initial_commit %>
-                state: pending
-                context: <% $.github_status_context %>
-                description: E2E tests are running...
-                target_url: <% $.github_status_url %>
-            on-success:
-                - create_vm
-        create_vm:
-            action: st2cd.create_vm_role
-            input:
-                hostname: <% $.hostname %>
-                instance_type: <% $.instance_type %>
-                environment: <% $.environment %>
-                key_name: <% $.key_name %>
-                keyfile: <% $.keyfile %>
-                dns_zone: <% $.dns_zone %>
-                distro: pkg_<% $.distro %>
-                role: <% $.role %>
-            publish:
-                vm_info: <% task(create_vm).result.vm_info %>
-                vm_id: <% task(create_vm).result.vm_info.id %>
-            on-success:
-                - patch_rhel6: <% $.distro = 'RHEL6' %>
-                - get_bootstrap_script: <% $.distro != 'RHEL6' %>
-        patch_rhel6:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: yum-config-manager --enable rhui-REGION-rhel-server-releases-optional
-            on-success:
-                - patch_rhel6_curl
-        patch_rhel6_curl:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: yum install -y curl nss
-                timeout: 180
-            on-success:
-                - get_bootstrap_script
-        get_bootstrap_script:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: curl -Ss -k -o /tmp/st2_bootstrap.sh <% $.bootstrap_script_url %>
-            on-success:
-                - run_bootstrap_script: <% not $.dev_build %>
-                - run_bootstrap_script_dev: <% $.dev_build %>
-        run_bootstrap_script:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: bash /tmp/st2_bootstrap.sh --<% $.pkg_env %> --<% $.release %> --version=<% coalesce($.version, '') %> --user=<% $.st2_username %> --password=<% $.st2_password %>
-                timeout: 900
-            on-success:
-                - upgrade_to_enterprise: <% $.enterprise %>
-                - get_installed_version: <% not $.enterprise %>
-        run_bootstrap_script_dev:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: bash /tmp/st2_bootstrap.sh --dev=<% $.dev_build %> --<% $.pkg_env %> --<% $.release %> --user=<% $.st2_username %> --password=<% $.st2_password %>
-                timeout: 900
-            on-success:
-                - upgrade_to_enterprise: <% $.enterprise %>
-                - get_installed_version: <% not $.enterprise %>
-        upgrade_to_enterprise:
-            action: st2cd.st2_upgrade_to_enterprise
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                license_key: <% $.enterprise_key %>
-                distro: <% $.distro %>
-                pkg_env: <% $.pkg_env %>
-                release: <% $.release %>
-                version: <% coalesce($.version, '') %>
-                timeout: 150
-            on-success:
-                - get_installed_version
-        get_installed_version:
-            action: st2cd.st2_get_installed_version
-            input:
-                host: <% $.vm_info.private_ip_address %>
-            publish:
-                installed:
-                    distro: <% task(get_installed_version).result.distro %>
-                    versions: <% task(get_installed_version).result.versions %>
-                    version_str: <%
-                        task(get_installed_version).result.versions.items().select(
-                            $[0] + "=" + $[1]).join("\n\t") %>
-            on-success:
-                - create_vm_windows: <% not $.debug %>
-                - enable_debug_mode: <% $.debug %>
-
-        enable_debug_mode:
-            action: core.remote_sudo
-            input:
-                hosts: <% $.vm_info.private_ip_address %>
-                cmd: crudini --set /etc/st2/st2.conf system debug True && st2ctl restart
-                timeout: 120
-
-        create_vm_windows:
-            action: st2cd.create_vm_windows
-            input:
-                hostname: <% $.windows_hostname %>
-                instance_type: <% $.instance_type %>
-                environment: <% $.environment %>
-                key_name: <% $.windows_key_name %>
-                keyfile: <% $.windows_keyfile %>
-                dns_zone: <% $.dns_zone %>
-                distro: <% $.windows_distro %>
-                role: <% $.role %>
-            publish:
-                vm_windows_info: <% task(create_vm_windows).result.vm_info %>
-                vm_windows_id: <% task(create_vm_windows).result.vm_info.id %>
-                vm_windows_username: <% task(create_vm_windows).result.vm_username %>
-                vm_windows_password: <% task(create_vm_windows).result.vm_password %>
-            on-success:
-                - run_e2e_tests
-
-        run_e2e_tests:
-            action: st2cd.st2_e2e_tests
-            input:
-                host_ip: <% $.vm_info.private_ip_address %>
-                host_fqdn: <% $.vm_fqdn %>
-                enterprise: <% $.enterprise  %>
-                version: <% $.version %>
-                st2_username: <% $.st2_username %>
-                st2_password: <% $.st2_password %>
-                windows_host_ip: <% $.vm_windows_info.private_ip_address %>
-                windows_host_fqdn: <% $.vm_windows_fqdn %>
-                windows_username: <% $.vm_windows_username %>
-                windows_password: <% $.vm_windows_password %>
-            on-success:
-                - destroy_vm: <% not $.debug %>
-                - notify_success: <% $.debug %>
-
-
-        notify_start:
-            with-items: channel in <% $.notify_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: STARTED]", "title": "[st2ci.st2_pkg_e2e_test: STARTED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#808080"}]'
-
-
-        destroy_vm:
-            action: st2cd.destroy_vm
-            input:
-                hostname: <% $.hostname %>
-                instance_id: <% $.vm_id %>
-            retry:
-                count: 2
-                delay: 30
-            on-complete:
-                - destroy_vm_windows
-
-        destroy_vm_windows:
-            action: st2cd.destroy_vm
-            input:
-                hostname: <% $.windows_hostname %>
-                instance_id: <% $.vm_windows_id %>
-            retry:
-                count: 2
-                delay: 30
-            on-success:
-                - notify_success
-            on-error:
-                - notify_failure
-
-        destroy_vm_on_failure:
-            action: st2cd.destroy_vm
-            input:
-                hostname: <% $.hostname %>
-                instance_id: <% $.vm_id %>
-            retry:
-                count: 2
-                delay: 30
-            on-complete:
-                - destroy_vm_on_failure_windows
-
-        destroy_vm_on_failure_windows:
-            action: st2cd.destroy_vm
-            input:
-                hostname: <% $.windows_hostname %>
-                instance_id: <% $.vm_windows_id %>
-            retry:
-                count: 2
-                delay: 30
-            on-complete:
-                - notify_failure
-            on-error:
-                - noop
-
-        notify_success:
-            with-items: channel in <% $.notify_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title": "[st2ci.st2_pkg_e2e_test: SUCCEEDED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#008000"}]'
-            on-complete:
-                - set_github_status_success: <% $.initial_commit %>
-
-        set_github_status_success:
-            action: github.add_status
-            input:
-                user: <% $.github_status_org %>
-                repo: <% $.github_status_repo %>
-                sha: <% $.initial_commit %>
-                state: success
-                context: <% $.github_status_context %>
-                description: E2E tests have finished successfully
-                target_url: <% $.github_status_url %>
-
-        notify_failure:
-            with-items: channel in <% $.notify_failure_channels %>
-            action: slack.chat.postMessage
-            input:
-                channel: <% $.channel %>
-                text: ""
-                attachments: '[{"fallback": "[st2ci.st2_pkg_e2e_test: FAILED]", "title": "[st2ci.st2_pkg_e2e_test: FAILED]", "title_link": "<% $.webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "COMMIT: <% coalesce($.triggering_commit_url, ''n/a'') %>\nHOSTNAME: <% $.vm_fqdn %>\nDISTRO: <% $.distro %>\nENTERPRISE: <% $.enterprise %>\nRELEASE: <% $.pkg_env %> <% $.release %>\nVERSION: <% coalesce($.version, ''latest'') %>\nVERSION INSTALLED:\n\t<% $.installed.version_str %>\nBOOTSTRAP: <% $.bootstrap_script_url %>", "color": "#FF0000"}]'
-            on-complete:
-                - set_github_status_failure: <% $.initial_commit %>
-                - fail
-
-        set_github_status_failure:
-            action: github.add_status
-            input:
-                user: <% $.github_status_org %>
-                repo: <% $.github_status_repo %>
-                sha: <% $.initial_commit %>
-                state: failure
-                context: <% $.github_status_context %>
-                description: E2E tests have failed
-                target_url: <% $.github_status_url %>
+      user: <% ctx().github_status_org %>
+      repo: <% ctx().github_status_repo %>
+      sha: <% ctx().initial_commit %>
+      state: pending
+      context: <% ctx().github_status_context %>
+      description: E2E tests are running...
+      target_url: <% ctx().github_status_url %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - create_vm
+  create_vm:
+    action: st2cd.create_vm_role
+    input:
+      hostname: <% ctx().hostname %>
+      instance_type: <% ctx().instance_type %>
+      environment: <% ctx().environment %>
+      key_name: <% ctx().key_name %>
+      keyfile: <% ctx().keyfile %>
+      dns_zone: <% ctx().dns_zone %>
+      distro: pkg_<% ctx().distro %>
+      role: <% ctx().role %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - vm_info: <% result().vm_info %>
+          - vm_id: <% result().vm_info.id %>
+      - when: <% succeeded() and (ctx().distro = 'RHEL6') %>
+        do:
+          - patch_rhel6
+      - when: <% succeeded() and (ctx().distro != 'RHEL6') %>
+        do:
+          - get_bootstrap_script
+  patch_rhel6:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: yum-config-manager --enable rhui-REGION-rhel-server-releases-optional
+    next:
+      - when: <% succeeded() %>
+        do:
+          - patch_rhel6_curl
+  patch_rhel6_curl:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: yum install -y curl nss
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do:
+          - get_bootstrap_script
+  get_bootstrap_script:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: curl -Ss -k -o /tmp/st2_bootstrap.sh <% ctx().bootstrap_script_url %>
+    next:
+      - when: <% succeeded() and (not ctx().dev_build) %>
+        do:
+          - run_bootstrap_script
+      - when: <% succeeded() and (ctx().dev_build) %>
+        do:
+          - run_bootstrap_script_dev
+  run_bootstrap_script:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: bash /tmp/st2_bootstrap.sh --<% ctx().pkg_env %> --<% ctx().release %> --version=<% coalesce(ctx().version, '') %> --user=<% ctx().st2_username %> --password=<% ctx().st2_password %>
+      timeout: 900
+    next:
+      - when: <% succeeded() and (ctx().enterprise) %>
+        do:
+          - upgrade_to_enterprise
+      - when: <% succeeded() and (not ctx().enterprise) %>
+        do:
+          - get_installed_version
+  run_bootstrap_script_dev:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: bash /tmp/st2_bootstrap.sh --dev=<% ctx().dev_build %> --<% ctx().pkg_env %> --<% ctx().release %> --user=<% ctx().st2_username %> --password=<% ctx().st2_password %>
+      timeout: 900
+    next:
+      - when: <% succeeded() and (ctx().enterprise) %>
+        do:
+          - upgrade_to_enterprise
+      - when: <% succeeded() and (not ctx().enterprise) %>
+        do:
+          - get_installed_version
+  upgrade_to_enterprise:
+    action: st2cd.st2_upgrade_to_enterprise
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      license_key: <% ctx().enterprise_key %>
+      distro: <% ctx().distro %>
+      pkg_env: <% ctx().pkg_env %>
+      release: <% ctx().release %>
+      version: <% coalesce(ctx().version, '') %>
+      timeout: 150
+    next:
+      - when: <% succeeded() %>
+        do:
+          - get_installed_version
+  get_installed_version:
+    action: st2cd.st2_get_installed_version
+    input:
+      host: <% ctx().vm_info.private_ip_address %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - installed:
+              distro: <% result().distro %>
+              versions: <% result().versions %>
+              version_str: <% result().versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
+      - when: <% succeeded() and (not ctx().debug) %>
+        do:
+          - create_vm_windows
+      - when: <% succeeded() and (ctx().debug) %>
+        do:
+          - enable_debug_mode
+  enable_debug_mode:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: crudini --set /etc/st2/st2.conf system debug True && st2ctl restart
+      timeout: 120
+  create_vm_windows:
+    action: st2cd.create_vm_windows
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_type: <% ctx().instance_type %>
+      environment: <% ctx().environment %>
+      key_name: <% ctx().windows_key_name %>
+      keyfile: <% ctx().windows_keyfile %>
+      dns_zone: <% ctx().dns_zone %>
+      distro: <% ctx().windows_distro %>
+      role: <% ctx().role %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - vm_windows_info: <% result().vm_info %>
+          - vm_windows_id: <% result().vm_info.id %>
+          - vm_windows_username: <% result().vm_username %>
+          - vm_windows_password: <% result().vm_password %>
+        do:
+          - run_e2e_tests
+  run_e2e_tests:
+    action: st2cd.st2_e2e_tests
+    input:
+      host_ip: <% ctx().vm_info.private_ip_address %>
+      host_fqdn: <% ctx().vm_fqdn %>
+      enterprise: <% ctx().enterprise  %>
+      version: <% ctx().version %>
+      st2_username: <% ctx().st2_username %>
+      st2_password: <% ctx().st2_password %>
+      windows_host_ip: <% ctx().vm_windows_info.private_ip_address %>
+      windows_host_fqdn: <% ctx().vm_windows_fqdn %>
+      windows_username: <% ctx().vm_windows_username %>
+      windows_password: <% ctx().vm_windows_password %>
+    next:
+      - when: <% succeeded() and (not ctx().debug) %>
+        do:
+          - destroy_vm
+      - when: <% succeeded() and (ctx().debug) %>
+        do:
+          - notify_success
+  notify_start:
+    with:
+      items: channel in <% $.notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
+  destroy_vm:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().hostname %>
+      instance_id: <% ctx().vm_id %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_windows
+      - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) %>
+        do:
+          - fail
+      - when: <% failed() and (ctx().destroy_vm_iteration_count < 2) %>
+        publish:
+          - destroy_vm_iteration_count: <% ctx().destroy_vm_iteration_count + 1 %>
+        do:
+          - sleep_destroy_vm
+  sleep_destroy_vm:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm
+  destroy_vm_windows:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_id: <% ctx().vm_windows_id %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - notify_success
+      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
+        do:
+          - notify_failure
+      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count < 2) %>
+        publish:
+          - destroy_vm_windows_iteration_count: <% ctx().destroy_vm_windows_iteration_count + 1 %>
+        do:
+          - sleep_destroy_vm_windows
+  sleep_destroy_vm_windows:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_windows
+  destroy_vm_on_failure:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().hostname %>
+      instance_id: <% ctx().vm_id %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_on_failure_windows
+      - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count >= 2) %>
+        do:
+          - fail
+      - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count < 2) %>
+        do:
+          - sleep_destroy_vm_on_failure
+  sleep_destroy_vm_on_failure:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_on_failure
+  destroy_vm_on_failure_windows:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_id: <% ctx().vm_windows_id %>
+    next:
+      - when: <% succeeded() or (failed() and(ctx().destroy_vm_on_failure_windows_iteration_count >= 2)) %>
+        do:
+          - notify_failure
+          - fail
+      - when: <% failed() and (ctx().destroy_vm_on_failure_windows_iteration_count < 2) %>
+        publish:
+          - destroy_vm_on_failure_windows_iteration_count: <% ctx().destroy_vm_on_failure_windows_iteration_count + 1 %>
+        do:
+          - sleep_destroy_vm_on_failure_windows
+  sleep_destroy_vm_on_failure_windows:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_on_failure_windows
+  notify_success:
+    with:
+      items: channel in <% $.notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#008000\"}]"
+    next:
+      - when: <% ctx().initial_commit %>
+        do:
+          - set_github_status_success
+  set_github_status_success:
+    action: github.add_status
+    input:
+      user: <% ctx().github_status_org %>
+      repo: <% ctx().github_status_repo %>
+      sha: <% ctx().initial_commit %>
+      state: success
+      context: <% ctx().github_status_context %>
+      description: E2E tests have finished successfully
+      target_url: <% ctx().github_status_url %>
+  notify_failure:
+    with:
+      items: channel in <% $.notify_failure_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% ctx().channel %>
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#FF0000\"}]"
+    next:
+      - do:
+          - fail
+      - when: <% ctx().initial_commit %>
+        do:
+          - set_github_status_failure
+  set_github_status_failure:
+    action: github.add_status
+    input:
+      user: <% ctx().github_status_org %>
+      repo: <% ctx().github_status_repo %>
+      sha: <% ctx().initial_commit %>
+      state: failure
+      context: <% ctx().github_status_context %>
+      description: E2E tests have failed
+      target_url: <% ctx().github_status_url %>
