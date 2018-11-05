@@ -90,10 +90,9 @@ tasks:
       distro: pkg_<% ctx().distro %>
       role: <% ctx().role %>
     next:
-      - when: <% succeeded() %>
-        publish:
-          - vm_info: <% result().vm_info %>
-          - vm_id: <% result().vm_info.id %>
+      - publish:
+        - vm_info: <% result().vm_info %>
+        - vm_id: <% result().vm_info.id %>
       - when: <% succeeded() and (ctx().distro = 'RHEL6') %>
         do:
           - patch_rhel6
@@ -321,7 +320,7 @@ tasks:
       hostname: <% ctx().windows_hostname %>
       instance_id: <% ctx().vm_windows_id %>
     next:
-      - when: <% succeeded() or (failed() and(ctx().destroy_vm_on_failure_windows_iteration_count >= 2)) %>
+      - when: <% succeeded() or (failed() and (ctx().destroy_vm_on_failure_windows_iteration_count >= 2)) %>
         do:
           - notify_failure
           - fail
