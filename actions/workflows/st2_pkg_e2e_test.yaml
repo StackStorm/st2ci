@@ -238,7 +238,7 @@ tasks:
       items: channel in <% $.notify_channels %>
     action: slack.chat.postMessage
     input:
-      channel: <% ctx().channel %>
+      channel: <% item(channel) %>
       text: ''
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
   destroy_vm:
@@ -342,7 +342,7 @@ tasks:
       items: channel in <% $.notify_channels %>
     action: slack.chat.postMessage
     input:
-      channel: <% ctx().channel %>
+      channel: <% item(channel) %>
       text: ''
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#008000\"}]"
     next:
@@ -364,7 +364,7 @@ tasks:
       items: channel in <% $.notify_failure_channels %>
     action: slack.chat.postMessage
     input:
-      channel: <% ctx().channel %>
+      channel: <% item(channel) %>
       text: ''
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#FF0000\"}]"
     next:

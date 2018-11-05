@@ -42,7 +42,7 @@ tasks:
       items: channel in <% $.notify_channels %>
     action: slack.chat.postMessage
     input:
-      channel: <% ctx().channel %>  # TODO: Change to item()
+      channel: <% item(channel) %>
       text: ''
       attachments: "[{\"fallback\": \"[st2ci.bwc_pkg_promote_all: STARTED]\", \"title\": \"[st2ci.bwc_pkg_promote_all: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#808080\"}]"
     next:
@@ -71,7 +71,6 @@ tasks:
       - when: <% failed() %>
         do:
           - noop
-      # TODO: Move this do into both the succeeded and failed branches?
       - do:
           - process_completion
   promote_st2_auth_ldap:
@@ -88,7 +87,6 @@ tasks:
       - when: <% failed() %>
         do:
           - noop
-      # TODO: Move this do into both the succeeded and failed branches?
       - do:
           - process_completion
   promote_st2flow:
@@ -105,7 +103,6 @@ tasks:
       - when: <% failed() %>
         do:
           - noop
-      # TODO: Move this do into both the succeeded and failed branches?
       - do:
           - process_completion
   promote_bwc_ui:
@@ -122,7 +119,6 @@ tasks:
       - when: <% failed() %>
         do:
           - noop
-      # TODO: Move this do into both the succeeded and failed branches?
       - do:
           - process_completion
   process_completion:
@@ -160,7 +156,7 @@ tasks:
       items: channel in <% $.notify_completion_channels %>  # TODO: Change to ctx()
     action: slack.chat.postMessage
     input:
-      channel: <% ctx().channel %>  # TODO: Change to item()
+      channel: <% item(channel) %>
       text: ''
       attachments: "[{\"fallback\": \"[st2ci.bwc_pkg_promote_all: COMPLETED]\", \"title\": \"[st2ci.bwc_pkg_promote_all: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nPACKAGE PROMOTED:\\n\\tbwc-enterprise-packages=<% ctx().promoted_bwc_enterprise %>\\n\\tst2-auth-ldap=<% ctx().promoted_st2_auth_ldap %>\\n\\tst2flow=<% ctx().promoted_st2flow %>\\n\\tbwc-ui=<% ctx().promoted_bwc_ui %>\", \"color\": \"<% ctx().notify_color %>\"}]"
   notify_failure:
@@ -168,6 +164,6 @@ tasks:
       items: channel in <% $.notify_failure_channels %>  # TODO: Change to ctx()
     action: slack.chat.postMessage
     input:
-      channel: <% ctx().channel %>  # TODO: Change to item()
+      channel: <% item(channel) %>
       text: ''
       attachments: "[{\"fallback\": \"[st2ci.bwc_pkg_promote_all: FAILED]\", \"title\": \"[st2ci.bwc_pkg_promote_all: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
