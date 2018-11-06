@@ -235,7 +235,7 @@ tasks:
           - notify_success
   notify_start:
     with:
-      items: channel in <% $.notify_channels %>
+      items: channel in <% ctx().notify_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
@@ -339,7 +339,7 @@ tasks:
           - destroy_vm_on_failure_windows
   notify_success:
     with:
-      items: channel in <% $.notify_channels %>
+      items: channel in <% ctx().notify_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
@@ -361,7 +361,7 @@ tasks:
       target_url: <% ctx().github_status_url %>
   notify_failure:
     with:
-      items: channel in <% $.notify_failure_channels %>
+      items: channel in <% ctx().notify_failure_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
