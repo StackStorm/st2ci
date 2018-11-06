@@ -23,6 +23,7 @@ input:
   - triggering_commit_url
   - debug
 vars:
+  - webui_base_url: http://st2cicd.uswest2.stackstorm.net
   - vm_id:
   - vm_windows_id:
   - vm_fqdn: <% ctx().hostname %>.<% ctx().dns_zone %>
@@ -49,8 +50,6 @@ tasks:
     action: core.noop
     next:
       - when: <% succeeded() %>
-        publish:
-          - webui_base_url: http://st2cicd.uswest2.stackstorm.net
         do:
           - notify_start
           - create_vm
