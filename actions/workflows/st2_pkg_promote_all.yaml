@@ -43,7 +43,7 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: ''
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_promote_all: STARTED]\", \"title\": \"[st2ci.st2_pkg_promote_all: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#808080\"}]"
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_promote_all: STARTED]\", \"title\": \"[st2ci.st2_pkg_promote_all: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#808080\"}]"
     next:
       - when: <% succeeded() %>
         do:
@@ -172,7 +172,7 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: ''
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_promote_all: COMPLETED]\", \"title\": \"[st2ci.st2_pkg_promote_all: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nPACKAGE PROMOTED:\\n\\tst2=<% ctx().promoted_st2 %>\\n\\tst2chatops=<% ctx().promoted_st2chatops %>\\n\\tst2mistral=<% ctx().promoted_st2mistral %>\\n\\tst2web=<% ctx().promoted_st2web %>\\n\\tst2flow=<% ctx().promoted_st2flow %>\", \"color\": \"<% ctx().notify_color %>\"}]"
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_promote_all: COMPLETED]\", \"title\": \"[st2ci.st2_pkg_promote_all: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nPACKAGE PROMOTED:\\n\\tst2=<% ctx().promoted_st2 %>\\n\\tst2chatops=<% ctx().promoted_st2chatops %>\\n\\tst2mistral=<% ctx().promoted_st2mistral %>\\n\\tst2web=<% ctx().promoted_st2web %>\\n\\tst2flow=<% ctx().promoted_st2flow %>\", \"color\": \"<% ctx().notify_color %>\"}]"
   notify_failure:
     with:
       items: channel in <% ctx().notify_failure_channels %>
@@ -180,4 +180,4 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: ''
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_promote_all: FAILED]\", \"title\": \"[st2ci.st2_pkg_promote_all: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_promote_all: FAILED]\", \"title\": \"[st2ci.st2_pkg_promote_all: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"

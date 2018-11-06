@@ -39,7 +39,7 @@ vars:
   - github_status_org: StackStorm
   - github_status_repo: st2
   - github_status_context: st2/e2e/<% ctx().distro.toLower() %><% ctx().enterprise and '-enterprise' or '' %>
-  - github_status_url: https://buildstatus.stackstorm.org/execution/<% env().st2_execution_id %>
+  - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx('st2').action_execution_id %>
   - destroy_vm_iteration_count: 0
   - destroy_vm_windows_iteration_count: 0
   - destroy_vm_on_failure_iteration_count: 0
@@ -240,7 +240,7 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: ''
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx('st2').action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
   destroy_vm:
     action: st2cd.destroy_vm
     input:
@@ -344,7 +344,7 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: ''
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#008000\"}]"
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx('st2').action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#008000\"}]"
     next:
       - when: <% ctx().initial_commit %>
         do:
@@ -366,7 +366,7 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: ''
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#FF0000\"}]"
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx('st2').action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#FF0000\"}]"
     next:
       - do:
           - fail

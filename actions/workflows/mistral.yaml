@@ -158,7 +158,7 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: ''
-      attachments: '[{"fallback": "[st2ci.mistral: STARTED]", "title": "[st2ci.mistral: STARTED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>", "color": "#808080"}]'
+      attachments: '[{"fallback": "[st2ci.mistral: STARTED]", "title": "[st2ci.mistral: STARTED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>", "color": "#808080"}]'
   notify_success:
     with:
       items: channel in <% ctx().notify_channels %>
@@ -166,7 +166,7 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: ''
-      attachments: '[{"fallback": "[st2ci.mistral: SUCCEEDED]", "title": "[st2ci.mistral: SUCCEEDED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>", "color": "#008000"}]'
+      attachments: '[{"fallback": "[st2ci.mistral: SUCCEEDED]", "title": "[st2ci.mistral: SUCCEEDED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>", "color": "#008000"}]'
   notify_failure:
     with:
       items: channel in <% ctx().notify_failure_channels %>
@@ -174,7 +174,7 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: ''
-      attachments: '[{"fallback": "[st2ci.mistral: FAILED]", "title": "[st2ci.mistral: FAILED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>\nHOSTNAME: <% ctx().hosts.get(test) %>\nINFRA SETUP: <% ctx().is_infra_setup %>", "color": "#FF0000"}]'
+      attachments: '[{"fallback": "[st2ci.mistral: FAILED]", "title": "[st2ci.mistral: FAILED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>\nHOSTNAME: <% ctx().hosts.get(test) %>\nINFRA SETUP: <% ctx().is_infra_setup %>", "color": "#FF0000"}]'
     next:
       - do:
           - fail
