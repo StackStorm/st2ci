@@ -27,6 +27,8 @@ vars:
   - vm_id:
   - vm_windows_id:
   - vm_fqdn: <% ctx().hostname %>.<% ctx().dns_zone %>
+  - vm_info:
+  - vm_id:
   - windows_hostname: <% ctx().hostname %>win
   - vm_windows_fqdn: <% ctx().hostname %>win.<% ctx().dns_zone %>
   - installed:
