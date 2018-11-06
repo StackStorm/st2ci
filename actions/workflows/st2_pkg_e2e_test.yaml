@@ -39,7 +39,7 @@ vars:
   - github_status_org: StackStorm
   - github_status_repo: st2
   - github_status_context: st2/e2e/<% ctx().distro.toLower() %><% ctx().enterprise and '-enterprise' or '' %>
-  - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx('st2').action_execution_id %>
+  - github_status_url: ''
   - destroy_vm_iteration_count: 0
   - destroy_vm_windows_iteration_count: 0
   - destroy_vm_on_failure_iteration_count: 0
@@ -55,6 +55,8 @@ tasks:
   get_webui_server:
     action: core.noop
     next:
+      - publish:
+        - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx().st2.action_execution_id %>
       - when: <% succeeded() %>
         do:
           - notify_start
