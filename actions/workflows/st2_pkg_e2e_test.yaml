@@ -279,6 +279,7 @@ tasks:
       - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
         do:
           - notify_failure
+          - fail
       - when: <% failed() and (ctx().destroy_vm_windows_iteration_count < 2) %>
         publish:
           - destroy_vm_windows_iteration_count: <% ctx().destroy_vm_windows_iteration_count + 1 %>
