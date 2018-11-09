@@ -66,6 +66,14 @@ tasks:
       - when: <% succeeded() and (ctx().initial_commit = null) %>
         do:
           - create_vm
+  notify_start:
+    with:
+      items: channel in <% ctx().notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% item(channel) %>
+      text: ''
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx('st2').action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
   set_github_status_pending:
     action: github.add_status
     input:
@@ -235,14 +243,6 @@ tasks:
       - when: <% succeeded() and (ctx().debug) %>
         do:
           - notify_success
-  notify_start:
-    with:
-      items: channel in <% ctx().notify_channels %>
-    action: slack.chat.postMessage
-    input:
-      channel: <% item(channel) %>
-      text: ''
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx('st2').action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
   destroy_vm:
     action: st2cd.destroy_vm
     input:
