@@ -57,14 +57,13 @@ tasks:
     next:
       - publish:
         - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx().st2.action_execution_id %>
-      - when: <% succeeded() %>
-        do:
-          - notify_start
       - when: <% succeeded() and (ctx().initial_commit != null) %>
         do:
+          - notify_start
           - set_github_status_pending
       - when: <% succeeded() and (ctx().initial_commit = null) %>
         do:
+          - notify_start
           - create_vm
   notify_start:
     with:
