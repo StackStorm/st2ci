@@ -18,9 +18,19 @@ workflows:
       init:
         action: std.noop
         on-complete:
+          - upgrade_deps_u18: <% $.distro = 'UBUNTU18' %>
           - upgrade_deps_u16: <% $.distro = 'UBUNTU16' %>
           - upgrade_deps_u14: <% $.distro = 'UBUNTU14' %>
 
+      upgrade_deps_u18:
+        action: st2ci.st2_pkg_upgrade_deps_u18
+        input:
+          hosts: <% $.host %>
+          version: <% $.version %>
+          enterprise: <% $.enterprise %>
+          timeout: 180
+        on-success:
+          - install_pkg
       upgrade_deps_u16:
         action: st2ci.st2_pkg_upgrade_deps_u16
         input:
