@@ -15,7 +15,7 @@ parameters:
         default: uswest2.stackstorm.net
     instance_type:
         type: string
-        default: c4.large
+        default: c5.large
     environment:
         type: string
         enum:
