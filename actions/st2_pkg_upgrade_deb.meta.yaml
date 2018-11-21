@@ -24,6 +24,7 @@ parameters:
         enum:
             - UBUNTU14
             - UBUNTU16
+            - UBUNTU18
     enterprise:
         type: boolean
         default: false

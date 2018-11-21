@@ -156,6 +156,7 @@ st2ci.st2_pkg_upgrade_e2e_test:
                 - upgrade_packages_rpm: <% $.distro = 'CENTOS7' %>
                 - upgrade_packages_deb: <% $.distro = 'UBUNTU14' %>
                 - upgrade_packages_deb: <% $.distro = 'UBUNTU16' %>
+                - upgrade_packages_deb: <% $.distro = 'UBUNTU18' %>
 
         upgrade_packages_rpm:
             action: st2ci.st2_pkg_upgrade_rpm

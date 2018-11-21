@@ -46,6 +46,7 @@ parameters:
             - RHEL7
             - UBUNTU14
             - UBUNTU16
+            - UBUNTU18
     windows_distro:
         type: string
         enum:
