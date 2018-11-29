@@ -27,7 +27,7 @@ tasks:
           - notify_start
   notify_start:
     with:
-      items: channel in <% $.notify_channels %>
+      items: channel in <% ctx().notify_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
@@ -80,7 +80,7 @@ tasks:
           - notify_failure
   notify_success:
     with:
-      items: channel in <% $.notify_channels %>
+      items: channel in <% ctx().notify_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
@@ -88,7 +88,7 @@ tasks:
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote_enterprise: SUCCEEDED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote_enterprise: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#008000\"}]"
   notify_failure:
     with:
-      items: channel in <% $.notify_failure_channels %>
+      items: channel in <% ctx().notify_failure_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>

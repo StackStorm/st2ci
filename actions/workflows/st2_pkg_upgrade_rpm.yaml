@@ -41,10 +41,10 @@ tasks:
           - install_pkg
   install_pkg:
     with:
-      items: pkg in <% $.pkg_list %>
+      items: pkg in <% ctx().pkg_list %>
       concurrency: 1
     action: st2ci.install_latest_revision_of_rpm_pkg
     input:
       host: <% ctx().host %>
-      pkg: <% ctx().pkg %>
+      pkg: <% item() %>
       version: <% ctx().version %>

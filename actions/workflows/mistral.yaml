@@ -153,7 +153,7 @@ tasks:
           - notify_failure
   notify_start:
     with:
-      items: channel in <% $.notify_channels %>
+      items: channel in <% ctx().notify_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
@@ -161,7 +161,7 @@ tasks:
       attachments: '[{"fallback": "[st2ci.mistral: STARTED]", "title": "[st2ci.mistral: STARTED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>", "color": "#808080"}]'
   notify_success:
     with:
-      items: channel in <% $.notify_channels %>
+      items: channel in <% ctx().notify_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
@@ -169,7 +169,7 @@ tasks:
       attachments: '[{"fallback": "[st2ci.mistral: SUCCEEDED]", "title": "[st2ci.mistral: SUCCEEDED]", "title_link": "<% ctx().webui_base_url %>/#/history/<% env().st2_execution_id %>/general", "text": "REPO: <% ctx().mis_repo_base %>\nMERGE UPSTREAM: <% ctx().merge_upstream %>", "color": "#008000"}]'
   notify_failure:
     with:
-      items: channel in <% $.notify_failure_channels %>
+      items: channel in <% ctx().notify_failure_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>

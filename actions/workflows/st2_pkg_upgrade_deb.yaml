@@ -55,10 +55,10 @@ tasks:
           - install_pkg
   install_pkg:
     with:
-      items: pkg in <% $.pkg_list %>  # TODO: Convert to ctx()
+      items: pkg in <% ctx().pkg_list %>
       concurrency: 1
     action: st2ci.install_latest_revision_of_deb_pkg
     input:
       host: <% ctx().host %>
-      pkg: <% ctx().pkg %>  # TODO: Convert to item()
+      pkg: <% item() %>
       version: <% ctx().version %>
