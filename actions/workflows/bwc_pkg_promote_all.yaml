@@ -50,7 +50,6 @@ tasks:
         do:
           - promote_all
   promote_all:
-    # TODO: Do we need an explicit core.noop action here?
     next:
       - do:
           - promote_bwc_enterprise

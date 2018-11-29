@@ -8,7 +8,7 @@ output:
   - host: <% ctx().host %>
 tasks:
   has_host:
-    action: std.noop
+    action: core.noop
     next:
       - when: <% succeeded() and (ctx().host = null or ctx().host = '' or ctx().host = 'None') %>
         do:

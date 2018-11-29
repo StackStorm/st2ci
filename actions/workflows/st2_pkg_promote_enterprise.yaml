@@ -93,16 +93,16 @@ tasks:
           - promote
       - when: <% failed() and (result().get(status_code, 0) != 404) %>
         do:
-          - notify_failure
+          - fail
   checksum:
-    action: std.noop
+    action: core.noop
     next:
       - when: <% result().body.sha512sum = result().body.sha512sum %>
         do:
           - notify_success
       - when: <% result().body.sha512sum != result().body.sha512sum %>
         do:
-          - notify_failure
+          - fail
   promote:
     next:
       - do:
@@ -140,7 +140,7 @@ tasks:
           - notify_success
       - when: <% failed() %>
         do:
-          - notify_failure
+          - fail
       - do:
           - cleanup
   cleanup:
@@ -148,6 +148,4 @@ tasks:
     input:
       cmd: rm -rf /tmp/<% ctx().target %>
   notify_success:
-    action: std.noop
-  notify_failure:
-    action: std.fail
+    action: core.noop

@@ -7,7 +7,7 @@ input:
   - backup:
 tasks:
   init:
-    action: std.noop
+    action: core.noop
     next:
       - when: <% ctx().backup %>
         do:
