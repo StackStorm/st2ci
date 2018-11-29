@@ -27,6 +27,8 @@ parameters:
     default: all
     enum:
     - trusty
+    - xenial
+    - bionic
     - el6
     - el7
     - deb
