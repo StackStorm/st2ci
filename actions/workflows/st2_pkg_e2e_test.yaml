@@ -35,7 +35,7 @@ vars:
       distro:
       versions:
       version_str: not installed
-  - bootstrap_script_url: <% coalesce( ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
+  - bootstrap_script_url: <% coalesce(ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
   - st2_username: st2admin
   - st2_password: Ch@ngeMe
   - github_status_org: StackStorm
@@ -151,7 +151,13 @@ tasks:
     action: core.remote_sudo
     input:
       hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: bash /tmp/st2_bootstrap.sh --<% ctx().pkg_env %> --<% ctx().release %> --version=<% coalesce(ctx().version, '') %> --user=<% ctx().st2_username %> --password=<% ctx().st2_password %>
+      cmd: >-
+        bash /tmp/st2_bootstrap.sh
+        --<% ctx().pkg_env %>
+        --<% ctx().release %>
+        --version=<% coalesce(ctx().version, '') %>
+        --user=<% ctx().st2_username %>
+        --password=<% ctx().st2_password %>
       timeout: 900
     next:
       - when: <% succeeded() and (ctx().enterprise) %>
@@ -164,7 +170,12 @@ tasks:
     action: core.remote_sudo
     input:
       hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: bash /tmp/st2_bootstrap.sh --dev=<% ctx().dev_build %> --<% ctx().pkg_env %> --<% ctx().release %> --user=<% ctx().st2_username %> --password=<% ctx().st2_password %>
+      cmd: >-
+        bash /tmp/st2_bootstrap.sh --dev=<% ctx().dev_build %>
+        --<% ctx().pkg_env %>
+        --<% ctx().release %>
+        --user=<% ctx().st2_username %>
+        --password=<% ctx().st2_password %>
       timeout: 900
     next:
       - when: <% succeeded() and (ctx().enterprise) %>
