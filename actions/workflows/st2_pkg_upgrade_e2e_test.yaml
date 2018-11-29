@@ -379,7 +379,7 @@ tasks:
           - destroy_vm_on_failure_windows
       - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count >= 2) %>
         do:
-          # TODO: Run destroy_vm_on_failure_windows here before failing
+          - destroy_vm_on_failure_windows
           - fail
       - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count < 2) %>
         do:
