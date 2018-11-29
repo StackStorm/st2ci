@@ -32,6 +32,8 @@ vars:
   - windows_hostname: <% ctx().hostname %>win
   - vm_windows_fqdn: <% ctx().hostname %>win.<% ctx().dns_zone %>
   - installed:
+      distro:
+      versions:
       version_str: not installed
   - bootstrap_script_url: <% coalesce( ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
   - st2_username: st2admin
