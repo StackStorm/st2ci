@@ -23,7 +23,10 @@ input:
 output:
   - is_mistral_setup: <% ctx().is_mistral_setup %>
   - is_st2_setup: <% ctx().is_st2_setup %>
-  - clones: <% dict(mistral=>ctx().mistral_clone_path, mistralclient=>ctx().mistralclient_clone_path, st2mistral=>ctx().st2mistral_clone_path, st2=>ctx().st2_clone_path) %>
+  - clones: <% dict(mistral => ctx().mistral_clone_path,
+                    mistralclient => ctx().mistralclient_clone_path,
+                    st2mistral => ctx().st2mistral_clone_path,
+                    st2 => ctx().st2_clone_path) %>
 tasks:
   init_vars:
     action: core.noop

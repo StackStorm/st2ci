@@ -22,7 +22,7 @@ tasks:
     action: st2ci.backup_logs
     input:
       hosts: <% ctx().host %>
-      st2_execution_id: <% ctx().st2.action_execution_id %>
+      st2_execution_id: <% ctx(st2).action_execution_id %>
       mis_repo_dir: <% ctx().clones.get(mistral) %>
       mis_log_dir: /var/log
       st2_repo_dir: <% ctx().clones.get(st2) %>

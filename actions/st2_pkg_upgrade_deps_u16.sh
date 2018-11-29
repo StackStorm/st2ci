@@ -9,4 +9,4 @@ if [ ${SHORT_VERSION} = "2.4" ] && [ ${ENTERPRISE} -eq 0 ]; then
     echo "Upgrading dependencies for 2.4 community"
     curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
     exit 0
-fi 
+fi

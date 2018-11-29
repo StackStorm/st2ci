@@ -29,4 +29,5 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - hosts: <% dict(test=>result().host, build=>result().host) %>
+          - hosts: <% dict(test => result().host,
+                           build => result().host) %>

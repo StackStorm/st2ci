@@ -43,6 +43,7 @@ tasks:
     input:
       cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/ubuntu/trusty /tmp/st2-up/ubuntu/trusty/<% ctx().deb %>
       timeout: <% ctx().timeout %>
+
   download_xenial:
     action: core.local
     input:
@@ -71,6 +72,7 @@ tasks:
     input:
       cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/el/6 /tmp/st2-up/el/6/<% ctx().rpm %>
       timeout: <% ctx().timeout %>
+
   download_el7:
     action: core.local
     input:

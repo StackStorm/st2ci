@@ -30,4 +30,5 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - shas: <% dict(mistral=>result().get(ctx().host).stdout, mistralclient=>result().get(ctx().host).stdout) %>
+          - shas: <% dict(mistral => result().get(ctx().host).stdout,
+                          mistralclient => result().get(ctx().host).stdout) %>
