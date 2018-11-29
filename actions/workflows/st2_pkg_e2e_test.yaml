@@ -101,13 +101,16 @@ tasks:
       distro: pkg_<% ctx().distro %>
       role: <% ctx().role %>
     next:
-      - publish:
-        - vm_info: <% result().vm_info %>
-        - vm_id: <% result().vm_info.id %>
       - when: <% succeeded() and (ctx().distro = 'RHEL6') %>
+        publish:
+          - vm_info: <% result().output.vm_info %>
+          - vm_id: <% result().output.vm_info.id %>
         do:
           - patch_rhel6
       - when: <% succeeded() and (ctx().distro != 'RHEL6') %>
+        publish:
+          - vm_info: <% result().output.vm_info %>
+          - vm_id: <% result().output.vm_info.id %>
         do:
           - get_bootstrap_script
       - when: <% failed() %>
@@ -192,9 +195,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - installed:
-              distro: <% result().distro %>
-              versions: <% result().versions %>
-              version_str: <% result().versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
+              distro: <% result().output.distro %>
+              versions: <% result().output.versions %>
+              version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
       - when: <% succeeded() and (not ctx().debug) %>
         do:
           - create_vm_windows
