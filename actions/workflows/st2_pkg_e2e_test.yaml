@@ -108,6 +108,9 @@ tasks:
       - when: <% succeeded() and (ctx().distro != 'RHEL6') %>
         do:
           - get_bootstrap_script
+      - when: <% failed() %>
+        do:
+          - destroy_vm_on_failure
   patch_rhel6:
     action: core.remote_sudo
     input:
