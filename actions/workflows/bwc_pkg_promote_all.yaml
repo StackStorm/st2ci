@@ -24,6 +24,8 @@ input:
   - notify_failure_channels:
       - '#thunderdome'
       - '#stackstorm'
+vars:
+  - webui_base_url: https://st2cicd.uswest2.stackstorm.net
 output:
   - promoted: <% ctx().promoted %>
   - versions: <% dict( 'bwc-enterprise' => ctx().promoted_bwc_enterprise, 'st2-auth-ldap' => ctx().promoted_st2_auth_ldap, 'st2flow' => ctx().promoted_st2flow, 'bwc-ui' => ctx().promoted_bwc_ui ) %>
@@ -33,7 +35,6 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - webui_base_url: https://st2cicd.uswest2.stackstorm.net
           - pkg_distro_version: <% ctx().distro_to_distro_version_map.get(ctx().distro) %>
         do:
           - notify_start

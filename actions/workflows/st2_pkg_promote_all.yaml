@@ -24,6 +24,8 @@ input:
   - notify_failure_channels:
       - '#thunderdome'
       - '#stackstorm'
+vars:
+  - webui_base_url: https://st2cicd.uswest2.stackstorm.net
 output:
   - versions: <% dict(st2 => ctx().promoted_st2,
                       st2chatops => ctx().promoted_st2chatops,
@@ -36,7 +38,6 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - webui_base_url: https://st2cicd.uswest2.stackstorm.net
           - pkg_distro_version: <% ctx().distro_to_distro_version_map.get(ctx().distro) %>
         do:
           - notify_start

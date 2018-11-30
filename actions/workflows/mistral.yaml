@@ -27,6 +27,8 @@ input:
   - notify_failure_channels:
       - '#thunderdome'
       - '#stackstorm'
+vars:
+  - webui_base_url: https://st2cicd.uswest2.stackstorm.net
 output:
   - hosts: <% ctx().hosts %>
   - shas: <% ctx().shas %>
@@ -37,7 +39,6 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - webui_base_url: https://st2cicd.uswest2.stackstorm.net
           - is_infra_setup: false
         do:
           - notify_start
