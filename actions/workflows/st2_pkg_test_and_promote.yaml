@@ -188,13 +188,19 @@ tasks:
       channel: <% item(channel) %>
       text: ''
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote: COMPLETED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION TESTED:\\n\\t<% ctx().version_str %>\\nPACKAGE PROMOTED:\\n\\tst2=<% ctx().promoted_st2 %>\\n\\tst2chatops=<% ctx().promoted_st2chatops %>\\n\\tst2mistral=<% ctx().promoted_st2mistral %>\\n\\tst2web=<% ctx().promoted_st2web %>\", \"color\": \"<% ctx().notify_color %>\"}]"
-  notify_failure:
-    with:
-      items: channel in <% ctx().notify_failure_channels %>
-    action: slack.chat.postMessage
-    input:
-      channel: <% item(channel) %>
-      text: ''
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote: FAILED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
-    next:
-      - do: fail
+  # notify_failure:
+  #   with:
+  #     items: channel in <% ctx().notify_failure_channels %>
+  #   action: slack.chat.postMessage
+  #   input:
+  #     channel: <% item(channel) %>
+  #     text: ''
+  #     attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote: FAILED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
+  #   next:
+  #     - do:
+  #       - fail_task
+
+  # fail_task:
+  #   action: core.local
+  #   input:
+  #     cmd: "false"
