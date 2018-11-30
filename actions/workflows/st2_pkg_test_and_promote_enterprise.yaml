@@ -31,7 +31,7 @@ tasks:
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
-      text: ''
+      text: 'st2ci.st2_pkg_test_and_promote_enterprise: STARTED'
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote_enterprise: STARTED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote_enterprise: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#808080\"}]"
     next:
       - when: <% succeeded() %>
@@ -84,7 +84,7 @@ tasks:
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
-      text: ''
+      text: 'st2ci.st2_pkg_test_and_promote_enterprise: SUCCEEDED'
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote_enterprise: SUCCEEDED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote_enterprise: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#008000\"}]"
   notify_failure:
     with:
@@ -92,7 +92,7 @@ tasks:
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
-      text: ''
+      text: 'st2ci.st2_pkg_test_and_promote_enterprise: FAILED'
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote_enterprise: FAILED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote_enterprise: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
     next:
       - do:

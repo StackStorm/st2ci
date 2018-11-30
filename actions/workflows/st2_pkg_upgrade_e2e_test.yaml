@@ -316,7 +316,7 @@ tasks:
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
-      text: ''
+      text: 'st2ci.st2_pkg_upgrade_e2e_test: STARTED'
       attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
   destroy_vm:
     action: st2cd.destroy_vm
@@ -421,7 +421,7 @@ tasks:
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
-      text: ''
+      text: 'st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED'
       attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#008000\"}]"
   notify_failure:
     with:
@@ -429,7 +429,7 @@ tasks:
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
-      text: ''
+      text: 'st2ci.st2_pkg_upgrade_e2e_test: FAILED'
       attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#FF0000\"}]"
     next:
       - do:

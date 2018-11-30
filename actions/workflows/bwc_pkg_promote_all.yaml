@@ -44,7 +44,7 @@ tasks:
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
-      text: ''
+      text: 'st2ci.bwc_pkg_promote_all: STARTED'
       attachments: "[{\"fallback\": \"[st2ci.bwc_pkg_promote_all: STARTED]\", \"title\": \"[st2ci.bwc_pkg_promote_all: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#808080\"}]"
     next:
       - when: <% succeeded() %>
@@ -157,7 +157,7 @@ tasks:
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
-      text: ''
+      text: 'st2ci.bwc_pkg_promote_all: COMPLETED'
       attachments: "[{\"fallback\": \"[st2ci.bwc_pkg_promote_all: COMPLETED]\", \"title\": \"[st2ci.bwc_pkg_promote_all: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nPACKAGE PROMOTED:\\n\\tbwc-enterprise-packages=<% ctx().promoted_bwc_enterprise %>\\n\\tst2-auth-ldap=<% ctx().promoted_st2_auth_ldap %>\\n\\tst2flow=<% ctx().promoted_st2flow %>\\n\\tbwc-ui=<% ctx().promoted_bwc_ui %>\", \"color\": \"<% ctx().notify_color %>\"}]"
   notify_failure:
     with:
@@ -165,5 +165,5 @@ tasks:
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
-      text: ''
+      text: 'st2ci.bwc_pkg_promote_all: FAILED'
       attachments: "[{\"fallback\": \"[st2ci.bwc_pkg_promote_all: FAILED]\", \"title\": \"[st2ci.bwc_pkg_promote_all: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
