@@ -79,7 +79,7 @@ tasks:
       package: st2-auth-ldap
       distro_version: <% ctx().pkg_distro_version %>
       release: <% ctx().release %>
-      version: <% switch( dev in ctx().version => ctx().version.substring(0, ctx().version.indexOf(dev)) + '.dev0', ctx().version => ctx().version ) %>
+      version: <% ctx().version %>
     next:
       - when: <% succeeded() %>
         publish:
