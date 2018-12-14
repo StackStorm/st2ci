@@ -7,7 +7,7 @@ SHORT_VERSION=`echo ${VERSION} | cut -d "." -f1-2`
 
 if [ ${SHORT_VERSION} = "2.10" ] && [ ${ENTERPRISE} -eq 0 ]; then
     echo "Upgrading Node.js repositories"
-    sed -i.bak 's|^baseurl=\(https://rpm.nodesource.com\)/[^/]\{1,\}/\(.*\)$|baseurl=\1/pub_10.x/\2|g' /etc/yum.repos.d/nodesource-*.repo
+    sudo sed -i.bak 's|^baseurl=\(https://rpm.nodesource.com\)/[^/]\{1,\}/\(.*\)$|baseurl=\1/pub_10.x/\2|g' /etc/yum.repos.d/nodesource-*.repo
     echo "Upgrading dependencies for 2.10 community"
     sudo yum clean all
     sudo yum update -y nodejs
