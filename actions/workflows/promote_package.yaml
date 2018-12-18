@@ -15,23 +15,39 @@ tasks:
     input:
       cmd: mkdir -p /tmp/st2-up/{ubuntu/trusty,ubuntu/xenial,ubuntu/bionic,el/6,el/7}
     next:
-      - publish:
-        - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
-        - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
-        - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
       - when: <% succeeded() and (ctx().os in list('all', 'deb', 'trusty')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
         do:
           - download_trusty
       - when: <% succeeded() and (ctx().os in list('all', 'deb', 'xenial')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
         do:
           - download_xenial
       - when: <% succeeded() and (ctx().os in list('all', 'deb', 'bionic')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
         do:
           - download_bionic
       - when: <% succeeded() and (ctx().os in list('all', 'rpm', 'el6')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
         do:
           - download_el6
       - when: <% succeeded() and (ctx().os in list('all', 'rpm', 'el7')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
         do:
           - download_el7
 

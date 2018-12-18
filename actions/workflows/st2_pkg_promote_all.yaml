@@ -72,10 +72,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2: <% ctx().version + '-' + result().revision %>
+        do:
+          - process_completion
       - when: <% failed() %>
         do:
-          - noop
-      - do:
           - process_completion
   promote_st2chatops:
     action: st2ci.st2_pkg_promote
@@ -88,10 +88,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2chatops: <% ctx().version + '-' + result().revision %>
+        do:
+          - process_completion
       - when: <% failed() %>
         do:
-          - noop
-      - do:
           - process_completion
   promote_st2mistral:
     action: st2ci.st2_pkg_promote
@@ -104,10 +104,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2mistral: <% ctx().version + '-' + result().revision %>
+        do:
+          - process_completion
       - when: <% failed() %>
         do:
-          - noop
-      - do:
           - process_completion
   promote_st2web:
     action: st2ci.st2_pkg_promote
@@ -120,10 +120,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2web: <% ctx().version + '-' + result().revision %>
+        do:
+          - process_completion
       - when: <% failed() %>
         do:
-          - noop
-      - do:
           - process_completion
   promote_st2flow:
     action: st2ci.st2_pkg_promote_enterprise
@@ -136,10 +136,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2flow: <% ctx().version + '-' + result().revision %>
+        do:
+          - process_completion
       - when: <% failed() %>
         do:
-          - noop
-      - do:
           - process_completion
   process_completion:
     action: core.noop

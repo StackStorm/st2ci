@@ -43,13 +43,12 @@ tasks:
       version: <% ctx().version %>
       release: <% ctx().revision %>
     next:
-      - when: <% succeeded() %>
+      - when: <% succeeded() and (len(result().result) > 0) %>
         publish:
           - pkgs_list: <% result().result %>
-      - when: <% succeeded() and (len(ctx().pkgs_list) > 0) %>
         do:
           - get_pkg_meta
-      - when: <% succeeded() and (len(ctx().pkgs_list) <= 0) %>
+      - when: <% succeeded() and (len(result().result) <= 0) %>
         do:
           - fail
   get_pkg_meta:
@@ -90,10 +89,10 @@ tasks:
   checksum:
     action: core.noop
     next:
-      - when: <% result().body.sha512sum = result().body.sha512sum %>
+      - when: <% task(get_prd_pkg_info).result.body.sha512sum = task(get_stg_pkg_info).result.body.sha512sum %>
         do:
           - notify_success
-      - when: <% result().body.sha512sum != result().body.sha512sum %>
+      - when: <% task(get_prd_pkg_info).result.body.sha512sum != task(get_stg_pkg_info).result.body.sha512sum %>
         do:
           - fail
   promote:

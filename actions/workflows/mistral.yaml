@@ -75,10 +75,9 @@ tasks:
       st2_repo_dir: <% ctx().st2_repo_dir %>
       debug: <% ctx().debug %>
     next:
-      - when: <% succeeded() %>
+      - when: <% succeeded() and (ctx().is_infra_setup) %>
         publish:
           - is_infra_setup: <% result().is_mistral_setup and result().is_st2_setup %>
-      - when: <% succeeded() and (ctx().is_infra_setup) %>
         do:
           - run_tests
       - when: <% succeeded() and (not ctx().is_infra_setup and not ctx().debug) %>
@@ -112,10 +111,9 @@ tasks:
       host: <% ctx().hosts.get(test) %>
       repos: <% result().clones %>
     next:
-      - when: <% succeeded() %>
+      - when: <% succeeded() and (ctx().merge_upstream and ctx().mis_repo_base = openstack) %>
         publish:
           - shas: <% result().shas %>
-      - when: <% succeeded() and (ctx().merge_upstream and ctx().mis_repo_base = openstack) %>
         do:
           - merge_upstreams
       - when: <% succeeded() and (not ctx().merge_upstream or ctx().mis_repo_base = stackstorm) %>

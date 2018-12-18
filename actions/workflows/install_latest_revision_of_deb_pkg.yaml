@@ -16,7 +16,7 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - pkg_name_with_revision: <% [ctx().pkg, result().get(ctx().host).stdout].join("=") %>
-      - do:
+        do:
           - upgrade_pkg_via_apt_get
   upgrade_pkg_via_apt_get:
     action: core.remote

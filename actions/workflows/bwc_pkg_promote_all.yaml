@@ -68,10 +68,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_bwc_enterprise: <% ctx().version + '-' + result().revision %>
+        do:
+          - process_completion
       - when: <% failed() %>
         do:
-          - noop
-      - do:
           - process_completion
   promote_st2_auth_ldap:
     action: st2ci.st2_pkg_promote_enterprise
@@ -84,10 +84,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2_auth_ldap: <% ctx().version + '-' + result().revision %>
+        do:
+          - process_completion
       - when: <% failed() %>
         do:
-          - noop
-      - do:
           - process_completion
   promote_st2flow:
     action: st2ci.st2_pkg_promote_enterprise
@@ -100,10 +100,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2flow: <% ctx().version + '-' + result().revision %>
+        do:
+          - process_completion
       - when: <% failed() %>
         do:
-          - noop
-      - do:
           - process_completion
   promote_bwc_ui:
     action: st2ci.st2_pkg_promote_enterprise
@@ -116,10 +116,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_bwc_ui: <% ctx().version + '-' + result().revision %>
+        do:
+          - process_completion
       - when: <% failed() %>
         do:
-          - noop
-      - do:
           - process_completion
   process_completion:
     action: core.noop

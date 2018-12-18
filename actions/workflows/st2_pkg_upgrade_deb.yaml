@@ -55,7 +55,7 @@ tasks:
           - install_pkg
   install_pkg:
     with:
-      items: pkg in <% ctx().pkg_list %>
+      items: <% ctx().pkg_list %>
       concurrency: 1
     action: st2ci.install_latest_revision_of_deb_pkg
     input:

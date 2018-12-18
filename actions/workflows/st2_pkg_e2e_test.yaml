@@ -56,13 +56,15 @@ tasks:
   get_webui_server:
     action: core.noop
     next:
-      - publish:
-        - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx().st2.action_execution_id %>
       - when: <% succeeded() and (ctx().initial_commit != null) %>
+        publish:
+        - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx().st2.action_execution_id %>
         do:
           - notify_start
           - set_github_status_pending
       - when: <% succeeded() and (ctx().initial_commit = null) %>
+        publish:
+        - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx().st2.action_execution_id %>
         do:
           - notify_start
           - create_vm
@@ -241,7 +243,6 @@ tasks:
               distro: <% result().output.distro %>
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-      - when: <% succeeded() %>
         do:
           - create_vm_windows
       - when: <% failed() %>
@@ -263,10 +264,10 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - vm_windows_info: <% result().vm_info %>
-          - vm_windows_id: <% result().vm_info.id %>
-          - vm_windows_username: <% result().vm_username %>
-          - vm_windows_password: <% result().vm_password %>
+          - vm_windows_info: <% result().output.vm_info %>
+          - vm_windows_id: <% result().output.vm_info.id %>
+          - vm_windows_username: <% result().output.vm_username %>
+          - vm_windows_password: <% result().output.vm_password %>
         do:
           - run_e2e_tests
       - when: <% failed() %>
@@ -320,10 +321,9 @@ tasks:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
     next:
-      - when: <% succeeded() and ctx().vm_windows_id %>
-        do:
-          - destroy_vm_windows
-      - when: <% succeeded() and not ctx().vm_windows_id %>
+      - when: <% succeeded() %>
+        publish:
+          - vm_id: null
         do:
           - done_cleanup
       - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) and ctx().vm_windows_id %>
@@ -351,6 +351,8 @@ tasks:
       instance_id: <% ctx().vm_windows_id %>
     next:
       - when: <% succeeded() %>
+        publish:
+          - vm_windows_id: null
         do:
           - done_cleanup
       - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
@@ -373,6 +375,7 @@ tasks:
           - destroy_vm_windows
 
   done_cleanup:
+    join: all
     action: core.noop
     next:
       # If we destroyed both VMs, we can return success

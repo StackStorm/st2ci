@@ -70,7 +70,7 @@ tasks:
           - setup_st2
       - when: <% failed() %>
         do:
-          - noop
+          - fail
   setup_st2:
     action: st2ci.setup_st2
     input:
@@ -86,4 +86,4 @@ tasks:
           - is_st2_setup:
       - when: <% failed() %>
         do:
-          - noop
+          - fail

@@ -16,7 +16,7 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - pkg_name_with_revision: <% result().get(ctx().host).stdout %>
-      - do:
+        do:
           - upgrade_pkg_via_yum
   upgrade_pkg_via_yum:
     action: core.remote
