@@ -55,6 +55,14 @@ tasks:
       hosts: <% ctx().host %>
       cmd: <% ctx().clone_path %>/tools/launchdev.sh stop & <% ctx().clone_path %>/tools/launchdev.sh startclean -g -x
   teardown:
+    next:
+      - when: <% not ctx().debug %>
+        do:
+          - teardown_st2
+      - when: <% ctx().debug %>
+        do:
+          - fail
+  teardown_st2:
     action: st2ci.teardown_st2
     input:
       host: <% ctx().host %>

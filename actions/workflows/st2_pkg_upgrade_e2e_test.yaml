@@ -268,9 +268,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - installed:
-              distro: <% result().distro %>
-              versions: <% result().versions %>
-              version_str: <% result().versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
+              distro: <% result().output.distro %>
+              versions: <% result().output.versions %>
+              version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
         do:
           - create_vm_windows
   create_vm_windows:

@@ -13,9 +13,6 @@ tasks:
       - when: <% succeeded() and (ctx().host = null or ctx().host = '' or ctx().host = 'None') %>
         do:
           - get_host
-      - when: <% succeeded() and (ctx().host != null and ctx().host != '' and ctx().host != 'None') %>
-        do:
-          - succeed
   get_host:
     action: linux.dig
     input:

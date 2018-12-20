@@ -68,9 +68,6 @@ tasks:
           - is_mistral_setup:
         do:
           - setup_st2
-      - when: <% failed() %>
-        do:
-          - fail
   setup_st2:
     action: st2ci.setup_st2
     input:
@@ -84,6 +81,3 @@ tasks:
         publish:
           - st2_clone_path: <% result().clone_path %>
           - is_st2_setup:
-      - when: <% failed() %>
-        do:
-          - fail

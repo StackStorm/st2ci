@@ -45,11 +45,14 @@ vars:
   - result: null
   - destroy_vm_iteration_count: 0
   - destroy_vm_windows_iteration_count: 0
+  # TODO: Flip these back
   - notify_channels:
-      - '#thunderdome'
+      # - '#thunderdome'
+      - '#local_chatops_ci'
   - notify_failure_channels:
-      - '#thunderdome'
-      - '#stackstorm'
+      # - '#thunderdome'
+      # - '#stackstorm'
+      - '#local_chatops_ci'
 output:
   - versions: <% ctx().installed.versions %>
 tasks:
@@ -386,7 +389,6 @@ tasks:
       - when: <% ctx().result = "failed" %>
         do:
           - notify_failure
-          - fail
 
   notify_success:
     with:
@@ -423,6 +425,9 @@ tasks:
       - when: <% ctx().initial_commit %>
         do:
           - set_github_status_failure
+      - when: <% not ctx().initial_commit %>
+        do:
+          - fail
   set_github_status_failure:
     action: github.add_status
     input:
@@ -433,3 +438,6 @@ tasks:
       context: <% ctx().github_status_context %>
       description: E2E tests have failed
       target_url: <% ctx().github_status_url %>
+    next:
+      - do:
+          - fail

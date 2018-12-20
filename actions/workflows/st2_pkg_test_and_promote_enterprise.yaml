@@ -67,6 +67,9 @@ tasks:
           - version: <% result().output.versions.get(st2).split('-')[0] %>
         do:
           - promote_all
+      - when: <% failed() %>
+        do:
+          - notify_failure
   promote_all:
     action: st2ci.bwc_pkg_promote_all
     input:
@@ -74,10 +77,10 @@ tasks:
       release: <% ctx().release %>
       version: <% ctx().version %>
     next:
-      - when: <% result().promoted %>
+      - when: <% result().output.promoted %>
         do:
           - notify_success
-      - when: <% not result().promoted %>
+      - when: <% not result().output.promoted %>
         do:
           - notify_failure
   notify_success:

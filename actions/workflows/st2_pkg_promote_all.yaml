@@ -19,11 +19,14 @@ input:
   - promoted_st2mistral: false
   - promoted_st2web: false
   - promoted_st2flow: false
+  # TODO: Flip these back
   - notify_channels:
-      - '#thunderdome'
+      # - '#thunderdome'
+      - '#local_chatops_ci'
   - notify_failure_channels:
-      - '#thunderdome'
-      - '#stackstorm'
+      # - '#thunderdome'
+      # - '#stackstorm'
+      - '#local_chatops_ci'
 vars:
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
 output:
@@ -159,7 +162,7 @@ tasks:
           - notify_color: '#FF0000'
           - notify_completion_channels: <% ctx().notify_failure_channels %>
         do:
-          - notify_completion
+          - notify_failure
   set_notify_success:
     action: core.noop
     next:
@@ -185,3 +188,6 @@ tasks:
       channel: <% item(channel) %>
       text: 'st2ci.st2_pkg_promote_all: FAILED'
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_promote_all: FAILED]\", \"title\": \"[st2ci.st2_pkg_promote_all: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"DISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
+    next:
+      - do:
+          - fail
