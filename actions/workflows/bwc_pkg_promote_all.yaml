@@ -60,6 +60,8 @@ tasks:
   promote_all:
     next:
       - do:
+          # These tasks do not properly join to process_completion when run in
+          # parallel, so we run them sequentially
           - promote_bwc_enterprise
   promote_bwc_enterprise:
     action: st2ci.st2_pkg_promote_enterprise
