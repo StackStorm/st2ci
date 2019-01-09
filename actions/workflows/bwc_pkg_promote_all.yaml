@@ -60,9 +60,10 @@ tasks:
   promote_all:
     next:
       - do:
-          # These tasks do not properly join to process_completion when run in
-          # parallel, so we run them sequentially
           - promote_bwc_enterprise
+          - promote_st2_auth_ldap
+          - promote_st2flow
+          - promote_bwc_ui
   promote_bwc_enterprise:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -74,13 +75,11 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_bwc_enterprise: <% ctx().version + '-' + result().output.revision %>
-        do:
-          - promote_st2_auth_ldap
       - when: <% failed() %>
-        publish:
-          - promoted_bwc_enterprise: false
         do:
-          - promote_st2_auth_ldap
+          - noop
+      - do:
+          - process_completion
   promote_st2_auth_ldap:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -92,13 +91,11 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2_auth_ldap: <% ctx().version + '-' + result().output.revision %>
-        do:
-          - promote_st2flow
       - when: <% failed() %>
-        publish:
-          - promoted_st2_auth_ldap: false
         do:
-          - promote_st2flow
+          - noop
+      - do:
+          - process_completion
   promote_st2flow:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -110,13 +107,11 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2flow: <% ctx().version + '-' + result().output.revision %>
-        do:
-          - promote_bwc_ui
       - when: <% failed() %>
-        publish:
-          - promoted_st2flow: false
         do:
-          - promote_bwc_ui
+          - noop
+      - do:
+          - process_completion
   promote_bwc_ui:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -128,17 +123,15 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_bwc_ui: <% ctx().version + '-' + result().output.revision %>
-        do:
-          - process_completion
       - when: <% failed() %>
-        publish:
-          - promoted_bwc_ui: false
         do:
+          - noop
+      - do:
           - process_completion
 
   process_completion:
     action: core.noop
-
+    join: all
     next:
       - when: <% succeeded() and     (ctx().promoted_bwc_enterprise and ctx().promoted_st2_auth_ldap and ctx().promoted_st2flow and ctx().promoted_bwc_ui) %>
         publish:
