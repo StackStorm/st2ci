@@ -14,14 +14,11 @@ input:
       UBUNTU14: ubuntu/trusty
       UBUNTU16: ubuntu/xenial
       UBUNTU18: ubuntu/bionic
-  # TODO: Set these back
   - notify_channels:
-      # - '#thunderdome'
-      - '#local_chatops_ci'
+      - '#thunderdome'
   - notify_failure_channels:
-      # - '#thunderdome'
-      # - '#stackstorm'
-      - '#local_chatops_ci'
+      - '#thunderdome'
+      - '#stackstorm'
 vars:
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
   - promoted: false

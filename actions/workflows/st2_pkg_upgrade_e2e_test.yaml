@@ -42,14 +42,11 @@ vars:
   - destroy_vm_windows_iteration_count: 0
   - destroy_vm_on_failure_iteration_count: 0
   - destroy_vm_on_failure_windows_iteration_count: 0
-  # TODO: Set these back
   - notify_channels:
-    - '#local_chatops_ci'
-    # - '#thunderdome'
+    - '#thunderdome'
   - notify_failure_channels:
-    - '#local_chatops_ci'
-    # - '#thunderdome'
-    # - '#stackstorm'
+    - '#thunderdome'
+    - '#stackstorm'
 output:
   - versions: <% ctx().installed.versions %>
 tasks:

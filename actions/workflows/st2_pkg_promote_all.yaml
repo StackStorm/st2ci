@@ -19,14 +19,11 @@ input:
   - promoted_st2mistral: false
   - promoted_st2web: false
   - promoted_st2flow: false
-  # TODO: Flip these back
   - notify_channels:
-      # - '#thunderdome'
-      - '#local_chatops_ci'
+      - '#thunderdome'
   - notify_failure_channels:
-      # - '#thunderdome'
-      # - '#stackstorm'
-      - '#local_chatops_ci'
+      - '#thunderdome'
+      - '#stackstorm'
 vars:
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
 output:
