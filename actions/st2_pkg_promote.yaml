@@ -1,6 +1,6 @@
 ---
 name: st2_pkg_promote
-runner_type: mistral-v2
+runner_type: orquesta
 description: Promote a st2 package from staging to production repo.
 enabled: true
 entry_point: workflows/st2_pkg_promote.yaml

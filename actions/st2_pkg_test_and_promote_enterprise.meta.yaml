@@ -3,35 +3,35 @@ name: st2_pkg_test_and_promote_enterprise
 pack: st2ci
 description: Run end to end tests and promote st2 enterprise packages from staging for a given distro
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/st2_pkg_test_and_promote_enterprise.yaml
 parameters:
-    hostname:
-        type: string
-        description: >
-            Hostname will be auto assigned to st2-ent-pkg-<release>-<distro>-<timestamp>
-            if it is not given.
-    distro:
-        type: string
-        required: true
-        enum:
-            - RHEL6
-            - RHEL7
-            - UBUNTU14
-            - UBUNTU16
-            # TODO: Uncomment when we support Bionic
-            #- UBUNTU18
-    release:
-        type: string
-        required: true
-        enum:
-            - stable
-            - unstable
-    version:
-        type: string
-    keyfile:
-        type: string
-        default: /home/stanley/.ssh/stanley_rsa
-    debug:
-        type: boolean
-        default: false
+  hostname:
+    type: string
+    description: >
+      Hostname will be auto assigned to st2-ent-pkg-<release>-<distro>-<timestamp>
+      if it is not given.
+  distro:
+    type: string
+    required: true
+    enum:
+      - RHEL6
+      - RHEL7
+      - UBUNTU14
+      - UBUNTU16
+      # TODO: Uncomment when we support Bionic
+      #- UBUNTU18
+  release:
+    type: string
+    required: true
+    enum:
+      - stable
+      - unstable
+  version:
+    type: string
+  keyfile:
+    type: string
+    default: /home/stanley/.ssh/stanley_rsa
+  debug:
+    type: boolean
+    default: false

@@ -1,0 +1,35 @@
+---
+name: mistral_teardown_infra
+description: Mistral teardown infra subworkflow
+enabled: true
+runner_type: orquesta
+entry_point: workflows/mistral_teardown_infra.yaml
+parameters:
+  host:
+    type: string
+    description: The host to teardown
+    required: true
+  clones:
+    type: object
+    description: A dictionary containing the names of the relevant repositories
+    required: true
+    properties:
+      st2:
+        type: string
+        description: The st2 repository
+        required: false
+      mistral:
+        type: string
+        description: Teardown the mistral repository, required if the backup parameter is true
+        required: false
+      mistralclient:
+        type: string
+        description: The mistralclient repository, required if mistral is included
+      st2mistral:
+        type: string
+        description: The st2mistral repository, required if mistral is included
+        required: true
+  backup:
+    type: boolean
+    description: If true, the logs will be saved with st2ci.backup_logs
+    required: false

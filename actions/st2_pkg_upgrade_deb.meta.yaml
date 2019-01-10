@@ -3,32 +3,28 @@ name: st2_pkg_upgrade_deb
 pack: st2ci
 description: Upgrade deb packages on a box using apt-get
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/st2_pkg_upgrade_deb.yaml
 parameters:
-    host:
-        type: string
-        required: true
-        description: >
-            Host on which upgrade should be performed
-    pkg_list:
-        type: array
-        required: true
-    version:
-        type: string
-        default: ''
-        description: "Version to upgrade to"
-    distro:
-        type: string
-        required: true
-        enum:
-            - UBUNTU14
-            - UBUNTU16
-            - UBUNTU18
-    enterprise:
-        type: boolean
-        default: false
-    workflow:
-        default: st2ci.st2_pkg_upgrade_deb.main
-        immutable: true
-        type: string
+  host:
+    type: string
+    required: true
+    description: >
+      Host on which upgrade should be performed
+  pkg_list:
+    type: array
+    required: true
+  version:
+    type: string
+    default: ''
+    description: Version to upgrade to
+  distro:
+    type: string
+    required: true
+    enum:
+      - UBUNTU14
+      - UBUNTU16
+      - UBUNTU18
+  enterprise:
+    type: boolean
+    default: false

@@ -2,7 +2,7 @@
 name: teardown_st2
 description: Teardown a running instance of StackStorm.
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/teardown_st2.yaml
 parameters:
   host:

@@ -1,6 +1,6 @@
 ---
 name: promote_package
-runner_type: mistral-v2
+runner_type: orquesta
 description: Promote a package to production from staging.
 enabled: true
 entry_point: workflows/promote_package.yaml
@@ -27,6 +27,8 @@ parameters:
     default: all
     enum:
     - trusty
+    - xenial
+    - bionic
     - el6
     - el7
     - deb

@@ -1,0 +1,34 @@
+---
+version: '1.0'
+description: Mistral get commit shas subworkflow
+input:
+  - host
+  - repos
+output:
+  - shas: <% ctx().shas %>
+tasks:
+  get_mistral_sha:
+    action: core.remote
+    input:
+      hosts: <% ctx().host %>
+      cmd: cd <% ctx().repos.get(mistral) %> && echo `git rev-parse HEAD`
+    next:
+      - when: <% succeeded() %>
+        do:
+          - get_mistralclient_sha
+  get_mistralclient_sha:
+    action: core.remote
+    input:
+      hosts: <% ctx().host %>
+      cmd: cd <% ctx().repos.get(mistralclient) %> && echo `git rev-parse HEAD`
+    next:
+      - when: <% succeeded() %>
+        do:
+          - compose_shas
+  compose_shas:
+    action: core.noop
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - shas: <% dict(mistral => result().get(ctx().host).stdout,
+                          mistralclient => result().get(ctx().host).stdout) %>

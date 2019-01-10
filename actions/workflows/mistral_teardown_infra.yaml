@@ -1,0 +1,49 @@
+---
+version: '1.0'
+description: Mistral teardown infra subworkflow
+input:
+  - host
+  - clones
+  - backup:
+tasks:
+  init:
+    action: core.noop
+    next:
+      - when: <% ctx().backup %>
+        do:
+          - backup_logs
+      - when: <% not ctx().backup and ctx().clones.get(mistral, '') != '' %>
+        do:
+          - teardown_mistral
+      - when: <% not ctx().backup and ctx().clones.get(st2, '') != '' %>
+        do:
+          - teardown_st2
+  backup_logs:
+    action: st2ci.backup_logs
+    input:
+      hosts: <% ctx().host %>
+      st2_execution_id: <% ctx(st2).action_execution_id %>
+      mis_repo_dir: <% ctx().clones.get(mistral) %>
+      mis_log_dir: /var/log
+      st2_repo_dir: <% ctx().clones.get(st2) %>
+      st2_log_dir: <% ctx().clones.get(st2) %>/logs
+      backup_dir: /home/stanley/logs
+    next:
+      - when: <% ctx().clones.get(mistral, '') != '' %>
+        do:
+          - teardown_mistral
+      - when: <% ctx().clones.get(st2, '') != '' %>
+        do:
+          - teardown_st2
+  teardown_mistral:
+    action: mistral_dev.teardown
+    input:
+      host: <% ctx().host %>
+      repo_main: <% ctx().clones.get(mistral) %>
+      repo_client: <% ctx().clones.get(mistralclient) %>
+      repo_action: <% ctx().clones.get(st2mistral) %>
+  teardown_st2:
+    action: st2ci.teardown_st2
+    input:
+      host: <% ctx().host %>
+      repo: <% ctx().clones.get(st2) %>

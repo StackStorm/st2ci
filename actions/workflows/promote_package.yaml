@@ -1,92 +1,127 @@
 ---
-version: '2.0'
-
-st2cd.promote_package:
-    description: Promote a package to production.
-    type: direct
+version: '1.0'
+description: Promote a package to production.
+input:
+  - package
+  - version
+  - revision
+  - os
+  - repo
+  - token
+  - timeout:
+tasks:
+  init:
+    action: core.local
     input:
-      - package
-      - version
-      - revision
-      - os
-      - repo
-      - token
-      - timeout: 600
-    tasks:
-
-      init:
-        action: core.local
-        input:
-          cmd: "mkdir -p /tmp/st2-up/{ubuntu/trusty,ubuntu/xenial,el/6,el/7}"
+      cmd: mkdir -p /tmp/st2-up/{ubuntu/trusty,ubuntu/xenial,ubuntu/bionic,el/6,el/7}
+    next:
+      - when: <% succeeded() and (ctx().os in list('all', 'deb', 'trusty')) %>
         publish:
-          rpm: "<% $.package %>-<% $.version %>-<% $.revision %>.x86_64.rpm"
-          deb: "<% $.package %>_<% $.version %>-<% $.revision %>_amd64.deb"
-          source: "<% $.repo = 'enterprise' and 'enterprise-staging' or $.repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or $.repo = 'stable' and 'staging-stable' or $.repo = 'unstable' and 'staging-unstable' %>"
-        on-success:
-          - download_trusty: "<% $.os in list('all', 'deb', 'trusty') %>"
-          - download_el6: "<% $.os in list('all', 'rpm', 'el6') %>"
-          - download_el7: "<% $.os in list('all', 'rpm', 'el7') %>"
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
+        do:
+          - download_trusty
+      - when: <% succeeded() and (ctx().os in list('all', 'deb', 'xenial')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
+        do:
+          - download_xenial
+      - when: <% succeeded() and (ctx().os in list('all', 'deb', 'bionic')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
+        do:
+          - download_bionic
+      - when: <% succeeded() and (ctx().os in list('all', 'rpm', 'el6')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
+        do:
+          - download_el6
+      - when: <% succeeded() and (ctx().os in list('all', 'rpm', 'el7')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
+        do:
+          - download_el7
 
-      download_trusty:
-        action: core.local
-        input:
-          cmd: "wget -O /tmp/st2-up/ubuntu/trusty/<% $.deb %> https://packagecloud.io/StackStorm/<% $.source %>/ubuntu/pool/trusty/main/<% $.package.substring(0,1) %>/<% $.package %>/<% $.deb %>"
-          timeout: <% $.timeout %>
-        on-success: upload_trusty
-#        on-error: cleanup
-      upload_trusty:
-        action: core.local
-        input:
-          cmd: "LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% $.token %> package_cloud push StackStorm/<% $.repo %>/ubuntu/trusty /tmp/st2-up/ubuntu/trusty/<% $.deb %>"
-          timeout: <% $.timeout %>
-#        on-success: cleanup
-#        on-error: cleanup
-      download_xenial:
-        action: core.local
-        input:
-          cmd: "wget -O /tmp/st2-up/ubuntu/xenial/<% $.deb %> https://packagecloud.io/StackStorm/<% $.source %>/ubuntu/pool/xenial/main/<% $.package.substring(0,1) %>/<% $.package %>/<% $.deb %>"
-          timeout: <% $.timeout %>
-        on-success: upload_xenial
-#        on-error: cleanup
-      upload_xenial:
-        action: core.local
-        input:
-          cmd: "LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% $.token %> package_cloud push StackStorm/<% $.repo %>/ubuntu/xenial /tmp/st2-up/ubuntu/xenial/<% $.deb %>"
-          timeout: <% $.timeout %>
-#        on-success: cleanup
-#        on-error: cleanup
-      download_el6:
-        action: core.local
-        input:
-          cmd: "wget -O /tmp/st2-up/el/6/<% $.rpm %> https://packagecloud.io/StackStorm/<% $.source %>/el/6/x86_64/<% $.rpm %>"
-          timeout: <% $.timeout %>
-        on-success: upload_el6
-#        on-error: cleanup
-      upload_el6:
-        action: core.local
-        input:
-          cmd: "LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% $.token %> package_cloud push StackStorm/<% $.repo %>/el/6 /tmp/st2-up/el/6/<% $.rpm %>"
-          timeout: <% $.timeout %>
-#        on-success: cleanup
-#        on-error: cleanup
+  download_trusty:
+    action: core.local
+    input:
+      cmd: wget -O /tmp/st2-up/ubuntu/trusty/<% ctx().deb %> https://packagecloud.io/StackStorm/<% ctx().source %>/ubuntu/pool/trusty/main/<% ctx().package.substring(0,1) %>/<% ctx().package %>/<% ctx().deb %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - upload_trusty
+  upload_trusty:
+    action: core.local
+    input:
+      cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/ubuntu/trusty /tmp/st2-up/ubuntu/trusty/<% ctx().deb %>
+      timeout: <% ctx().timeout %>
 
-      download_el7:
-        action: core.local
-        input:
-          cmd: "wget -O /tmp/st2-up/el/7/<% $.rpm %> https://packagecloud.io/StackStorm/<% $.source %>/el/7/x86_64/<% $.rpm %>"
-          timeout: <% $.timeout %>
-        on-success: upload_el7
-#        on-error: cleanup
-      upload_el7:
-        action: core.local
-        input:
-          cmd: "LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% $.token %> package_cloud push StackStorm/<% $.repo %>/el/7 /tmp/st2-up/el/7/<% $.rpm %>"
-          timeout: <% $.timeout %>
-#        on-success: cleanup
-#        on-error: cleanup
+  download_xenial:
+    action: core.local
+    input:
+      cmd: wget -O /tmp/st2-up/ubuntu/xenial/<% ctx().deb %> https://packagecloud.io/StackStorm/<% ctx().source %>/ubuntu/pool/xenial/main/<% ctx().package.substring(0,1) %>/<% ctx().package %>/<% ctx().deb %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - upload_xenial
+  upload_xenial:
+    action: core.local
+    input:
+      cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/ubuntu/xenial /tmp/st2-up/ubuntu/xenial/<% ctx().deb %>
+      timeout: <% ctx().timeout %>
 
-#      cleanup:
-#        join: all
-#        action: core.local
-#        input:
-#          cmd: "rm -rf /tmp/st2-up"
+  download_bionic:
+    action: core.local
+    input:
+      cmd: wget -O /tmp/st2-up/ubuntu/bionic/<% ctx().deb %> https://packagecloud.io/StackStorm/<% ctx().source %>/ubuntu/pool/bionic/main/<% ctx().package.substring(0,1) %>/<% ctx().package %>/<% ctx().deb %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - upload_bionic
+  upload_bionic:
+    action: core.local
+    input:
+      cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/ubuntu/bionic /tmp/st2-up/ubuntu/bionic/<% ctx().deb %>
+      timeout: <% ctx().timeout %>
+
+  download_el6:
+    action: core.local
+    input:
+      cmd: wget -O /tmp/st2-up/el/6/<% ctx().rpm %> https://packagecloud.io/StackStorm/<% ctx().source %>/el/6/x86_64/<% ctx().rpm %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - upload_el6
+  upload_el6:
+    action: core.local
+    input:
+      cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/el/6 /tmp/st2-up/el/6/<% ctx().rpm %>
+      timeout: <% ctx().timeout %>
+
+  download_el7:
+    action: core.local
+    input:
+      cmd: wget -O /tmp/st2-up/el/7/<% ctx().rpm %> https://packagecloud.io/StackStorm/<% ctx().source %>/el/7/x86_64/<% ctx().rpm %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - upload_el7
+  upload_el7:
+    action: core.local
+    input:
+      cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/el/7 /tmp/st2-up/el/7/<% ctx().rpm %>
+      timeout: <% ctx().timeout %>

@@ -1,0 +1,23 @@
+---
+name: install_latest_revision_of_deb_pkg
+pack: st2ci
+description: Install latest revision of a specified deb package
+enabled: true
+runner_type: orquesta
+entry_point: workflows/install_latest_revision_of_deb_pkg.yaml
+parameters:
+  host:
+    type: string
+    required: true
+    description: >
+      Host on which upgrade should be performed
+  pkg:
+    type: string
+    required: true
+    description: >
+      Package to upgrade
+  version:
+    type: string
+    required: true
+    description: >
+      Version string that specifies the version to install

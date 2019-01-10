@@ -1,16 +1,13 @@
 ---
-name: mistral
-description: Run the continuous integration for Mistral.
+name: mistral_setup_infra
+description: Mistral setup infra subworkflow
 enabled: true
 runner_type: orquesta
-entry_point: workflows/mistral.yaml
+entry_point: workflows/mistral_setup_infra.yaml
 parameters:
-  test_host:
+  host:
     type: string
-    description: The name of the hosts where the integration test(s) will run.
-  build_host:
-    type: string
-    description: The name of the hosts where the build process will run.
+    description: The name of the host on which to setup infra
   distro:
     type: string
     description: The flavor of Linux distribution.
@@ -69,13 +66,6 @@ parameters:
   st2_repo_dir:
     type: string
     default: /home/stanley
-  merge_upstream:
-    type: boolean
-    default: false
   debug:
     type: boolean
     default: false
-  workflow:
-    default: st2ci.mistral.main
-    immutable: true
-    type: string

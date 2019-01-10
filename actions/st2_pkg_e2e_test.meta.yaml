@@ -3,92 +3,92 @@ name: st2_pkg_e2e_test
 pack: st2ci
 description: End to end test for st2 package
 enabled: true
-runner_type: mistral-v2
+runner_type: orquesta
 entry_point: workflows/st2_pkg_e2e_test.yaml
 parameters:
-    hostname:
-        type: string
-        required: true
-    dns_zone:
-        type: string
-        description: Route53 DNS Zone to add host to
-        default: uswest2.stackstorm.net
-    instance_type:
-        type: string
-        # There is no AMI which supports new C5 instance size for those distros
-        default: '{% if distro in ["CENTOS6", "RHEL6", "RHEL7"] %}c4.large{% else %}c5.large{% endif %}'
-    environment:
-        type: string
-        enum:
-            - sandbox
-            - staging
-            - production
-        default: sandbox
-    key_name:
-        type: string
-        default: st2_deploy
-    keyfile:
-        type: string
-        default: /home/stanley/.ssh/stanley_rsa
-    windows_key_name:
-        type: string
-        default: st2_deploy_windows
-    windows_keyfile:
-        type: string
-        default: /home/stanley/st2_deploy_windows.pem
-    distro:
-        type: string
-        required: true
-        enum:
-            - CENTOS6
-            - CENTOS7
-            - RHEL6
-            - RHEL7
-            - UBUNTU14
-            - UBUNTU16
-            - UBUNTU18
-    windows_distro:
-        type: string
-        enum:
-            - windows2016
-        default: windows2016
-    role:
-        type: string
-        default: cislave
-    release:
-        type: string
-        enum:
-            - stable
-            - unstable
-        default: stable
-    version:
-        type: string
-    dev_build:
-        type: string
-        description: Repo name + CircleCI build number ('st2/3126') to install artifacts from. Overrides version.
-    initial_commit:
-        type: string
-        description: Git hash of an initial commit from st2 repo. If provided, the workflow will update status of this commit.
-    enterprise:
-        type: boolean
-        default: false
-    enterprise_key:
-        type: string
-    pkg_env:
-        type: string
-        enum:
-            - staging
-            - production
-        default: production
-    bootstrap_branch:
-        type: string
-        default: master
-    bootstrap_script:
-        type: string
-    triggering_commit_url:
-        type: string
-        description: Optional info on the commit that triggered the end to end test.
-    debug:
-        type: boolean
-        default: false
-        description: When enabled, it wont delete the VM if workflow failed, leaving the machine alive for further debugging.
+  hostname:
+    type: string
+    required: true
+  dns_zone:
+    type: string
+    description: Route53 DNS Zone to add host to
+    default: uswest2.stackstorm.net
+  instance_type:
+    type: string
+    # There is no AMI which supports new C5 instance size for those distros
+    default: '{% if distro in ["CENTOS6", "RHEL6", "RHEL7"] %}c4.large{% else %}c5.large{% endif %}'
+  environment:
+    type: string
+    enum:
+      - sandbox
+      - staging
+      - production
+    default: sandbox
+  key_name:
+    type: string
+    default: st2_deploy
+  keyfile:
+    type: string
+    default: /home/stanley/.ssh/stanley_rsa
+  windows_key_name:
+    type: string
+    default: st2_deploy_windows
+  windows_keyfile:
+    type: string
+    default: /home/stanley/st2_deploy_windows.pem
+  distro:
+    type: string
+    required: true
+    enum:
+      - CENTOS6
+      - CENTOS7
+      - RHEL6
+      - RHEL7
+      - UBUNTU14
+      - UBUNTU16
+      - UBUNTU18
+  windows_distro:
+    type: string
+    enum:
+      - windows2016
+    default: windows2016
+  role:
+    type: string
+    default: cislave
+  release:
+    type: string
+    enum:
+      - stable
+      - unstable
+    default: stable
+  version:
+    type: string
+  dev_build:
+    type: string
+    description: Repo name + CircleCI build number ('st2/3126') to install artifacts from. Overrides version.
+  initial_commit:
+    type: string
+    description: Git hash of an initial commit from st2 repo. If provided, the workflow will update status of this commit.
+  enterprise:
+    type: boolean
+    default: false
+  enterprise_key:
+    type: string
+  pkg_env:
+    type: string
+    enum:
+      - staging
+      - production
+    default: production
+  bootstrap_branch:
+    type: string
+    default: master
+  bootstrap_script:
+    type: string
+  triggering_commit_url:
+    type: string
+    description: Optional info on the commit that triggered the end to end test.
+  debug:
+    type: boolean
+    default: false
+    description: When enabled, it wont delete the VM if workflow failed, leaving the machine alive for further debugging.
