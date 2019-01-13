@@ -311,9 +311,12 @@ tasks:
       - when: <% (not ctx().debug) and ctx().vm_id %>
         do:
           - destroy_vm
-      - when: <% (not ctx().debug) and ctx().vm_windows_id %>
+      - when: <% (not ctx().debug) and not ctx().vm_id and ctx().vm_windows_id %>
         do:
           - destroy_vm_windows
+      - when: <% (not ctx().debug) and not ctx().vm_id and not ctx().vm_windows_id %>
+        do:
+          - done_cleanup
 
   destroy_vm:
     action: st2cd.destroy_vm
@@ -321,7 +324,12 @@ tasks:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
     next:
-      - when: <% succeeded() %>
+      - when: <% succeeded() and ctx().vm_windows_id %>
+        publish:
+          - vm_id: null
+        do:
+          - destroy_vm_windows
+      - when: <% succeeded() and not ctx().vm_windows_id %>
         publish:
           - vm_id: null
         do:
@@ -331,6 +339,11 @@ tasks:
           - result: failed
         do:
           - destroy_vm_windows
+      - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) and not ctx().vm_windows_id %>
+        publish:
+          - result: failed
+        do:
+          - done_cleanup
       - when: <% failed() and (ctx().destroy_vm_iteration_count < 2) %>
         publish:
           - destroy_vm_iteration_count: <% ctx().destroy_vm_iteration_count + 1 %>
@@ -375,7 +388,6 @@ tasks:
           - destroy_vm_windows
 
   done_cleanup:
-    join: all
     action: core.noop
     next:
       # If we destroyed both VMs, we can return success
