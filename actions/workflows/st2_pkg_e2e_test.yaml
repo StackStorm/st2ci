@@ -39,8 +39,8 @@ vars:
   - bootstrap_script_url: <% coalesce(ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
   - bootstrap_script_arg_dev_or_ver: <%
       switch(
-        ctx().dev_build => "--dev=" + ctx().dev_build,
-        not ctx().dev_build => "--version=" + coalesce(ctx().version, '')) %> 
+        ctx().dev_build => "dev=" + ctx().dev_build,
+        not ctx().dev_build => "version=" + coalesce(ctx().version, '')) %> 
   - st2_username: st2admin
   - st2_password: Ch@ngeMe
   - github_status_org: StackStorm
