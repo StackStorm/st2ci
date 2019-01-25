@@ -37,6 +37,12 @@ vars:
       versions:
       version_str: not installed
   - bootstrap_script_url: <% coalesce(ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
+  - bootstrap_script_arg_dev_or_ver: <%
+      switch(
+        ctx().dev_build => "--dev=" + ctx().dev_build,
+        not ctx().dev_build => "--version=" + coalesce(ctx().version, '')
+      )
+    %> 
   - st2_username: st2admin
   - st2_password: Ch@ngeMe
   - github_status_org: StackStorm
@@ -137,9 +143,7 @@ tasks:
         bash /tmp/st2_bootstrap.sh
         --<% ctx().pkg_env %>
         --<% ctx().release %>
-        <% switch(
-            ctx().dev_build => "--dev=" + ctx().dev_build,
-            not ctx().dev_build => "--version=" + coalesce(ctx().version, '')) %>
+        --<% ctx().bootstrap_script_arg_dev_or_ver %>
         --user=<% ctx().st2_username %>
         --password=<% ctx().st2_password %>
       timeout: 900
@@ -245,10 +249,10 @@ tasks:
       win_vm_id: <% ctx().vm_windows_id %>
       debug: <% ctx().debug %>
     next:
-      - when: <% not result().output.failed %>
+      - when: <% not ctx().failed and not result().output.failed %>
         publish: notify_status="succeeded"
         do: notify
-      - when: <% result().output.failed %>
+      - when: <% ctx().failed or result().output.failed %>
         publish: notify_status="failed"
         do: notify
 
