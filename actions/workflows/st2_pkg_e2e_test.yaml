@@ -106,7 +106,8 @@ tasks:
           - vm_id: <% result().output.vm_info.id %>
         do: get_bootstrap_script
       - when: <% failed() %>
-        publish: failed=True
+        publish:
+          - failed: True
         do: cleanup
   patch_rhel6:
     action: core.remote_sudo
@@ -151,7 +152,8 @@ tasks:
       - when: <% succeeded() and (not ctx().enterprise) %>
         do: check_debug_mode
       - when: <% failed() %>
-        publish: failed=True
+        publish:
+          - failed: True
         do: cleanup
   upgrade_to_enterprise:
     action: st2cd.st2_upgrade_to_enterprise
@@ -194,7 +196,8 @@ tasks:
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
         do: create_vm_windows
       - when: <% failed() %>
-        publish: failed=True
+        publish:
+          - failed: True
         do: cleanup
   create_vm_windows:
     action: st2cd.create_vm_windows
@@ -216,7 +219,8 @@ tasks:
           - vm_windows_password: <% result().output.vm_password %>
         do: run_e2e_tests
       - when: <% failed() %>
-        publish: failed=True
+        publish:
+          - failed: True
         do: cleanup
   run_e2e_tests:
     action: st2cd.st2_e2e_tests
@@ -235,7 +239,8 @@ tasks:
       - when: <% succeeded() %>
         do: cleanup
       - when: <% failed() %>
-        publish: failed=True
+        publish:
+          - failed: True
         do: cleanup
 
   cleanup:
