@@ -249,10 +249,10 @@ tasks:
       win_vm_id: <% ctx().vm_windows_id %>
       debug: <% ctx().debug %>
     next:
-      - when: <% not result().output.failed %>
+      - when: <% not ctx().failed and not result().output.failed %>
         publish: notify_status="succeeded"
         do: notify
-      - when: <% result().output.failed %>
+      - when: <% ctx().failed or result().output.failed %>
         publish: notify_status="failed"
         do: notify
 
