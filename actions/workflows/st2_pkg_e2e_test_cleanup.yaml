@@ -28,7 +28,7 @@ tasks:
     next:
       - when: <% ctx().vm_id %>
         do: destroy_vm
-      - when: <% ctx().vm_id %>
+      - when: <% ctx().win_vm_id %>
         do: destroy_win_vm
 
   destroy_vm:
