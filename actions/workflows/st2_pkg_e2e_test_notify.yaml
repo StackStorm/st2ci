@@ -1,0 +1,95 @@
+---
+version: '1.0'
+
+input:
+  - notify_status
+  - action_execution_id
+  - initial_commit
+  - triggering_commit_url
+  - hostname
+  - distro
+  - enterprise
+  - pkg_env
+  - release
+  - version
+  - bootstrap_script_url
+  - installed
+  - github_status_org
+  - github_status_repo
+  - github_status_context
+  - github_status_url
+
+vars:
+  - webui_base_url: "https://st2cicd.uswest2.stackstorm.net"
+  - notify_channels:
+      - '#thunderdome'
+  - notify_failure_channels:
+      - '#thunderdome'
+      - '#stackstorm'
+
+tasks:
+  determine_which_notify:
+    action: core.noop
+    next:
+      - when: <% ctx().notify_status = "started" %>
+        do: notify_start
+      - when: <% ctx().notify_status = "succeeded" %>
+        do: notify_success
+      - when: <% ctx().notify_status = "failed" %>
+        do: notify_failure
+
+  notify_start:
+    with:
+      items: channel in <% ctx().notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% item(channel) %>
+      text: 'st2ci.st2_pkg_e2e_test: STARTED'
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().hostname %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
+
+  notify_success:
+    with: channel in <% ctx().notify_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% item(channel) %>
+      text: 'st2ci.st2_pkg_e2e_test: SUCCEEDED'
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().hostname %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#008000\"}]"
+    next:
+      - when: <% ctx().initial_commit %>
+        do: set_github_status_success
+  set_github_status_success:
+    action: github.add_status
+    input:
+      user: <% ctx().github_status_org %>
+      repo: <% ctx().github_status_repo %>
+      sha: <% ctx().initial_commit %>
+      state: success
+      context: <% ctx().github_status_context %>
+      description: E2E tests have finished successfully
+      target_url: <% ctx().github_status_url %>
+
+  notify_failure:
+    with:
+      items: channel in <% ctx().notify_failure_channels %>
+    action: slack.chat.postMessage
+    input:
+      channel: <% item(channel) %>
+      text: 'st2ci.st2_pkg_e2e_test: FAILED'
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().hostname %>\\nDISTRO: <% ctx().distro %>\\nENTERPRISE: <% ctx().enterprise %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#FF0000\"}]"
+    next:
+      - when: <% ctx().initial_commit %>
+        do: set_github_status_failure
+      - when: <% not ctx().initial_commit %>
+        do: fail
+  set_github_status_failure:
+    action: github.add_status
+    input:
+      user: <% ctx().github_status_org %>
+      repo: <% ctx().github_status_repo %>
+      sha: <% ctx().initial_commit %>
+      state: failure
+      context: <% ctx().github_status_context %>
+      description: E2E tests have failed
+      target_url: <% ctx().github_status_url %>
+    next:
+      - do: fail

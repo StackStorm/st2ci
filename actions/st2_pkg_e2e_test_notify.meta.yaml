@@ -1,0 +1,40 @@
+---
+name: st2_pkg_e2e_test_notify
+pack: st2ci
+description: Notification routine for the st2 package end to end test.
+enabled: true
+runner_type: orquesta
+entry_point: workflows/st2_pkg_e2e_test_notify.yaml
+parameters:
+  notify_status:
+    type: string
+  action_execution_id:
+    type: string
+  initial_commit:
+    type: string
+  triggering_commit_url:
+    type: string
+  hostname:
+    type: string
+  distro:
+    type: string
+  enterprise:
+    type: boolean
+  pkg_env:
+    type: string
+  release:
+    type: string
+  version:
+    type: string
+  bootstrap_script_url:
+    type: string
+  installed:
+    type: object
+  github_status_org:
+    type: string
+  github_status_repo:
+    type: string
+  github_status_context:
+    type: string
+  github_status_url:
+    type: string

@@ -1,0 +1,58 @@
+---
+version: '1.0'
+
+input:
+  - hostname
+  - vm_id
+  - win_hostname
+  - win_vm_id
+  - debug
+
+vars:
+  - destroy_vm_retries: 0
+  - destroy_win_vm_retries: 0
+  - failed: False
+
+output:
+  - failed: <% ctx().failed %>
+
+tasks:
+  check_debug:
+    action: core.noop
+    next:
+      - when: <% not ctx().debug %>
+        do: init
+
+  init:
+    action: core.noop
+    next:
+      - when: <% ctx().vm_id %>
+        do: destroy_vm
+      - when: <% ctx().win_vm_id %>
+        do: destroy_win_vm
+
+  destroy_vm:
+    delay: 30
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().hostname %>
+      instance_id: <% ctx().vm_id %>
+    next:
+      - when: <% failed() and ctx().destroy_vm_retries >= 2 %>
+        publish: failed=True
+      - when: <% failed() and ctx().destroy_vm_retries < 2 %>
+        publish: destroy_vm_retries=<% ctx().destroy_vm_retries + 1 %>
+        do: destroy_vm
+
+  destroy_win_vm:
+    delay: 30
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().win_hostname %>
+      instance_id: <% ctx().win_vm_id %>
+    next:
+      - when: <% failed() and ctx().destroy_win_vm_retries >= 2 %> 
+        publish: failed=True
+      - when: <% failed() and ctx().destroy_win_vm_retries < 2 %>
+        publish: destroy_win_vm_retries=<% ctx().destroy_win_vm_retries + 1 %>
+        do: destroy_win_vm

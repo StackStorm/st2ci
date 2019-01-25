@@ -1,0 +1,20 @@
+---
+name: st2_pkg_e2e_test_cleanup
+pack: st2ci
+description: Cleanup routine for the st2 package end to end test.
+enabled: true
+runner_type: orquesta
+entry_point: workflows/st2_pkg_e2e_test_cleanup.yaml
+parameters:
+  hostname:
+    type: string
+  vm_id:
+    type: string
+  win_hostname:
+    type: string
+  win_vm_id:
+    type: string
+  debug:
+    type: boolean
+    default: false
+    description: When true, VM instances will not be removed.
