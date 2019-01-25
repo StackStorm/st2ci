@@ -208,11 +208,7 @@ tasks:
       version: <% coalesce(ctx().version, '') %>
       timeout: 150
     next:
-      - when: <% succeeded() and not ctx().debug %>
-        do:
-          - check_debug_mode
-      - when: <% succeeded() and ctx().debug %>
-        do:
+      - do:
           - check_debug_mode
   check_debug_mode:
     action: core.noop
@@ -307,16 +303,19 @@ tasks:
       - when: <% ctx().debug %>
         do:
           - done_cleanup
-      # Try to destroy the Linux and Windows VMs, if we need to
-      - when: <% (not ctx().debug) and ctx().vm_id %>
+      - when: <% not ctx().debug %>
+        do:
+          - cleanup_vm
+
+  cleanup_vm:
+    action: core.noop
+    next:
+      - when: <% ctx().vm_id %>
         do:
           - destroy_vm
-      - when: <% (not ctx().debug) and not ctx().vm_id and ctx().vm_windows_id %>
+      - when: <% not ctx().vm_id %>
         do:
-          - destroy_vm_windows
-      - when: <% (not ctx().debug) and not ctx().vm_id and not ctx().vm_windows_id %>
-        do:
-          - done_cleanup
+          - cleanup_vm_windows
 
   destroy_vm:
     action: st2cd.destroy_vm
@@ -324,26 +323,16 @@ tasks:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
     next:
-      - when: <% succeeded() and ctx().vm_windows_id %>
+      - when: <% succeeded() %>
         publish:
           - vm_id: null
         do:
-          - destroy_vm_windows
-      - when: <% succeeded() and not ctx().vm_windows_id %>
-        publish:
-          - vm_id: null
-        do:
-          - done_cleanup
-      - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) and ctx().vm_windows_id %>
+          - cleanup_vm_windows
+      - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) %>
         publish:
           - result: failed
         do:
-          - destroy_vm_windows
-      - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) and not ctx().vm_windows_id %>
-        publish:
-          - result: failed
-        do:
-          - done_cleanup
+          - cleanup_vm_windows
       - when: <% failed() and (ctx().destroy_vm_iteration_count < 2) %>
         publish:
           - destroy_vm_iteration_count: <% ctx().destroy_vm_iteration_count + 1 %>
@@ -357,6 +346,17 @@ tasks:
       - when: <% succeeded() %>
         do:
           - destroy_vm
+
+  cleanup_vm_windows:
+    action: core.noop
+    next:
+      - when: <% ctx().vm_windows_id %>
+        do:
+          - destroy_vm_windows
+      - when: <% not ctx().vm_windows_id %>
+        do:
+          - done_cleanup
+
   destroy_vm_windows:
     action: st2cd.destroy_vm
     input:
@@ -390,11 +390,9 @@ tasks:
   done_cleanup:
     action: core.noop
     next:
-      # If we destroyed both VMs, we can return success
       - when: <% ctx().result = "success" %>
         do:
           - notify_success
-      # If we didn't destroy both VMs, we need to fail
       - when: <% ctx().result = "failed" %>
         do:
           - notify_failure
