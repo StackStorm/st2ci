@@ -1,5 +1,6 @@
 ---
 version: '1.0'
+
 input:
   - hostname
   - distro
@@ -19,29 +20,22 @@ input:
   - promoted_st2mistral: false
   - promoted_st2web: false
   - notify_channels:
-    - '#local_chatops_ci'
-    # - '#thunderdome'
+    - '#thunderdome'
   - notify_failure_channels:
-    - '#local_chatops_ci'
-    # - '#thunderdome'
-    # - '#stackstorm'
+    - '#thunderdome'
+    - '#stackstorm'
+
 vars:
   - versions: ""
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
+  - pkg_distro_version: <% ctx().distro_to_distro_version_map.get(ctx().distro) %>
+
 output:
   - versions: <% ctx().versions %>
+
 tasks:
-  init:
-    action: core.noop
-    next:
-      - when: <% succeeded() %>
-        publish:
-          - pkg_distro_version: <% ctx().distro_to_distro_version_map.get(ctx().distro) %>
-        do:
-          - notify_start
   notify_start:
-    with:
-      items: channel in <% ctx().notify_channels %>
+    with: channel in <% ctx().notify_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
@@ -49,8 +43,8 @@ tasks:
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote: STARTED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#808080\"}]"
     next:
       - when: <% succeeded() %>
-        do:
-          - get_hostname_suffix
+        do: get_hostname_suffix
+
   get_hostname_suffix:
     action: core.local
     input:
@@ -59,8 +53,8 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - suffix: <% result().stdout %>
-        do:
-          - run_e2e_test
+        do: run_e2e_test
+
   run_e2e_test:
     action: st2ci.st2_pkg_e2e_test
     input:
@@ -76,9 +70,10 @@ tasks:
         publish:
           - versions: <% result().output.versions %>
           - version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-        do:
-          - promote_all
+        do: promote_all
+
   promote_all:
+    action: core.noop
     next:
       - do:
           - promote_st2
@@ -97,11 +92,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2: <% ctx().versions.get(st2) %>
-        do:
-          - process_completion
+        do: process_completion
       - when: <% failed() %>
-        do:
-          - process_completion
+        do: process_completion
   promote_st2chatops:
     action: st2ci.st2_pkg_promote
     input:
@@ -114,11 +107,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2chatops: <% ctx().versions.get(st2chatops) %>
-        do:
-          - process_completion
+        do: process_completion
       - when: <% failed() %>
-        do:
-          - process_completion
+        do: process_completion
   promote_st2mistral:
     action: st2ci.st2_pkg_promote
     input:
@@ -131,11 +122,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2mistral: <% ctx().versions.get(st2mistral) %>
-        do:
-          - process_completion
+        do: process_completion
       - when: <% failed() %>
-        do:
-          - process_completion
+        do: process_completion
   promote_st2web:
     action: st2ci.st2_pkg_promote
     input:
@@ -148,22 +137,19 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2web: <% ctx().versions.get(st2web) %>
-        do:
-          - process_completion
+        do: process_completion
       - when: <% failed() %>
-        do:
-          - process_completion
+        do: process_completion
 
   process_completion:
-    action: core.noop
     join: all
+    action: core.noop
     next:
-      - when: <% succeeded() and     (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2mistral and ctx().promoted_st2web) %>
-        do:
-          - set_notify_success
+      - when: <% succeeded() and (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2mistral and ctx().promoted_st2web) %>
+        do: set_notify_success
       - when: <% succeeded() and not (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2mistral and ctx().promoted_st2web) %>
-        do:
-          - set_notify_failure
+        do: set_notify_failure
+
   set_notify_failure:
     action: core.noop
     next:
@@ -171,8 +157,8 @@ tasks:
         publish:
           - notify_color: '#FF0000'
           - notify_completion_channels: <% ctx().notify_failure_channels %>
-        do:
-          - notify_failure
+        do: notify_failure
+
   set_notify_success:
     action: core.noop
     next:
@@ -180,24 +166,22 @@ tasks:
         publish:
           - notify_color: '#008000'
           - notify_completion_channels: <% ctx().notify_channels %>
-        do:
-          - notify_completion
+        do: notify_completion
+
   notify_completion:
-    with:
-      items: channel in <% ctx().notify_completion_channels %>
+    with: channel in <% ctx().notify_completion_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
       text: 'st2ci.st2_pkg_test_and_promote: COMPLETED'
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote: COMPLETED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION TESTED:\\n\\t<% ctx().version_str %>\\nPACKAGE PROMOTED:\\n\\tst2=<% ctx().promoted_st2 %>\\n\\tst2chatops=<% ctx().promoted_st2chatops %>\\n\\tst2mistral=<% ctx().promoted_st2mistral %>\\n\\tst2web=<% ctx().promoted_st2web %>\", \"color\": \"<% ctx().notify_color %>\"}]"
+
   notify_failure:
-    with:
-      items: channel in <% ctx().notify_failure_channels %>
+    with: channel in <% ctx().notify_failure_channels %>
     action: slack.chat.postMessage
     input:
       channel: <% item(channel) %>
       text: 'st2ci.st2_pkg_test_and_promote: FAILED'
       attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote: FAILED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\", \"color\": \"#FF0000\"}]"
     next:
-      - do:
-          - fail
+      - do: fail
