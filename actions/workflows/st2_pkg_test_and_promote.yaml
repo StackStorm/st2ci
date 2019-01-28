@@ -15,6 +15,11 @@ input:
       UBUNTU14: ubuntu/trusty
       UBUNTU16: ubuntu/xenial
       UBUNTU18: ubuntu/bionic
+  - mistral_supported_distros:
+    - RHEL6
+    - RHEL7
+    - UBUNTU14
+    - UBUNTU16
   - promoted_st2: false
   - promoted_st2chatops: false
   - promoted_st2mistral: false
@@ -98,9 +103,18 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2chatops: <% ctx().versions.get(st2chatops) %>
-        do: process_st2mistral
+        do: decide_process_st2mistral
       - when: <% failed() %>
-        do: process_st2mistral
+        do: decide_process_st2mistral
+  decide_process_st2mistral:
+    action: core.noop
+    next:
+      - when: <% ctx().distro in ctx().mistral_supported_distros %>
+        do: promote_st2mistral
+      - when: <% not ctx().distro in ctx().mistral_supported_distros %>
+        publish:
+          - promoted_st2mistral: true
+        do: promote_st2web
   promote_st2mistral:
     action: st2ci.st2_pkg_promote
     input:
