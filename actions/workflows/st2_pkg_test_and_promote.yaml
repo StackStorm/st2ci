@@ -88,9 +88,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2: <% ctx().versions.get(st2) %>
-        do: process_st2chatops
+        do: promote_st2chatops
       - when: <% failed() %>
-        do: process_st2chatops
+        do: promote_st2chatops
   promote_st2chatops:
     action: st2ci.st2_pkg_promote
     input:
@@ -103,10 +103,10 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2chatops: <% ctx().versions.get(st2chatops) %>
-        do: decide_process_st2mistral
+        do: decide_promote_st2mistral
       - when: <% failed() %>
-        do: decide_process_st2mistral
-  decide_process_st2mistral:
+        do: decide_promote_st2mistral
+  decide_promote_st2mistral:
     action: core.noop
     next:
       - when: <% ctx().distro in ctx().mistral_supported_distros %>
@@ -127,9 +127,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2mistral: <% ctx().versions.get(st2mistral) %>
-        do: process_st2web
+        do: promote_st2web
       - when: <% failed() %>
-        do: process_st2web
+        do: promote_st2web
   promote_st2web:
     action: st2ci.st2_pkg_promote
     input:
