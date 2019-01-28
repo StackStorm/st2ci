@@ -70,16 +70,7 @@ tasks:
         publish:
           - versions: <% result().output.versions %>
           - version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-        do: promote_all
-
-  promote_all:
-    action: core.noop
-    next:
-      - do:
-          - promote_st2
-          - promote_st2chatops
-          - promote_st2mistral
-          - promote_st2web
+        do: promote_st2
   promote_st2:
     action: st2ci.st2_pkg_promote
     input:
@@ -92,9 +83,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2: <% ctx().versions.get(st2) %>
-        do: process_completion
+        do: process_st2chatops
       - when: <% failed() %>
-        do: process_completion
+        do: process_st2chatops
   promote_st2chatops:
     action: st2ci.st2_pkg_promote
     input:
@@ -107,9 +98,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2chatops: <% ctx().versions.get(st2chatops) %>
-        do: process_completion
+        do: process_st2mistral
       - when: <% failed() %>
-        do: process_completion
+        do: process_st2mistral
   promote_st2mistral:
     action: st2ci.st2_pkg_promote
     input:
@@ -122,9 +113,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2mistral: <% ctx().versions.get(st2mistral) %>
-        do: process_completion
+        do: process_st2web
       - when: <% failed() %>
-        do: process_completion
+        do: process_st2web
   promote_st2web:
     action: st2ci.st2_pkg_promote
     input:
@@ -142,7 +133,6 @@ tasks:
         do: process_completion
 
   process_completion:
-    join: all
     action: core.noop
     next:
       - when: <% succeeded() and (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2mistral and ctx().promoted_st2web) %>
