@@ -57,7 +57,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - hosts: <% result().hosts %>
+          - hosts: <% result().output.hosts %>
         do:
           - setup
   setup:
