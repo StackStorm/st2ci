@@ -29,6 +29,13 @@ input:
       - '#stackstorm'
 vars:
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
+  - hosts:
+      test: null
+      build: null
+  - shas:
+      mistral: null
+      mistralclient: null
+  - deps: null
 output:
   - hosts: <% ctx().hosts %>
   - shas: <% ctx().shas %>
@@ -50,7 +57,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - hosts: <% result().hosts %>
+          - hosts: <% result().output.hosts %>
         do:
           - setup
   setup:
