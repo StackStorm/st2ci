@@ -86,21 +86,10 @@ tasks:
         publish:
           - is_infra_setup: <% result().is_mistral_setup and result().is_st2_setup %>
         do:
-          - run_tests
+          - record_pip_freeze
       - when: <% succeeded() and (not ctx().is_infra_setup and not ctx().debug) %>
         do:
           - teardown_on_failure
-  run_tests:
-    action: core.remote
-    input:
-      hosts: <% ctx().hosts.get(test) %>
-      cwd: <% result().clones.get(st2) %>
-      cmd: make mistral-itests 2>&1 | tee /tmp/mistral-itests-output.txt
-      timeout: 3600
-    next:
-      - when: <% succeeded() %>
-        do:
-          - record_pip_freeze
   record_pip_freeze:
     action: core.remote
     input:
