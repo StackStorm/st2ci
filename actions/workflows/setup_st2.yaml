@@ -30,6 +30,9 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - clone_path: <% result().get(ctx().host).stdout %>
+      - when: <% failed() and ctx().clone_repo_iteration_count > 3 %>
+        do:
+          - teardown_st2
   sleep_for_clone_repo:
     action: core.local
     input:
@@ -44,6 +47,3 @@ tasks:
     input:
       host: <% ctx().host %>
       repo: <% ctx().clone_path %>
-    next:
-      - do:
-          - noop
