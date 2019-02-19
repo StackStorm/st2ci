@@ -30,8 +30,6 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - clone_path: <% result().get(ctx().host).stdout %>
-        do:
-          - install
   sleep_for_clone_repo:
     action: core.local
     input:
@@ -41,33 +39,3 @@ tasks:
       - when: <% succeeded() %>
         do:
           - clone_repo
-  install:
-    action: st2ci.install_st2
-    input:
-      hosts: <% ctx().host %>
-      repo: <% ctx().clone_path %>
-    next:
-      - when: <% succeeded() %>
-        do:
-          - start_service
-  start_service:
-    action: core.remote
-    input:
-      hosts: <% ctx().host %>
-      cmd: <% ctx().clone_path %>/tools/launchdev.sh stop & <% ctx().clone_path %>/tools/launchdev.sh startclean -g -x
-  teardown:
-    next:
-      - when: <% not ctx().debug %>
-        do:
-          - teardown_st2
-      - when: <% ctx().debug %>
-        do:
-          - fail
-  teardown_st2:
-    action: st2ci.teardown_st2
-    input:
-      host: <% ctx().host %>
-      repo: <% ctx().clone_path %>
-    next:
-      - do:
-          - fail
