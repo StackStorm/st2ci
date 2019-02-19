@@ -9,9 +9,15 @@ input:
   - debug
 vars:
   - clone_repo_iteration_count: 0
+  - clone_path: null
 output:
   - clone_path: <% ctx().clone_path %>
 tasks:
+  init:
+    action: core.noop
+    next:
+      - do:
+          - clone_repo
   clone_repo:
     action: st2cd.git_clone
     input:
@@ -26,6 +32,9 @@ tasks:
           - clone_repo_iteration_count: <% ctx().clone_repo_iteration_count + 1 %>
         do:
           - sleep_for_clone_repo
+      - when: <% failed() and ctx().clone_repo_iteration_count >= 3 %>
+        do:
+          - teardown
       - when: <% succeeded() %>
         publish:
           - clone_path: <% result().get(ctx().host).stdout %>
@@ -56,7 +65,7 @@ tasks:
       cmd: <% ctx().clone_path %>/tools/launchdev.sh stop & <% ctx().clone_path %>/tools/launchdev.sh startclean -g -x
   teardown:
     next:
-      - when: <% not ctx().debug %>
+      - when: <% ctx().clone_path and not ctx().debug %>
         do:
           - teardown_st2
       - when: <% ctx().debug %>
