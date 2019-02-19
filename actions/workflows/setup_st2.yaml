@@ -22,26 +22,12 @@ tasks:
       target: <% ctx().repo_dir %>/st2_<% ctx().repo_branch %>
       timeout: 120
     next:
-      - when: <% failed() and ctx().clone_repo_iteration_count < 3 %>
-        publish:
-          - clone_repo_iteration_count: <% ctx().clone_repo_iteration_count + 1 %>
-        do:
-          - sleep_for_clone_repo
       - when: <% succeeded() %>
         publish:
           - clone_path: <% result().get(ctx().host).stdout %>
-      - when: <% failed() and ctx().clone_repo_iteration_count > 3 %>
+      - when: <% failed() %>
         do:
           - teardown_st2
-  sleep_for_clone_repo:
-    action: core.local
-    input:
-      cmd: sleep 3
-      timeout: null
-    next:
-      - when: <% succeeded() %>
-        do:
-          - clone_repo
   teardown_st2:
     action: st2ci.teardown_st2
     input:
