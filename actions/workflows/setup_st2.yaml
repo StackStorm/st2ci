@@ -9,6 +9,7 @@ input:
   - debug
 vars:
   - clone_repo_iteration_count: 0
+  - clone_path: null
 output:
   - clone_path: <% ctx().clone_path %>
 tasks:
