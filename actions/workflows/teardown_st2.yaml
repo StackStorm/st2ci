@@ -18,6 +18,7 @@ tasks:
     input:
       hosts: <% ctx().host %>
       cmd: mongo st2 --eval "db.dropDatabase();"
+      timeout: 20
     next:
       - when: <% succeeded() %>
         do:

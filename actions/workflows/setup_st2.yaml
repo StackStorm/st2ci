@@ -20,7 +20,7 @@ tasks:
       repo: <% ctx().repo %>
       branch: <% ctx().repo_branch %>
       target: <% ctx().repo_dir %>/st2_<% ctx().repo_branch %>
-      timeout:
+      timeout: 120
     next:
       - when: <% failed() and ctx().clone_repo_iteration_count < 3 %>
         publish:
@@ -46,4 +46,4 @@ tasks:
       repo: <% ctx().clone_path %>
     next:
       - do:
-          - fail
+          - noop
