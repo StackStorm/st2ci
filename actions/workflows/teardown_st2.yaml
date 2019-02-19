@@ -36,3 +36,6 @@ tasks:
     input:
       hosts: <% ctx().host %>
       repo: <% ctx().repo %>
+    next:
+      - do:
+          - noop

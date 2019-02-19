@@ -39,3 +39,11 @@ tasks:
       - when: <% succeeded() %>
         do:
           - clone_repo
+  teardown_st2:
+    action: st2ci.teardown_st2
+    input:
+      host: <% ctx().host %>
+      repo: <% ctx().clone_path %>
+    next:
+      - do:
+          - fail
