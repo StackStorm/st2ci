@@ -73,5 +73,5 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - st2_clone_path: <% result().clone_path %>
+          - st2_clone_path: <% result().output.clone_path %>
           - is_st2_setup: true
