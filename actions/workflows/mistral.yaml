@@ -80,7 +80,7 @@ tasks:
           - is_infra_setup: <% result().output.is_mistral_setup and result().output.is_st2_setup %>
         do:
           - run_tests
-      - when: <% succeeded() and (not result().output.is_mistral_setup and not ctx().debug) %>
+      - when: <% succeeded() and not (result().output.is_mistral_setup and result().output.is_st2_setup) and not ctx().debug %>
         do:
           - teardown_on_failure
   run_tests:
