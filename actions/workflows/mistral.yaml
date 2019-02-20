@@ -117,6 +117,8 @@ tasks:
         do:
           - merge_upstreams
       - when: <% succeeded() and (not ctx().merge_upstream or ctx().mis_repo_base = stackstorm) %>
+        publish:
+          - shas: <% result().output.shas %>
         do:
           - teardown
   merge_upstreams:
