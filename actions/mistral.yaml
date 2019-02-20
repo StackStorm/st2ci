@@ -38,7 +38,7 @@ parameters:
     default: master
   mis_repo_dir:
     type: string
-    default: /home/stanley
+    default: /mnt/repos
   mis_db_type:
     type: string
     default: postgresql
@@ -68,7 +68,7 @@ parameters:
     default: master
   st2_repo_dir:
     type: string
-    default: /home/stanley
+    default: /mnt/repos
   merge_upstream:
     type: boolean
     default: false

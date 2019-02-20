@@ -17,7 +17,7 @@ parameters:
     default: master
   repo_dir:
     type: string
-    default: /home/stanley
+    default: /mnt/repos
   debug:
     type: boolean
     default: false
