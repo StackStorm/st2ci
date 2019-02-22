@@ -50,7 +50,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - hosts: <% result().hosts %>
+          - hosts: <% result().output.hosts %>
         do:
           - setup
   setup:
@@ -75,19 +75,19 @@ tasks:
       st2_repo_dir: <% ctx().st2_repo_dir %>
       debug: <% ctx().debug %>
     next:
-      - when: <% succeeded() and (ctx().is_infra_setup) %>
+      - when: <% succeeded() and (result().output.is_mistral_setup) %>
         publish:
-          - is_infra_setup: <% result().is_mistral_setup and result().is_st2_setup %>
+          - is_infra_setup: <% result().output.is_mistral_setup and result().output.is_st2_setup %>
         do:
           - run_tests
-      - when: <% succeeded() and (not ctx().is_infra_setup and not ctx().debug) %>
+      - when: <% succeeded() and not (result().output.is_mistral_setup and result().output.is_st2_setup) and not ctx().debug %>
         do:
           - teardown_on_failure
   run_tests:
     action: core.remote
     input:
       hosts: <% ctx().hosts.get(test) %>
-      cwd: <% result().clones.get(st2) %>
+      cwd: <% task(setup).result.output.clones.get(st2) %>
       cmd: make mistral-itests 2>&1 | tee /tmp/mistral-itests-output.txt
       timeout: 3600
     next:
@@ -98,7 +98,7 @@ tasks:
     action: core.remote
     input:
       hosts: <% ctx().hosts.get(test) %>
-      cmd: . <% result().clones.get(mistral) %>/.venv/bin/activate && pip freeze
+      cmd: . <% task(setup).result.output.clones.get(mistral) %>/.venv/bin/activate && pip freeze
     next:
       - when: <% succeeded() %>
         publish:
@@ -109,14 +109,16 @@ tasks:
     action: st2ci.mistral_get_commit_shas
     input:
       host: <% ctx().hosts.get(test) %>
-      repos: <% result().clones %>
+      repos: <% task(setup).result.output.clones %>
     next:
       - when: <% succeeded() and (ctx().merge_upstream and ctx().mis_repo_base = openstack) %>
         publish:
-          - shas: <% result().shas %>
+          - shas: <% result().output.shas %>
         do:
           - merge_upstreams
       - when: <% succeeded() and (not ctx().merge_upstream or ctx().mis_repo_base = stackstorm) %>
+        publish:
+          - shas: <% result().output.shas %>
         do:
           - teardown
   merge_upstreams:
@@ -132,7 +134,7 @@ tasks:
     action: st2ci.mistral_teardown_infra
     input:
       host: <% ctx().hosts.get(test) %>
-      clones: <% result().clones %>
+      clones: <% task(setup).result.output.clones %>
       backup: false
     next:
       - when: <% succeeded() %>
@@ -145,7 +147,7 @@ tasks:
     action: st2ci.mistral_teardown_infra
     input:
       host: <% ctx().hosts.get(test) %>
-      clones: <% result().clones %>
+      clones: <% task(setup).result.output.clones %>
       backup: <% ctx().is_infra_setup %>
     next:
       - do:
