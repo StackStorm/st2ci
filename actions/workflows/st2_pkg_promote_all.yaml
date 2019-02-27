@@ -71,7 +71,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - promoted_st2: <% ctx().version + '-' + result().revision %>
+          - promoted_st2: <% ctx().version + '-' + result().output.revision %>
         do:
           - process_completion
       - when: <% failed() %>
@@ -87,7 +87,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - promoted_st2chatops: <% ctx().version + '-' + result().revision %>
+          - promoted_st2chatops: <% ctx().version + '-' + result().output.revision %>
         do:
           - process_completion
       - when: <% failed() %>
@@ -103,7 +103,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - promoted_st2mistral: <% ctx().version + '-' + result().revision %>
+          - promoted_st2mistral: <% ctx().version + '-' + result().output.revision %>
         do:
           - process_completion
       - when: <% failed() %>
@@ -119,7 +119,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - promoted_st2web: <% ctx().version + '-' + result().revision %>
+          - promoted_st2web: <% ctx().version + '-' + result().output.revision %>
         do:
           - process_completion
       - when: <% failed() %>
@@ -135,7 +135,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - promoted_st2flow: <% ctx().version + '-' + result().revision %>
+          - promoted_st2flow: <% ctx().version + '-' + result().output.revision %>
         do:
           - process_completion
       - when: <% failed() %>
