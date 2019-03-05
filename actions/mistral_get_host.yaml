@@ -8,7 +8,6 @@ parameters:
   host:
     type: string
     description: The name of the host
-    required: true
   type:
     type: string
     description: The hostname to lookup via dig
