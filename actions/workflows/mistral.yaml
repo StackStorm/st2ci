@@ -29,6 +29,9 @@ input:
       - '#stackstorm'
 vars:
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
+  - hosts: null
+  - shas: null
+  - deps: null
 output:
   - hosts: <% ctx().hosts %>
   - shas: <% ctx().shas %>
