@@ -53,14 +53,15 @@ tasks:
       - when: <% succeeded() %>
         do:
           - promote_all
+
+
   promote_all:
     next:
       - do:
+          # Due to bug https://github.com/StackStorm/orquesta/issues/112,
+          # these tasks do not properly join to process_completion when run
+          # in parallel, so we run them sequential.
           - promote_st2
-          - promote_st2chatops
-          - promote_st2mistral
-          - promote_st2web
-          - promote_st2flow
   promote_st2:
     action: st2ci.st2_pkg_promote
     input:
@@ -70,13 +71,10 @@ tasks:
       version: <% ctx().version %>
     next:
       - when: <% succeeded() %>
-        publish:
-          - promoted_st2: <% ctx().version + '-' + result().output.revision %>
-        do:
-          - process_completion
+        publish: promoted_st2=<% ctx().version + '-' + result().output.revision %>
+        do: promote_st2chatops
       - when: <% failed() %>
-        do:
-          - process_completion
+        do: promote_st2chatops
   promote_st2chatops:
     action: st2ci.st2_pkg_promote
     input:
@@ -86,13 +84,10 @@ tasks:
       version: <% ctx().version %>
     next:
       - when: <% succeeded() %>
-        publish:
-          - promoted_st2chatops: <% ctx().version + '-' + result().output.revision %>
-        do:
-          - process_completion
+        publish: promoted_st2chatops=<% ctx().version + '-' + result().output.revision %>
+        do: promote_st2mistral
       - when: <% failed() %>
-        do:
-          - process_completion
+        do: promote_st2mistral
   promote_st2mistral:
     action: st2ci.st2_pkg_promote
     input:
@@ -102,13 +97,10 @@ tasks:
       version: <% ctx().version %>
     next:
       - when: <% succeeded() %>
-        publish:
-          - promoted_st2mistral: <% ctx().version + '-' + result().output.revision %>
-        do:
-          - process_completion
+        publish: promoted_st2mistral=<% ctx().version + '-' + result().output.revision %>
+        do: promote_st2web
       - when: <% failed() %>
-        do:
-          - process_completion
+        do: promote_st2web
   promote_st2web:
     action: st2ci.st2_pkg_promote
     input:
@@ -118,13 +110,10 @@ tasks:
       version: <% ctx().version %>
     next:
       - when: <% succeeded() %>
-        publish:
-          - promoted_st2web: <% ctx().version + '-' + result().output.revision %>
-        do:
-          - process_completion
+        publish: promoted_st2web=<% ctx().version + '-' + result().output.revision %>
+        do: promote_st2flow
       - when: <% failed() %>
-        do:
-          - process_completion
+        do: promote_st2flow
   promote_st2flow:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -134,23 +123,21 @@ tasks:
       version: <% ctx().version %>
     next:
       - when: <% succeeded() %>
-        publish:
-          - promoted_st2flow: <% ctx().version + '-' + result().output.revision %>
-        do:
-          - process_completion
+        publish: promoted_st2flow=<% ctx().version + '-' + result().output.revision %>
+        do: process_completion
       - when: <% failed() %>
-        do:
-          - process_completion
+        do: process_completion
+
+
   process_completion:
     action: core.noop
-    join: all
     next:
       - when: <% succeeded() and (not ctx().promoted_st2 or not ctx().promoted_st2chatops or not ctx().promoted_st2mistral or not ctx().promoted_st2web or not ctx().promoted_st2flow) %>
-        do:
-          - set_notify_failure
+        do: set_notify_failure
       - when: <% succeeded() and (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2mistral and ctx().promoted_st2web and ctx().promoted_st2flow) %>
-        do:
-          - set_notify_success
+        do: set_notify_success
+
+
   set_notify_failure:
     action: core.noop
     next:
