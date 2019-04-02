@@ -215,6 +215,7 @@ tasks:
       pkg_list:
         - st2flow
         - st2-auth-ldap
+        - st2-rbac-backend
       version: <% ctx().upgrade_to_version %>
       distro: <% ctx().distro %>
       enterprise: true
@@ -229,6 +230,7 @@ tasks:
       pkg_list:
         - st2flow
         - st2-auth-ldap
+        - st2-rbac-backend
       version: <% ctx().upgrade_to_version %>
       distro: <% ctx().distro %>
       enterprise: true
