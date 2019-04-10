@@ -168,6 +168,10 @@ tasks:
     next:
       - when: <% succeeded() %>
         do: check_debug_mode
+      - when: <% failed() %>
+        publish:
+          - failed: True
+        do: cleanup
   check_debug_mode:
     action: core.noop
     next:
