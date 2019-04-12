@@ -12,12 +12,10 @@ input:
       unstable: "{{st2kv('system.enterprise_key_stg_unstable')}}"
   - pkg_env: staging
   - notify_channels:
-    - '#local_chatops_ci'
-    # - '#thunderdome'
+    - '#thunderdome'
   - notify_failure_channels:
-    - '#local_chatops_ci'
-    # - '#thunderdome'
-    # - '#stackstorm'
+    - '#thunderdome'
+    - '#stackstorm'
 vars:
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
 tasks:
