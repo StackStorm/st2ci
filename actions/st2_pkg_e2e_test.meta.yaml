@@ -66,6 +66,9 @@ parameters:
   dev_build:
     type: string
     description: Repo name + CircleCI build number ('st2/3126') to install artifacts from. Overrides version.
+  pr_num:
+    type: string
+    description: Github pull request number.
   initial_commit:
     type: string
     description: Git hash of an initial commit from st2 repo. If provided, the workflow will update status of this commit.

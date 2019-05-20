@@ -16,6 +16,7 @@ input:
   - release
   - version
   - dev_build
+  - pr_num
   - initial_commit
   - enterprise
   - enterprise_key
@@ -40,7 +41,7 @@ vars:
   - bootstrap_script_arg_dev_or_ver: <%
       switch(
         ctx().dev_build => "dev=" + ctx().dev_build,
-        not ctx().dev_build => "version=" + coalesce(ctx().version, '')) %> 
+        not ctx().dev_build => "version=" + coalesce(ctx().version, '')) %>
   - st2_username: st2admin
   - st2_password: Ch@ngeMe
   - github_status_org: StackStorm
@@ -68,7 +69,7 @@ tasks:
       - when: <% ctx().initial_commit != null %>
         do: set_github_status_pending
       - when: <% ctx().initial_commit = null %>
-        do: create_vm
+        do: cancel_old_builds_for_pr
   set_github_status_pending:
     action: github.add_status
     input:
@@ -81,8 +82,16 @@ tasks:
       target_url: <% ctx().github_status_url %>
     next:
       - when: <% succeeded() %>
-        do: create_vm
+        do: cancel_old_builds_for_pr
 
+  cancel_old_builds_for_pr:
+    action: st2ci.cancel_old_builds_for_pr
+    input:
+      build_num: <% ctx().dev_build %>
+      pr_num: <% ctx().pr_num %>
+    next:
+      - do:
+        - create_vm
   create_vm:
     action: st2cd.create_vm_role
     input:

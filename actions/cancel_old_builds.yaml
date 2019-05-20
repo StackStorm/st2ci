@@ -1,0 +1,15 @@
+---
+name: cancel_old_builds_for_pr
+description: Action which looks for old st2_pkg_e2e_test builds for a particular builds and cancel any old / existing build.
+enabled: true
+runner_type: python-script
+entry_point: cancel_old_builds_for_pr.py
+parameters:
+  build_num:
+    type: string
+    description: "Circle CI build number."
+    required: true
+  pr_num:
+    type: string
+    description: "Github pull request number"
+    required: true
