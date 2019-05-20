@@ -9,6 +9,11 @@ ACTION_REF = 'st2ci.st2_pkg_e2e_test'
 
 class CancelOldBuildsForPrAction(Action):
     def run(self, build_num, pr_num):
+        if not build_num or not pr_num:
+            self.logger.info('Skipping old build cancelation because pr num or build num is not '
+                             'set')
+            return
+
         build_num = int(build_num)
         pr_num = int(pr_num)
 
@@ -52,7 +57,9 @@ class CancelOldBuildsForPrAction(Action):
                 continue
 
             # Skip executions for other PRs
-            if pr_num != current_pr_num:
+            # Builds without pr_num set are not triggered as part of a PR build but via nightly
+            # builds or similar so we also skip those
+            if not pr_num or pr_num != current_pr_num:
                 continue
 
             # Execution is considered as old if build_num is < current build num
