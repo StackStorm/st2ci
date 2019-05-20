@@ -68,8 +68,12 @@ tasks:
     next:
       - when: <% ctx().initial_commit != null %>
         do: set_github_status_pending
-      - when: <% ctx().initial_commit = null %>
+      # NOTE: We skip cancelation of old builds for executions which are not triggered as part of
+      # PR builds (e.g. nightly package builds)
+      - when: <% ctx().initial_commit = null and ctx().pr_num %>
         do: cancel_old_builds_for_pr
+      - when: <% ctx().initial_commit = null and not ctx().pr_num %>
+        do: create_vm
   set_github_status_pending:
     action: github.add_status
     input:
@@ -81,8 +85,12 @@ tasks:
       description: E2E tests are running...
       target_url: <% ctx().github_status_url %>
     next:
-      - when: <% succeeded() %>
+      # NOTE: We skip cancelation of old builds for executions which are not triggered as part of
+      # PR builds (e.g. nightly package builds)
+      - when: <% succeeded() and ctx().pr_num %>
         do: cancel_old_builds_for_pr
+      - when: <% succeeded() and not ctx().pr_num  %>
+        do: create_vm
 
   cancel_old_builds_for_pr:
     action: st2ci.cancel_old_builds_for_pr
