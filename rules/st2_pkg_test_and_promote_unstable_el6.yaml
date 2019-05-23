@@ -8,7 +8,7 @@ trigger:
   type: core.st2.CronTimer
   parameters:
     timezone: US/Pacific
-    hour: 10
+    hour: 8
     minute: 0
     second: 0
 
