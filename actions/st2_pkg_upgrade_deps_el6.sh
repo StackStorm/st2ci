@@ -5,6 +5,8 @@ VERSION=$1
 ENTERPRISE=$2
 SHORT_VERSION=`echo ${VERSION} | cut -d "." -f1-2`
 
+sudo yum clean all
+
 if [ ${SHORT_VERSION} = "2.10" ] && [ ${ENTERPRISE} -eq 0 ]; then
     echo "Upgrading Node.js repositories"
     sudo sed -i.bak 's|^baseurl=\(https://rpm.nodesource.com\)/[^/]\{1,\}/\(.*\)$|baseurl=\1/pub_10.x/\2|g' /etc/yum.repos.d/nodesource-*.repo
