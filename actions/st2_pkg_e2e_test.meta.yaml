@@ -74,6 +74,9 @@ parameters:
     default: false
   enterprise_key:
     type: string
+  chatops:
+    type: boolean
+    default: false
   pkg_env:
     type: string
     enum:
