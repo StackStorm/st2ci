@@ -107,6 +107,7 @@ tasks:
         do: get_bootstrap_script
       - when: <% failed() %>
         publish:
+          - vm_id: <% result().output.get("vm_info", {}).get("id") %>
           - failed: True
         do: cleanup
   patch_rhel6:
@@ -224,6 +225,7 @@ tasks:
         do: run_e2e_tests
       - when: <% failed() %>
         publish:
+          - vm_windows_id: <% result().output.get("vm_info", {}).get("id") %>
           - failed: True
         do: cleanup
   run_e2e_tests:
