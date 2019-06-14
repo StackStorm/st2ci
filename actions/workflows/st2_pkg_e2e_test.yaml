@@ -19,6 +19,7 @@ input:
   - initial_commit
   - enterprise
   - enterprise_key
+  - chatops
   - pkg_env
   - bootstrap_branch
   - bootstrap_script
@@ -234,6 +235,7 @@ tasks:
       host_ip: <% ctx().vm_info.private_ip_address %>
       host_fqdn: <% ctx().vm_fqdn %>
       enterprise: <% ctx().enterprise %>
+      chatops: <% ctx().chatops %>
       version: <% ctx().version %>
       st2_username: <% ctx().st2_username %>
       st2_password: <% ctx().st2_password %>
