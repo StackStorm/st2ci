@@ -6,6 +6,7 @@ input:
   - release
   - version
   - keyfile
+  - chatops
   - debug
   - enterprise_keys:
       stable: "{{st2kv('system.enterprise_key_stg_stable')}}"
@@ -58,6 +59,7 @@ tasks:
       enterprise_key: <% ctx().enterprise_keys.get(ctx().release) %>
       pkg_env: <% ctx().pkg_env %>
       keyfile: <% ctx().keyfile %>
+      chatops: <% ctx().chatops %>
       debug: <% ctx().debug %>
     next:
       - when: <% succeeded() %>

@@ -31,6 +31,9 @@ parameters:
   keyfile:
     type: string
     default: /home/stanley/.ssh/stanley_rsa
+  chatops:
+    type: boolean
+    default: false
   debug:
     type: boolean
     default: false
