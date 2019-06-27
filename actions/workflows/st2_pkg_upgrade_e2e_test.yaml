@@ -17,6 +17,7 @@ input:
   - upgrade_to_version
   - enterprise
   - enterprise_key
+  - chatops
   - pkg_env
   - bootstrap_branch
   - bootstrap_script
@@ -299,6 +300,7 @@ tasks:
       host_fqdn: <% ctx().vm_fqdn %>
       version: <% ctx().upgrade_to_version %>
       enterprise: <% ctx().enterprise %>
+      chatops: <% ctx().chatops %>
       st2_username: <% ctx().st2_username %>
       st2_password: <% ctx().st2_password %>
       windows_host_ip: <% ctx().vm_windows_info.get(private_ip_address) %>
