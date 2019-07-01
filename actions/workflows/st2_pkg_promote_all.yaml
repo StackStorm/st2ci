@@ -18,6 +18,11 @@ input:
   - promoted_st2chatops: false
   - promoted_st2mistral: false
   - promoted_st2web: false
+  - mistral_supported_distros:
+    - RHEL6
+    - RHEL7
+    - UBUNTU14
+    - UBUNTU16
   - notify_channels:
       - '#thunderdome'
   - notify_failure_channels:
@@ -117,11 +122,10 @@ tasks:
   process_completion:
     action: core.noop
     next:
-      - when: <% succeeded() and (not ctx().promoted_st2 or not ctx().promoted_st2chatops or not ctx().promoted_st2mistral or not ctx().promoted_st2web) %>
+      - when: <% succeeded() and (not ctx().promoted_st2 or not ctx().promoted_st2chatops or not ctx().promoted_st2web or (not ctx().promoted_st2mistral and ctx().distro in ctx().mistral_supported_distros)) %>
         do: set_notify_failure
-      - when: <% succeeded() and (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2mistral and ctx().promoted_st2web) %>
+      - when: <% succeeded() and (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2web and (ctx().promoted_st2mistral or not ctx().distro in ctx().mistral_supported_distros)) %>
         do: set_notify_success
-
 
   set_notify_failure:
     action: core.noop
