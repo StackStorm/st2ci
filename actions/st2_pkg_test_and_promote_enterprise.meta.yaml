@@ -19,8 +19,7 @@ parameters:
       - RHEL7
       - UBUNTU14
       - UBUNTU16
-      # TODO: Uncomment when we support Bionic
-      #- UBUNTU18
+      - UBUNTU18
   release:
     type: string
     required: true
