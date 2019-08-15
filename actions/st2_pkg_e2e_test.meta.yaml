@@ -30,12 +30,6 @@ parameters:
   keyfile:
     type: string
     default: /home/stanley/.ssh/stanley_rsa
-  windows_key_name:
-    type: string
-    default: st2_deploy_windows
-  windows_keyfile:
-    type: string
-    default: /home/stanley/st2_deploy_windows.pem
   distro:
     type: string
     required: true
