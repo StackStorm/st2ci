@@ -7,8 +7,6 @@ input:
   - environment
   - key_name
   - keyfile
-  - windows_key_name
-  - windows_keyfile
   - distro
   - windows_distro
   - role
@@ -279,8 +277,6 @@ tasks:
       hostname: <% ctx().windows_hostname %>
       instance_type: <% ctx().instance_type %>
       environment: <% ctx().environment %>
-      key_name: <% ctx().windows_key_name %>
-      keyfile: <% ctx().windows_keyfile %>
       dns_zone: <% ctx().dns_zone %>
       distro: <% ctx().windows_distro %>
       role: <% ctx().role %>
