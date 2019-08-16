@@ -198,6 +198,7 @@ tasks:
               distro: <% result().output.distro %>
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
+              st2_version: <% result().output.versions.get("st2") %>
         do: create_vm_windows
       - when: <% failed() %>
         publish:
@@ -232,7 +233,10 @@ tasks:
       host_fqdn: <% ctx().vm_fqdn %>
       enterprise: <% ctx().enterprise %>
       chatops: <% ctx().chatops %>
-      version: <% ctx().version %>
+      version: <% switch(
+        ctx().version != null => ctx().version,
+        "dev" in ctx().installed.st2_version => ctx().version,
+        not "dev" in ctx().installed.st2_version => ctx().installed.st2_version) %>
       st2_username: <% ctx().st2_username %>
       st2_password: <% ctx().st2_password %>
       windows_host_ip: <% ctx().vm_windows_info.private_ip_address %>
