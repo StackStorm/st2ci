@@ -29,6 +29,8 @@ tasks:
       timeout: 180
     next:
       - when: <% succeeded() %>
+        publish:
+          - pkg_list: <% ctx().pkg_list.remove("st2mistral") %>
         do:
           - install_pkg
   upgrade_deps_el7:
