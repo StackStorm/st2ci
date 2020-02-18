@@ -51,3 +51,14 @@ result:
         download failed
       {%- endif -%}.
     {% endif %}
+    {% if 'download_el8' in execution.result.tasks|map(attribute='name') %}
+    *RHEL8*: {% if 'download_el8' in execution.result.tasks|map(attribute='name') -%}
+        {% if- (execution.result.tasks|selectattr("name", "equalto", "upload_el8")).next().result.succeeded -%}
+          success
+        {%- else -%}
+          upload failed
+        {%- endif -%}
+      {%- else -%}
+        download failed
+      {%- endif -%}.
+    {% endif %}

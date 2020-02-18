@@ -36,8 +36,10 @@ parameters:
     enum:
       - CENTOS6
       - CENTOS7
+      - CENTOS8
       - RHEL6
       - RHEL7
+      - RHEL8
       - UBUNTU14
       - UBUNTU16
       - UBUNTU18

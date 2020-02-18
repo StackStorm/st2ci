@@ -11,12 +11,28 @@ tasks:
   init:
     action: core.noop
     next:
+      - when: <% ctx().distro = 'CENTOS8' or ctx().distro = 'RHEL8' %>
+          do:
+            - upgrade_deps_el8
       - when: <% ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL7' %>
         do:
           - upgrade_deps_el7
       - when: <% ctx().distro = 'CENTOS6' or ctx().distro = 'RHEL6' %>
         do:
           - upgrade_deps_el6
+  upgrade_deps_el8:
+    action: st2ci.st2_pkg_upgrade_deps_el8
+    input:
+      hosts: <% ctx().host %>
+      version: <% ctx().version %>
+      enterprise: <% ctx().enterprise %>
+      timeout: 180
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - pkg_list: <% ctx().pkg_list.remove("st2mistral") %>
+        do:
+          - install_pkg
   upgrade_deps_el7:
     action: st2ci.st2_pkg_upgrade_deps_el7
     input:
