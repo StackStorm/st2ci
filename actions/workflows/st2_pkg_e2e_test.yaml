@@ -100,7 +100,10 @@ tasks:
           - vm_info: <% result().output.vm_info %>
           - vm_id: <% result().output.vm_info.id %>
         do: patch_rhel6
-      - when: <% succeeded() and (ctx().distro != 'RHEL6') %>
+      - when: <% succeeded() and (ctx().distro = 'RHEL8') %>
+        # https://developers.redhat.com/blog/2018/11/14/python-in-rhel-8
+        do: set_alternatives_python3
+      - when: <% succeeded() and not ctx().distro in ['RHEL6', 'RHEL8'] %>
         publish:
           - vm_info: <% result().output.vm_info %>
           - vm_id: <% result().output.vm_info.id %>
@@ -124,6 +127,14 @@ tasks:
       hosts: <% ctx().vm_info.private_ip_address %>
       cmd: yum install -y curl nss
       timeout: 180
+    next:
+      - when: <% succeeded() %>
+        do: get_bootstrap_script
+  set_alternatives_python3:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: alternatives --set python /usr/bin/python3
     next:
       - when: <% succeeded() %>
         do: get_bootstrap_script
