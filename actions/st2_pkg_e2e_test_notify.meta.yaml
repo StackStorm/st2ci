@@ -24,6 +24,8 @@ parameters:
     type: string
   release:
     type: string
+  st2tests_version:
+    type: string
   version:
     type: string
   bootstrap_script_url:

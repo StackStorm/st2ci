@@ -12,6 +12,7 @@ input:
   - windows_distro
   - role
   - release
+  - st2tests_version
   - version
   - dev_build
   - initial_commit
@@ -233,8 +234,9 @@ tasks:
       host_fqdn: <% ctx().vm_fqdn %>
       enterprise: <% ctx().enterprise %>
       chatops: <% ctx().chatops %>
-      version: <% switch(
-        ctx().version != null => ctx().version,
+      st2tests_version: <% switch(
+        ctx().st2tests_version => ctx().st2tests_version,  # Tests actual false-y value
+        ctx().version != null => ctx().version,  # Tests equality to string "null"
         "dev" in ctx().installed.st2_version => ctx().version,
         not "dev" in ctx().installed.st2_version => ctx().installed.st2_version) %>
       st2_username: <% ctx().st2_username %>
@@ -279,6 +281,7 @@ tasks:
       enterprise: <% ctx().enterprise %>
       pkg_env: <% ctx().pkg_env %>
       release: <% ctx().release %>
+      st2tests_version: <% ctx().st2tests_version %>
       version: <% ctx().version %>
       bootstrap_script_url: <% ctx().bootstrap_script_url %>
       installed: <% ctx().installed %>
