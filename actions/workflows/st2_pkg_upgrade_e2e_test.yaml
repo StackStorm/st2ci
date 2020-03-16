@@ -294,7 +294,7 @@ tasks:
     input:
       host_ip: <% ctx().vm_info.private_ip_address %>
       host_fqdn: <% ctx().vm_fqdn %>
-      version: <% ctx().upgrade_to_version %>
+      st2tests_version: <% ctx().upgrade_to_version %>
       enterprise: <% ctx().enterprise %>
       chatops: <% ctx().chatops %>
       st2_username: <% ctx().st2_username %>

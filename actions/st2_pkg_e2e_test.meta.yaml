@@ -57,6 +57,10 @@ parameters:
       - stable
       - unstable
     default: stable
+  st2tests_version:
+    type: string
+    required: false
+    default: null
   version:
     type: string
   dev_build:
