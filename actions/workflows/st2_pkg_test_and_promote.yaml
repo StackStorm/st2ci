@@ -7,6 +7,7 @@ input:
   - release
   - version
   - keyfile
+  - chatops
   - debug
   - pkg_env: staging
   - distro_to_distro_version_map:
@@ -70,6 +71,7 @@ tasks:
       version: <% ctx().version %>
       pkg_env: <% ctx().pkg_env %>
       keyfile: <% ctx().keyfile %>
+      chatops: <% ctx().chatops %>
       debug: <% ctx().debug %>
     next:
       - when: <% succeeded() %>
