@@ -1,0 +1,33 @@
+---
+name: run_all_nightlies
+pack: st2ci
+description: End to end test for st2 package
+enabled: true
+runner_type: orquesta
+entry_point: workflows/run_all_nightlies.yaml
+parameters:
+  st2tests_version:
+    type: string
+    required: false
+    default: null
+  chatops:
+    type: boolean
+    default: true
+  stable_st2_version:
+    type: string
+    default: '3.1.0'
+  enterprise_keys:
+    type: object
+    default:
+      stable: "{{st2kv('system.enterprise_key_stg_stable')}}"
+      unstable: "{{st2kv('system.enterprise_key_stg_unstable')}}"
+  keyfile:
+    type: string
+    default: /home/stanley/.ssh/stanley_rsa
+  debug:
+    type: boolean
+    default: false
+    description: When enabled, it wont delete the VM if workflow failed, leaving the machine alive for further debugging.
+  # triggering_commit_url:
+  #   type: string
+  #   description: Optional info on the commit that triggered the end to end test.
