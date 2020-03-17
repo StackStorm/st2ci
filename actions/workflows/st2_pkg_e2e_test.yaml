@@ -234,11 +234,12 @@ tasks:
       host_fqdn: <% ctx().vm_fqdn %>
       enterprise: <% ctx().enterprise %>
       chatops: <% ctx().chatops %>
-      st2tests_version: <% switch(
-        ctx().st2tests_version => ctx().st2tests_version,  # Tests actual false-y value
-        ctx().version != null => ctx().version,  # Tests equality to string "null"
-        "dev" in ctx().installed.st2_version => ctx().version,
-        not "dev" in ctx().installed.st2_version => ctx().installed.st2_version) %>
+      st2tests_version:
+        <% switch(
+          (ctx().st2tests_version)                   => ctx().st2tests_version,
+          (ctx().version != null)                    => ctx().version,
+          ("dev" in ctx().installed.st2_version)     => ctx().version,
+          (not "dev" in ctx().installed.st2_version) => ctx().installed.st2_version) %>
       st2_username: <% ctx().st2_username %>
       st2_password: <% ctx().st2_password %>
       windows_host_ip: <% ctx().vm_windows_info.private_ip_address %>
