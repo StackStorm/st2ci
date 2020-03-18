@@ -78,7 +78,7 @@ tasks:
       chatops: <% ctx().chatops %>
       debug: <% ctx().debug %>
       enterprise: true
-      enterprise_key: <% ctx().enterprise_keys.stable) %>
+      enterprise_key: <% ctx().enterprise_keys.stable %>
     next:
       - when: <% succeeded() %>
         do:
@@ -138,7 +138,7 @@ tasks:
       chatops: <% ctx().chatops %>
       debug: <% ctx().debug %>
       enterprise: true
-      enterprise_key: <% ctx().enterprise_keys.unstable) %>
+      enterprise_key: <% ctx().enterprise_keys.unstable %>
     next:
       - when: <% succeeded() %>
         do:

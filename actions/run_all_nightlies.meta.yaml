@@ -19,8 +19,8 @@ parameters:
   enterprise_keys:
     type: object
     default:
-      stable: "{{st2kv('system.enterprise_key_stg_stable')}}"
-      unstable: "{{st2kv('system.enterprise_key_stg_unstable')}}"
+      stable: "{{ st2kv.system.enterprise_key_prd_stable }}"
+      unstable: "{{ st2kv.system.enterprise_key_stg_unstable }}"
   keyfile:
     type: string
     default: /home/stanley/.ssh/stanley_rsa
