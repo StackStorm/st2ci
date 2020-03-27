@@ -17,9 +17,6 @@ tasks:
       - when: <% ctx().distro = 'UBUNTU16' %>
         do:
           - upgrade_deps_u16
-      - when: <% ctx().distro = 'UBUNTU14' %>
-        do:
-          - upgrade_deps_u14
   upgrade_deps_u18:
     action: st2ci.st2_pkg_upgrade_deps_u18
     input:
@@ -33,17 +30,6 @@ tasks:
           - install_pkg
   upgrade_deps_u16:
     action: st2ci.st2_pkg_upgrade_deps_u16
-    input:
-      hosts: <% ctx().host %>
-      version: <% ctx().version %>
-      enterprise: <% ctx().enterprise %>
-      timeout: 180
-    next:
-      - when: <% succeeded() %>
-        do:
-          - install_pkg
-  upgrade_deps_u14:
-    action: st2ci.st2_pkg_upgrade_deps_u14
     input:
       hosts: <% ctx().host %>
       version: <% ctx().version %>

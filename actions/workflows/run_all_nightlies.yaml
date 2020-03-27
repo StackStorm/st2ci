@@ -14,7 +14,6 @@ vars:
       RHEL6: el6
       RHEL7: el7
       RHEL8: el8
-      UBUNTU14: u14
       UBUNTU16: u16
       UBUNTU18: u18
 

@@ -18,7 +18,6 @@ parameters:
       - RHEL6
       - RHEL7
       - RHEL8
-      - UBUNTU14
       - UBUNTU16
       - UBUNTU18
   release:
