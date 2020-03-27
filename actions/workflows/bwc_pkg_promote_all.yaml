@@ -60,10 +60,11 @@ tasks:
   promote_all:
     next:
       - do:
-          # Due to bug https://github.com/StackStorm/orquesta/issues/112,
-          # these tasks do not properly join to process_completion when run
-          # in parallel, so we run them sequential.
           - promote_bwc_enterprise
+          - promote_st2_auth_ldap
+          - promote_st2_rbac_backend
+          - promote_st2flow
+          - promote_bwc_ui
   promote_bwc_enterprise:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -76,12 +77,12 @@ tasks:
         publish:
           - promoted_bwc_enterprise: <% ctx().version + '-' + result().output.revision %>
         do:
-          - promote_st2_auth_ldap
+          - process_completion
       - when: <% failed() %>
         publish:
           - promoted_bwc_enterprise: false
         do:
-          - promote_st2_auth_ldap
+          - process_completion
   promote_st2_auth_ldap:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -94,12 +95,12 @@ tasks:
         publish:
           - promoted_st2_auth_ldap: <% ctx().version + '-' + result().output.revision %>
         do:
-          - promote_st2_rbac_backend
+          - process_completion
       - when: <% failed() %>
         publish:
           - promoted_st2_auth_ldap: false
         do:
-          - promote_st2_rbac_backend
+          - process_completion
   promote_st2_rbac_backend:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -112,12 +113,12 @@ tasks:
         publish:
           - promoted_st2_rbac_backend: <% ctx().version + '-' + result().output.revision %>
         do:
-          - promote_st2flow
+          - process_completion
       - when: <% failed() %>
         publish:
           - promoted_st2_rbac_backend: false
         do:
-          - promote_st2flow
+          - process_completion
   promote_st2flow:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -130,12 +131,12 @@ tasks:
         publish:
           - promoted_st2flow: <% ctx().version + '-' + result().output.revision %>
         do:
-          - promote_bwc_ui
+          - process_completion
       - when: <% failed() %>
         publish:
           - promoted_st2flow: false
         do:
-          - promote_bwc_ui
+          - process_completion
   promote_bwc_ui:
     action: st2ci.st2_pkg_promote_enterprise
     input:
@@ -156,8 +157,8 @@ tasks:
           - process_completion
 
   process_completion:
+    join: all
     action: core.noop
-
     next:
       - when: <% succeeded() and     (ctx().promoted_bwc_enterprise and ctx().promoted_st2_auth_ldap and ctx().promoted_st2_rbac_backend and ctx().promoted_st2flow and ctx().promoted_bwc_ui) %>
         publish:
