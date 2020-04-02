@@ -14,13 +14,11 @@ input:
       RHEL6: el/6
       RHEL7: el/7
       RHEL8: el/8
-      UBUNTU14: ubuntu/trusty
       UBUNTU16: ubuntu/xenial
       UBUNTU18: ubuntu/bionic
   - mistral_supported_distros:
     - RHEL6
     - RHEL7
-    - UBUNTU14
     - UBUNTU16
   - promoted_st2: false
   - promoted_st2chatops: false
