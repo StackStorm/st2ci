@@ -45,7 +45,7 @@ vars:
     - '#thunderdome'
   - notify_failure_channels:
     - '#thunderdome'
-    - '#stackstorm'
+    - '#opstown'
 output:
   - versions: <% ctx().installed.versions %>
 tasks:
