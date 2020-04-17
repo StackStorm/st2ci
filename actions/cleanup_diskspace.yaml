@@ -1,0 +1,6 @@
+---
+  name: "cleanup_diskspace"
+  runner_type: "remote-shell-script"
+  description: "Attempts to clean up disk space."
+  enabled: true
+  entry_point: "cleanup_diskspace.sh"
