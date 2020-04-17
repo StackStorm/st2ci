@@ -175,6 +175,9 @@ tasks:
         do: cleanup
   cleanup_diskspace:
     action: st2ci.cleanup_diskspace
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      timeout: 600
     next:
       - when: <% succeeded() %>
         do: check_debug_mode
