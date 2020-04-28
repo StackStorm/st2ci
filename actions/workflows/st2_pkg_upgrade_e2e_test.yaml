@@ -171,9 +171,8 @@ tasks:
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
           # determine the list of packages to upgrade base on OS
-          # modern OSes (el8+, u18+) do not have mistral and that is our default
-          # we have exceptions for the "legacy" cases as they will drop off with time
-          - pkg_list: <% switch(ctx().distro.endsWith('6') => ctx().pkg_list_legacy, ctx().distro.endsWith('7') => ctx().pkg_list_legacy, true => ctx().pkg_list_modern)  %>
+          # modern OSes (el8+, u18+) do not have mistral
+          - pkg_list: <% switch(((ctx().distro = 'RHEL8') or (ctx().distro = 'CENTOS8')) => ctx().pkg_list_modern, ((ctx().distro = 'RHEL7') or (ctx().distro = 'CENTOS7')) => ctx().pkg_list_legacy, ((ctx().distro = 'RHEL6') or (ctx().distro = 'CENTOS6')) => ctx().pkg_list_legacy)  %>
         do:
           - upgrade_packages_rpm
       - when: <% succeeded() and ctx().distro.startsWith('UBUNTU') %>
@@ -182,7 +181,7 @@ tasks:
               distro: <% result().output.distro %>
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-          - pkg_list: <% switch(ctx().distro.endsWith('16') => ctx().pkg_list_legacy, true => ctx().pkg_list_modern) %>
+          - pkg_list: <% switch((ctx().distro = 'UBUNTU18') => ctx().pkg_list_modern, (ctx().distro = 'UBUNTU16') => ctx().pkg_list_legacy)  %>
         do:
           - upgrade_packages_deb
   upgrade_packages_rpm:
