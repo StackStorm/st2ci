@@ -12,8 +12,8 @@ tasks:
     action: core.noop
     next:
       - when: <% ctx().distro = 'CENTOS8' or ctx().distro = 'RHEL8' %>
-          do:
-            - upgrade_deps_el8
+        do:
+          - upgrade_deps_el8
       - when: <% ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL7' %>
         do:
           - upgrade_deps_el7
