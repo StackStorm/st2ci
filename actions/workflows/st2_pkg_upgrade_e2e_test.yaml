@@ -195,7 +195,11 @@ tasks:
       - when: <% succeeded() and (ctx().enterprise) %>
         do:
           - upgrade_enterprise_packages_rpm
-      - when: <% succeeded() and (not ctx().enterprise) %>
+      # skip model migration for modern OSes where st2mistral is not present
+      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'UBUNTU18') %>
+        do:
+          - post_migration_start
+      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'UBUNTU16') %>
         do:
           - migrate_models
   upgrade_packages_deb:
@@ -209,7 +213,11 @@ tasks:
       - when: <% succeeded() and (ctx().enterprise) %>
         do:
           - upgrade_enterprise_packages_deb
-      - when: <% succeeded() and (not ctx().enterprise) %>
+      # skip model migration for modern OSes where st2mistral is not present
+      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'RHEL8' or ctx().distro = 'CENTOS8') %>
+        do:
+          - post_migration_start
+      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'RHEL7' or ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL6' or ctx().distro = 'CENTOS6') %>
         do:
           - migrate_models
   upgrade_enterprise_packages_deb:
@@ -224,7 +232,11 @@ tasks:
       distro: <% ctx().distro %>
       enterprise: true
     next:
-      - when: <% succeeded() %>
+      # skip model migration for modern OSes where st2mistral is not present
+      - when: <% succeeded() and (ctx().distro = 'UBUNTU18') %>
+        do:
+          - post_migration_start
+      - when: <% succeeded() and (ctx().distro = 'UBUNTU16') %>
         do:
           - migrate_models
   upgrade_enterprise_packages_rpm:
@@ -239,7 +251,11 @@ tasks:
       distro: <% ctx().distro %>
       enterprise: true
     next:
-      - when: <% succeeded() %>
+      # skip model migration for modern OSes where st2mistral is not present
+      - when: <% succeeded() and (ctx().distro = 'RHEL8' or ctx().distro = 'CENTOS8') %>
+        do:
+          - post_migration_start
+      - when: <% succeeded() and (ctx().distro = 'RHEL7' or ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL6' or ctx().distro = 'CENTOS6') %>
         do:
           - migrate_models
   migrate_models:
