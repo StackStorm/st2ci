@@ -23,4 +23,4 @@ tasks:
     input:
       hosts: <% ctx().host %>
       cmd: sudo yum install -y <% ctx().pkg_name_with_revision %>
-      timeout: 360
+      timeout: 180
