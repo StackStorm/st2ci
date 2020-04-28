@@ -10,5 +10,3 @@ SHORT_VERSION=`echo ${VERSION} | cut -d "." -f1-2`
 #    echo "Upgrading dependencies for 2.4 community"
 #    exit 0
 #fi
-
-fi
