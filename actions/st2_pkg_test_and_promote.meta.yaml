@@ -15,7 +15,6 @@ parameters:
     type: string
     required: true
     enum:
-      - RHEL6
       - RHEL7
       - RHEL8
       - UBUNTU16

@@ -95,12 +95,7 @@ tasks:
       distro: pkg_<% ctx().distro %>
       role: <% ctx().role %>
     next:
-      - when: <% succeeded() and (ctx().distro = 'RHEL6') %>
-        publish:
-          - vm_info: <% result().output.vm_info %>
-          - vm_id: <% result().output.vm_info.id %>
-        do: patch_rhel6
-      - when: <% succeeded() and (ctx().distro != 'RHEL6') %>
+      - when: <% succeeded() %>
         publish:
           - vm_info: <% result().output.vm_info %>
           - vm_id: <% result().output.vm_info.id %>
@@ -110,23 +105,6 @@ tasks:
           - vm_id: <% result().output.get("vm_info", {}).get("id") %>
           - failed: True
         do: cleanup
-  patch_rhel6:
-    action: core.remote_sudo
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: yum-config-manager --enable rhui-REGION-rhel-server-releases-optional
-    next:
-      - when: <% succeeded() %>
-        do: patch_rhel6_curl
-  patch_rhel6_curl:
-    action: core.remote_sudo
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: yum install -y curl nss
-      timeout: 180
-    next:
-      - when: <% succeeded() %>
-        do: get_bootstrap_script
   get_bootstrap_script:
     action: core.remote_sudo
     input:

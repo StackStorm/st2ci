@@ -77,35 +77,10 @@ tasks:
       distro: pkg_<% ctx().distro %>
       role: <% ctx().role %>
     next:
-      - when: <% succeeded() and ctx().distro = 'RHEL6' %>
+      - when: <% succeeded() %>
         publish:
           - vm_info: <% result().output.vm_info %>
           - vm_id: <% result().output.vm_info.id %>
-        do:
-          - patch_rhel6
-      - when: <% succeeded() and ctx().distro != 'RHEL6' %>
-        publish:
-          - vm_info: <% result().output.vm_info %>
-          - vm_id: <% result().output.vm_info.id %>
-        do:
-          - get_bootstrap_script
-  patch_rhel6:
-    action: core.remote_sudo
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: yum-config-manager --enable rhui-REGION-rhel-server-releases-optional
-    next:
-      - when: <% succeeded() %>
-        do:
-          - patch_rhel6_curl
-  patch_rhel6_curl:
-    action: core.remote_sudo
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: yum install -y curl nss
-      timeout: 180
-    next:
-      - when: <% succeeded() %>
         do:
           - get_bootstrap_script
   get_bootstrap_script:
@@ -172,7 +147,7 @@ tasks:
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
           # determine the list of packages to upgrade base on OS
           # modern OSes (el8+, u18+) do not have mistral
-          - pkg_list: <% switch(((ctx().distro = 'RHEL8') or (ctx().distro = 'CENTOS8')) => ctx().pkg_list_modern, ((ctx().distro = 'RHEL7') or (ctx().distro = 'CENTOS7')) => ctx().pkg_list_legacy, ((ctx().distro = 'RHEL6') or (ctx().distro = 'CENTOS6')) => ctx().pkg_list_legacy)  %>
+          - pkg_list: <% switch(((ctx().distro = 'RHEL8') or (ctx().distro = 'CENTOS8')) => ctx().pkg_list_modern, ((ctx().distro = 'RHEL7') or (ctx().distro = 'CENTOS7')) => ctx().pkg_list_legacy)  %>
         do:
           - upgrade_packages_rpm
       - when: <% succeeded() and ctx().distro.startsWith('UBUNTU') %>
@@ -199,7 +174,7 @@ tasks:
       - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'RHEL8' or ctx().distro = 'CENTOS8') %>
         do:
           - post_migration_start
-      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'RHEL7' or ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL6' or ctx().distro = 'CENTOS6') %>
+      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'RHEL7' or ctx().distro = 'CENTOS7' ) %>
         do:
           - migrate_models
   upgrade_packages_deb:
@@ -255,7 +230,7 @@ tasks:
       - when: <% succeeded() and (ctx().distro = 'RHEL8' or ctx().distro = 'CENTOS8') %>
         do:
           - post_migration_start
-      - when: <% succeeded() and (ctx().distro = 'RHEL7' or ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL6' or ctx().distro = 'CENTOS6') %>
+      - when: <% succeeded() and (ctx().distro = 'RHEL7' or ctx().distro = 'CENTOS7' ) %>
         do:
           - migrate_models
   migrate_models:

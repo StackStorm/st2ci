@@ -6,7 +6,7 @@ formats:
   - display: "promote [deb|rpm] of [package] [version]-[revision] to [stable|unstable|enterprise|enterprise-unstable]"
     representation:
     - "promote {{os}} of {{package}} {{version}}-{{revision}} to {{repo}}"
-  - display: "promote [package] [version]-[revision] for [trusty|xenial|el6|el7] to [stable|unstable|enterprise|enterprise-unstable]"
+  - display: "promote [package] [version]-[revision] for [trusty|xenial|el7|el8] to [stable|unstable|enterprise|enterprise-unstable]"
     representation:
     - "promote {{package}} {{version}}-{{revision}} for {{os}} to {{repo}}"
   - display: "promote [package] [version]-[revision] to [stable|unstable|enterprise|enterprise-unstable]"
@@ -21,17 +21,6 @@ result:
     {% if 'download_trusty' in execution.result.tasks|map(attribute='name') %}
     *Trusty*: {% if 'upload_trusty' in execution.result.tasks|map(attribute='name') -%}
         {% if- (execution.result.tasks|selectattr("name", "equalto", "upload_trusty")).next().result.succeeded -%}
-          success
-        {%- else -%}
-          upload failed
-        {%- endif -%}
-      {%- else -%}
-        download failed
-      {%- endif -%}.
-    {% endif %}
-    {% if 'download_el6' in execution.result.tasks|map(attribute='name') %}
-    *RHEL6*: {% if 'upload_el6' in execution.result.tasks|map(attribute='name') -%}
-        {% if- (execution.result.tasks|selectattr("name", "equalto", "upload_el6")).next().result.succeeded -%}
           success
         {%- else -%}
           upload failed

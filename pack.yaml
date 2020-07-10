@@ -2,6 +2,6 @@
 ---
 name : st2ci
 description : StackStorm CI pipeline automations
-version : 0.1.0
+version : 0.1.1
 author : st2-dev
 email : info@stackstorm.com
