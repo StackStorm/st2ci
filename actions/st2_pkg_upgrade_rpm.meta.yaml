@@ -22,10 +22,8 @@ parameters:
     type: string
     required: true
     enum:
-      - CENTOS6
       - CENTOS7
       - CENTOS8
-      - RHEL6
       - RHEL7
       - RHEL8
   enterprise:

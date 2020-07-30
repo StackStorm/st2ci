@@ -9,7 +9,6 @@ input:
       unstable: "{{st2kv('system.enterprise_key_stg_unstable')}}"
   - pkg_env: staging
   - distro_to_distro_version_map:
-      RHEL6: el/6
       RHEL7: el/7
       RHEL8: el/8
       UBUNTU16: ubuntu/xenial
@@ -19,7 +18,6 @@ input:
   - promoted_st2mistral: false
   - promoted_st2web: false
   - mistral_supported_distros:
-    - RHEL6
     - RHEL7
     - UBUNTU16
   - notify_channels:

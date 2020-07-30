@@ -29,8 +29,8 @@ parameters:
     - trusty
     - xenial
     - bionic
-    - el6
     - el7
+    - el8
     - deb
     - rpm
     - all

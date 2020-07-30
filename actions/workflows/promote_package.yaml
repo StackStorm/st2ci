@@ -13,7 +13,7 @@ tasks:
   init:
     action: core.local
     input:
-      cmd: mkdir -p /tmp/st2-up/{ubuntu/trusty,ubuntu/xenial,ubuntu/bionic,el/6,el/7}
+      cmd: mkdir -p /tmp/st2-up/{ubuntu/trusty,ubuntu/xenial,ubuntu/bionic,el/7,el/8}
     next:
       - when: <% succeeded() and (ctx().os in list('all', 'deb', 'trusty')) %>
         publish:
@@ -36,13 +36,6 @@ tasks:
           - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
         do:
           - download_bionic
-      - when: <% succeeded() and (ctx().os in list('all', 'rpm', 'el6')) %>
-        publish:
-          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
-          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
-          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
-        do:
-          - download_el6
       - when: <% succeeded() and (ctx().os in list('all', 'rpm', 'el7')) %>
         publish:
           - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
@@ -50,6 +43,13 @@ tasks:
           - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
         do:
           - download_el7
+      - when: <% succeeded() and (ctx().os in list('all', 'rpm', 'el8')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'enterprise' and 'enterprise-staging' or ctx().repo = 'enterprise-unstable' and 'enterprise-staging-unstable' or ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
+        do:
+          - download_el8
 
   download_trusty:
     action: core.local
@@ -96,21 +96,6 @@ tasks:
       cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/ubuntu/bionic /tmp/st2-up/ubuntu/bionic/<% ctx().deb %>
       timeout: <% ctx().timeout %>
 
-  download_el6:
-    action: core.local
-    input:
-      cmd: wget -O /tmp/st2-up/el/6/<% ctx().rpm %> https://packagecloud.io/StackStorm/<% ctx().source %>/el/6/x86_64/<% ctx().rpm %>
-      timeout: <% ctx().timeout %>
-    next:
-      - when: <% succeeded() %>
-        do:
-          - upload_el6
-  upload_el6:
-    action: core.local
-    input:
-      cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/el/6 /tmp/st2-up/el/6/<% ctx().rpm %>
-      timeout: <% ctx().timeout %>
-
   download_el7:
     action: core.local
     input:
@@ -124,4 +109,19 @@ tasks:
     action: core.local
     input:
       cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/el/7 /tmp/st2-up/el/7/<% ctx().rpm %>
+      timeout: <% ctx().timeout %>
+
+  download_el8:
+    action: core.local
+    input:
+      cmd: wget -O /tmp/st2-up/el/8/<% ctx().rpm %> https://packagecloud.io/StackStorm/<% ctx().source %>/el/8/x86_64/<% ctx().rpm %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - upload_el8
+  upload_el8:
+    action: core.local
+    input:
+      cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/el/8 /tmp/st2-up/el/8/<% ctx().rpm %>
       timeout: <% ctx().timeout %>

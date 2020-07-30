@@ -16,7 +16,7 @@ parameters:
   instance_type:
     type: string
     # There is no AMI which supports new C5 instance size for those distros
-    default: '{% if distro in ["CENTOS6", "RHEL6", "RHEL7"] %}c4.large{% else %}c5.large{% endif %}'
+    default: '{% if distro in ["RHEL7"] %}c4.large{% else %}c5.large{% endif %}'
   environment:
     type: string
     enum:
@@ -34,10 +34,8 @@ parameters:
     type: string
     required: true
     enum:
-      - CENTOS6
       - CENTOS7
       - CENTOS8
-      - RHEL6
       - RHEL7
       - RHEL8
       - UBUNTU16
