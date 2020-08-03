@@ -20,7 +20,3 @@ if [[ -d "${ST2_LOG_DIR}" ]]; then
     echo "Backing up st2 logs..."
     cp ${ST2_LOG_DIR}/*.log ${BACKUP_PATH}
 fi
-
-# Stop services to clear locks so the backup steps below can run.
-${ST2_REPO}/tools/launchdev.sh stop
-sleep 3
