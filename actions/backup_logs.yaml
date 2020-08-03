@@ -9,28 +9,19 @@
       type: string
       description: Action execution ID for reference.
       position: 0
-    mis_repo_dir:
-      type: string
-      description: Location of the local mistral repo.
-      position: 1
-    mis_log_dir:
-      type: string
-      description: Location of mistral logs.
-      position: 2
-      default: /var/log
     st2_repo_dir:
       type: string
       description: Location of the local st2 repo.
-      position: 3
+      position: 1
     st2_log_dir:
       type: string
       description: Location of st2 logs.
-      position: 4
+      position: 2
       default: /var/log/st2
     backup_dir:
       type: string
       description: Location where to backup logs.
-      position: 5
+      position: 3
       default: /home/stanley/logs
     dir:
       immutable: true

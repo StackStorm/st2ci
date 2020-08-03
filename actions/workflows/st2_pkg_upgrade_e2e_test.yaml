@@ -46,12 +46,7 @@ vars:
   - notify_failure_channels:
     - '#thunderdome'
     - '#opstown'
-  - pkg_list_legacy:
-    - st2
-    - st2mistral
-    - st2chatops
-    - st2web
-  - pkg_list_modern:
+  - pkg_list:
     - st2
     - st2chatops
     - st2web
@@ -145,9 +140,6 @@ tasks:
               distro: <% result().output.distro %>
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-          # determine the list of packages to upgrade base on OS
-          # modern OSes (el8+, u18+) do not have mistral
-          - pkg_list: <% switch(((ctx().distro = 'RHEL8') or (ctx().distro = 'CENTOS8')) => ctx().pkg_list_modern, ((ctx().distro = 'RHEL7') or (ctx().distro = 'CENTOS7')) => ctx().pkg_list_legacy)  %>
         do:
           - upgrade_packages_rpm
       - when: <% succeeded() and ctx().distro.startsWith('UBUNTU') %>
@@ -156,7 +148,6 @@ tasks:
               distro: <% result().output.distro %>
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-          - pkg_list: <% switch((ctx().distro = 'UBUNTU18') => ctx().pkg_list_modern, (ctx().distro = 'UBUNTU16') => ctx().pkg_list_legacy)  %>
         do:
           - upgrade_packages_deb
   upgrade_packages_rpm:
@@ -170,13 +161,9 @@ tasks:
       - when: <% succeeded() and (ctx().enterprise) %>
         do:
           - upgrade_enterprise_packages_rpm
-      # skip model migration for modern OSes where st2mistral is not present
-      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'RHEL8' or ctx().distro = 'CENTOS8') %>
+      - when: <% succeeded() and (not ctx().enterprise) %>
         do:
           - post_migration_start
-      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'RHEL7' or ctx().distro = 'CENTOS7' ) %>
-        do:
-          - migrate_models
   upgrade_packages_deb:
     action: st2ci.st2_pkg_upgrade_deb
     input:
@@ -188,13 +175,9 @@ tasks:
       - when: <% succeeded() and (ctx().enterprise) %>
         do:
           - upgrade_enterprise_packages_deb
-      # skip model migration for modern OSes where st2mistral is not present
-      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'UBUNTU18') %>
+      - when: <% succeeded() and (not ctx().enterprise) %>
         do:
           - post_migration_start
-      - when: <% succeeded() and (not ctx().enterprise) and (ctx().distro = 'UBUNTU16') %>
-        do:
-          - migrate_models
   upgrade_enterprise_packages_deb:
     action: st2ci.st2_pkg_upgrade_deb
     input:
@@ -207,13 +190,9 @@ tasks:
       distro: <% ctx().distro %>
       enterprise: true
     next:
-      # skip model migration for modern OSes where st2mistral is not present
-      - when: <% succeeded() and (ctx().distro = 'UBUNTU18') %>
+      - when: <% succeeded()  %>
         do:
           - post_migration_start
-      - when: <% succeeded() and (ctx().distro = 'UBUNTU16') %>
-        do:
-          - migrate_models
   upgrade_enterprise_packages_rpm:
     action: st2ci.st2_pkg_upgrade_rpm
     input:
@@ -226,22 +205,7 @@ tasks:
       distro: <% ctx().distro %>
       enterprise: true
     next:
-      # skip model migration for modern OSes where st2mistral is not present
-      - when: <% succeeded() and (ctx().distro = 'RHEL8' or ctx().distro = 'CENTOS8') %>
-        do:
-          - post_migration_start
-      - when: <% succeeded() and (ctx().distro = 'RHEL7' or ctx().distro = 'CENTOS7' ) %>
-        do:
-          - migrate_models
-  migrate_models:
-    action: st2cd.st2_perform_migrations
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      from: <% ctx().upgrade_from_version %>
-      to: <% ctx().upgrade_to_version %>
-      timeout: 180
-    next:
-      - when: <% succeeded() %>
+      - when: <% succeeded()  %>
         do:
           - post_migration_start
   post_migration_start:
