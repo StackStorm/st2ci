@@ -15,12 +15,8 @@ input:
       RHEL8: el/8
       UBUNTU16: ubuntu/xenial
       UBUNTU18: ubuntu/bionic
-  - mistral_supported_distros:
-    - RHEL7
-    - UBUNTU16
   - promoted_st2: false
   - promoted_st2chatops: false
-  - promoted_st2mistral: false
   - promoted_st2web: false
   - notify_channels:
     - '#thunderdome'
@@ -102,30 +98,6 @@ tasks:
       - when: <% succeeded() %>
         publish:
           - promoted_st2chatops: <% ctx().versions.get(st2chatops) %>
-        do: decide_promote_st2mistral
-      - when: <% failed() %>
-        do: decide_promote_st2mistral
-  decide_promote_st2mistral:
-    action: core.noop
-    next:
-      - when: <% ctx().distro in ctx().mistral_supported_distros %>
-        do: promote_st2mistral
-      - when: <% not ctx().distro in ctx().mistral_supported_distros %>
-        publish:
-          - promoted_st2mistral: true
-        do: promote_st2web
-  promote_st2mistral:
-    action: st2ci.st2_pkg_promote
-    input:
-      package: st2mistral
-      distro_version: <% ctx().pkg_distro_version %>
-      release: <% ctx().release %>
-      version: <% ctx().versions.get(st2mistral).split("-")[0] %>
-      revision: <% ctx().versions.get(st2mistral).split("-")[1] %>
-    next:
-      - when: <% succeeded() %>
-        publish:
-          - promoted_st2mistral: <% ctx().versions.get(st2mistral) %>
         do: promote_st2web
       - when: <% failed() %>
         do: promote_st2web
@@ -148,9 +120,9 @@ tasks:
   process_completion:
     action: core.noop
     next:
-      - when: <% succeeded() and (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2mistral and ctx().promoted_st2web) %>
+      - when: <% succeeded() and (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2web) %>
         do: set_notify_success
-      - when: <% succeeded() and not (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2mistral and ctx().promoted_st2web) %>
+      - when: <% succeeded() and not (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2web) %>
         do: set_notify_failure
 
   set_notify_failure:
@@ -177,7 +149,7 @@ tasks:
     input:
       channel: <% item(channel) %>
       text: 'st2ci.st2_pkg_test_and_promote: COMPLETED'
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote: COMPLETED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION TESTED:\\n\\t<% ctx().version_str %>\\nPACKAGE PROMOTED:\\n\\tst2=<% ctx().promoted_st2 %>\\n\\tst2chatops=<% ctx().promoted_st2chatops %>\\n\\tst2mistral=<% ctx().promoted_st2mistral %>\\n\\tst2web=<% ctx().promoted_st2web %>\", \"color\": \"<% ctx().notify_color %>\"}]"
+      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_test_and_promote: COMPLETED]\", \"title\": \"[st2ci.st2_pkg_test_and_promote: COMPLETED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"HOSTNAME: <% coalesce(ctx().hostname, \"unspecified\") %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION TESTED:\\n\\t<% ctx().version_str %>\\nPACKAGE PROMOTED:\\n\\tst2=<% ctx().promoted_st2 %>\\n\\tst2chatops=<% ctx().promoted_st2chatops %>\\n\\tst2web=<% ctx().promoted_st2web %>\", \"color\": \"<% ctx().notify_color %>\"}]"
 
   notify_failure:
     with: channel in <% ctx().notify_failure_channels %>
