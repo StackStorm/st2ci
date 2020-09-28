@@ -2,7 +2,7 @@
 name: st2_pkg_test_and_promote_unstable_u18_enterprise
 pack: st2ci
 description: Test and promote unstable packages
-enabled: true
+enabled: false
 
 trigger:
   type: core.st2.CronTimer

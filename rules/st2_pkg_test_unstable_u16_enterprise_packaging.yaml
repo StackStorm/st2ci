@@ -1,7 +1,7 @@
 name: st2_pkg_test_unstable_u16_enterprise_packaging
 description: Run package tests on st2-packages package build
 pack: st2ci
-enabled: true
+enabled: false
 
 trigger:
     type: circle_ci.build_event
