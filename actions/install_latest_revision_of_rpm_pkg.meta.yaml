@@ -11,6 +11,14 @@ parameters:
     required: true
     description: >
       Host on which upgrade should be performed
+  distro:
+    type: string
+    required: true
+    enum:
+      - CENTOS7
+      - CENTOS8
+      - RHEL7
+      - RHEL8
   pkg:
     type: string
     required: true
