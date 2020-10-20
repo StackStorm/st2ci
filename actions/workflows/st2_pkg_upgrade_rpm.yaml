@@ -50,5 +50,6 @@ tasks:
     action: st2ci.install_latest_revision_of_rpm_pkg
     input:
       host: <% ctx().host %>
+      distro: <% ctx().distro %>
       pkg: <% item() %>
       version: <% ctx().version %>

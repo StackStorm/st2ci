@@ -3,14 +3,36 @@ version: '1.0'
 description: Install latest revision of a specified rpm package
 input:
   - host
+  - distro
   - pkg
   - version
+
+vars:
+  - repoquery_args: ''
+
 tasks:
+  init:
+    action: core.noop
+    next:
+      - when: <% ctx().distro = 'CENTOS8' or ctx().distro = 'RHEL8' %>
+        # Run repoqery -y option in EL8 to do the following:
+        #  - import any GPG keys from new repos
+        #  - import any SSL certificates from new repos
+        publish:
+          - repoquery_args: '-y'
+        do:
+          - get_latest_revision
+      - when: <% ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL7' %>
+        do:
+          - get_latest_revision
+
   get_latest_revision:
     action: core.remote
     input:
       hosts: <% ctx().host %>
-      cmd: sudo repoquery -y --show-duplicates <% ctx().pkg %>-<% ctx().version %>* | sort --version-sort | tail -n 1
+      # repoquery needs to be run with sudo so that it can import GPG keys and SSL certificates
+      # into the system locations, and the subsequent yum/rpm commands can succeed
+      cmd: sudo repoquery <% ctx().repoquery_args %> --show-duplicates <% ctx().pkg %>-<% ctx().version %>* | sort --version-sort | tail -n 1
       timeout: 120
     next:
       - when: <% succeeded() %>
@@ -18,6 +40,7 @@ tasks:
           - pkg_name_with_revision: <% result().get(ctx().host).stdout %>
         do:
           - upgrade_pkg_via_yum
+
   upgrade_pkg_via_yum:
     action: core.remote
     input:
