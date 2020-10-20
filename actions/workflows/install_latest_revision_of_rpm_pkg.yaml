@@ -10,8 +10,8 @@ tasks:
     action: core.remote
     input:
       hosts: <% ctx().host %>
-      cmd: repoquery --show-duplicates <% ctx().pkg %>-<% ctx().version %>* | sort --version-sort | tail -n 1
-      timeout:
+      cmd: repoquery -y --show-duplicates <% ctx().pkg %>-<% ctx().version %>* | sort --version-sort | tail -n 1
+      timeout: 120
     next:
       - when: <% succeeded() %>
         publish:
@@ -24,3 +24,4 @@ tasks:
       hosts: <% ctx().host %>
       cmd: sudo yum install -y <% ctx().pkg_name_with_revision %>
       timeout: 180
+
