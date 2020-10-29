@@ -158,6 +158,32 @@ tasks:
       timeout: 600
     next:
       - when: <% succeeded() %>
+        do: check_for_ubuntu_xenial
+  check_for_ubuntu_xenial:
+    action: core.remote
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: grep 'Ubuntu 16' /etc/issue
+    next:
+      - when: <% succeeded() %>
+        do: install_python36
+      - when: <% failed() %>
+        do: check_debug_mode
+  install_python36:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: |-
+        python3 --version
+        add-apt-repository ppa:deadsnakes/ppa --yes
+        apt-get update
+        apt-get install --yes python3.6
+        patch /etc/st2/st2.conf <<EOF
+        23a24
+        > python3_binary = /usr/bin/python3.6
+        EOF
+    next:
+      - when: <% succeeded() %>
         do: check_debug_mode
   check_debug_mode:
     action: core.noop
