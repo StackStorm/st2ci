@@ -9,8 +9,6 @@ input:
   - debug
 
 vars:
-  - destroy_vm_retries: 0
-  - destroy_win_vm_retries: 0
   - failed: False
 
 output:
@@ -32,27 +30,29 @@ tasks:
         do: destroy_win_vm
 
   destroy_vm:
-    delay: 30
+    retry:
+      count: 2
+      delay: 30
     action: st2cd.destroy_vm
     input:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
     next:
-      - when: <% failed() and ctx().destroy_vm_retries >= 2 %>
+      - when: <% failed() %>
         publish: failed=True
-      - when: <% failed() and ctx().destroy_vm_retries < 2 %>
-        publish: destroy_vm_retries=<% ctx().destroy_vm_retries + 1 %>
-        do: destroy_vm
 
   destroy_win_vm:
-    delay: 30
+    retry:
+      count: 2
+      delay: 30
     action: st2cd.destroy_vm
     input:
       hostname: <% ctx().win_hostname %>
       instance_id: <% ctx().win_vm_id %>
     next:
-      - when: <% failed() and ctx().destroy_win_vm_retries >= 2 %> 
+      - when: <% failed() %>
         publish: failed=True
-      - when: <% failed() and ctx().destroy_win_vm_retries < 2 %>
-        publish: destroy_win_vm_retries=<% ctx().destroy_win_vm_retries + 1 %>
-        do: destroy_win_vm
+
+# This workflow intentionally has two final, parallel tasks, destroy_vm and
+# destroy_win_vm to test that Orquesta correctly detects this and only
+# completes the workflow when both tasks have completed.
