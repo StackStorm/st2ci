@@ -30,6 +30,7 @@ vars:
   - vm_windows_id:
   - vm_fqdn: <% ctx().hostname %>.<% ctx().dns_zone %>
   - vm_info:
+  - ubuntu_variant: ""
   - windows_hostname: <% ctx().hostname %>win
   - vm_windows_fqdn: <% ctx().hostname %>win.<% ctx().dns_zone %>
   - installed:
@@ -99,12 +100,38 @@ tasks:
         publish:
           - vm_info: <% result().output.vm_info %>
           - vm_id: <% result().output.vm_info.id %>
-        do: get_bootstrap_script
+        do: check_for_ubuntu_xenial
       - when: <% failed() %>
         publish:
           - vm_id: <% result().output.get("vm_info", {}).get("id") %>
           - failed: True
         do: cleanup
+  check_for_ubuntu_xenial:
+    action: core.remote
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: cat /etc/issue
+    next:
+      - when: <% succeeded() and "Ubuntu 16" in result().get(ctx().vm_info.private_ip_address).stdout %>
+        publish:
+          - ubuntu_variant: "Ubuntu 16"
+        do: add_deadsnakes_ppa
+      - when: <% succeeded() and not "Ubuntu 16" in result().get(ctx().vm_info.private_ip_address).stdout %>
+        do: get_bootstrap_script
+      - when: <% failed() %>
+        do: check_debug_mode
+  add_deadsnakes_ppa:
+    action: core.remote_sudo
+    input:
+      hosts: <% ctx().vm_info.private_ip_address %>
+      cmd: |-
+        python3 --version
+        add-apt-repository ppa:deadsnakes/ppa --yes
+        apt-get update
+        apt-get install --yes python3.6
+    next:
+      - when: <% succeeded() %>
+        do: get_bootstrap_script
   get_bootstrap_script:
     action: core.remote_sudo
     input:
@@ -156,32 +183,6 @@ tasks:
     input:
       hosts: <% ctx().vm_info.private_ip_address %>
       timeout: 600
-    next:
-      - when: <% succeeded() %>
-        do: check_for_ubuntu_xenial
-  check_for_ubuntu_xenial:
-    action: core.remote
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: grep 'Ubuntu 16' /etc/issue
-    next:
-      - when: <% succeeded() %>
-        do: install_python36
-      - when: <% failed() %>
-        do: check_debug_mode
-  install_python36:
-    action: core.remote_sudo
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: |-
-        python3 --version
-        add-apt-repository ppa:deadsnakes/ppa --yes
-        apt-get update
-        apt-get install --yes python3.6
-        patch /etc/st2/st2.conf <<EOF
-        23a24
-        > python3_binary = /usr/bin/python3.6
-        EOF
     next:
       - when: <% succeeded() %>
         do: check_debug_mode
