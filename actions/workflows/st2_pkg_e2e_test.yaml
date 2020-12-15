@@ -30,13 +30,13 @@ vars:
   - vm_windows_id:
   - vm_fqdn: <% ctx().hostname %>.<% ctx().dns_zone %>
   - vm_info:
-  - ubuntu_variant: ""
   - windows_hostname: <% ctx().hostname %>win
   - vm_windows_fqdn: <% ctx().hostname %>win.<% ctx().dns_zone %>
   - installed:
       distro:
       versions:
       version_str: not installed
+  - pipe_into_bootstrap_script: ""
   - bootstrap_script_url: <% coalesce(ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
   - bootstrap_script_arg_dev_or_ver: <%
       switch(
@@ -114,24 +114,12 @@ tasks:
     next:
       - when: <% succeeded() and "Ubuntu 16" in result().get(ctx().vm_info.private_ip_address).stdout %>
         publish:
-          - ubuntu_variant: "Ubuntu 16"
-        do: add_deadsnakes_ppa
+          - pipe_into_bootstrap_script: "echo 'y'"
+        do: get_bootstrap_script
       - when: <% succeeded() and not "Ubuntu 16" in result().get(ctx().vm_info.private_ip_address).stdout %>
         do: get_bootstrap_script
       - when: <% failed() %>
         do: check_debug_mode
-  add_deadsnakes_ppa:
-    action: core.remote_sudo
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: |-
-        python3 --version
-        add-apt-repository ppa:deadsnakes/ppa --yes
-        apt-get update
-        apt-get install --yes python3.6
-    next:
-      - when: <% succeeded() %>
-        do: get_bootstrap_script
   get_bootstrap_script:
     action: core.remote_sudo
     input:
@@ -144,7 +132,10 @@ tasks:
     action: core.remote_sudo
     input:
       hosts: <% ctx().vm_info.private_ip_address %>
+      # If pipe_into_bootstrap_script is not empty, return it + " | "
+      # If pipe_into_bootstrap_script is empty, return an empty string
       cmd: >-
+        <% switch(ctx().pipe_into_bootstrap_script => concat(ctx().pipe_into_bootstrap_script, " | "), true => "") %>
         bash /tmp/st2_bootstrap.sh
         --<% ctx().pkg_env %>
         --<% ctx().release %>
