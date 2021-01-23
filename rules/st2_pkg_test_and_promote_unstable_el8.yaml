@@ -20,3 +20,4 @@ action:
     hostname: st2-pkg-unstable-el8
     distro: RHEL8
     release: unstable
+    chatops: true

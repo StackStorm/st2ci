@@ -20,3 +20,4 @@ action:
     hostname: st2-pkg-unstable-u16
     distro: UBUNTU16
     release: unstable
+    chatops: true
