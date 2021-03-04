@@ -18,8 +18,6 @@ parameters:
     type: string
   distro:
     type: string
-  enterprise:
-    type: boolean
   pkg_env:
     type: string
   release:
