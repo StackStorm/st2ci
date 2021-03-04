@@ -13,8 +13,6 @@ input:
   - release
   - upgrade_from_version
   - upgrade_to_version
-  - enterprise
-  - enterprise_key
   - chatops
   - pkg_env
   - bootstrap_branch
@@ -94,23 +92,6 @@ tasks:
       cmd: bash /tmp/st2_bootstrap.sh --<% ctx().pkg_env %> --<% ctx().release %> --version=<% coalesce(ctx().upgrade_from_version, '') %> --user=<% ctx().st2_username %> --password=<% ctx().st2_password %>
       timeout: 900
     next:
-      - when: <% succeeded() and (ctx().enterprise) %>
-        do:
-          - install_enterprise
-      - when: <% succeeded() and (not ctx().enterprise) %>
-        do:
-          - pre_upgrade_stop
-  install_enterprise:
-    action: st2cd.st2_upgrade_to_enterprise
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      license_key: <% ctx().enterprise_key %>
-      distro: <% ctx().distro %>
-      pkg_env: <% ctx().pkg_env %>
-      release: <% ctx().release %>
-      version: <% coalesce(ctx().upgrade_from_version, '') %>
-      timeout: 150
-    next:
       - when: <% succeeded() %>
         do:
           - pre_upgrade_stop
@@ -158,10 +139,7 @@ tasks:
       version: <% ctx().upgrade_to_version %>
       distro: <% ctx().distro %>
     next:
-      - when: <% succeeded() and (ctx().enterprise) %>
-        do:
-          - upgrade_enterprise_packages_rpm
-      - when: <% succeeded() and (not ctx().enterprise) %>
+      - when: <% succeeded() %>
         do:
           - post_migration_start
   upgrade_packages_deb:
@@ -172,40 +150,7 @@ tasks:
       version: <% ctx().upgrade_to_version %>
       distro: <% ctx().distro %>
     next:
-      - when: <% succeeded() and (ctx().enterprise) %>
-        do:
-          - upgrade_enterprise_packages_deb
-      - when: <% succeeded() and (not ctx().enterprise) %>
-        do:
-          - post_migration_start
-  upgrade_enterprise_packages_deb:
-    action: st2ci.st2_pkg_upgrade_deb
-    input:
-      host: <% ctx().vm_info.private_ip_address %>
-      pkg_list:
-        - st2flow
-        - st2-auth-ldap
-        - st2-rbac-backend
-      version: <% ctx().upgrade_to_version %>
-      distro: <% ctx().distro %>
-      enterprise: true
-    next:
-      - when: <% succeeded()  %>
-        do:
-          - post_migration_start
-  upgrade_enterprise_packages_rpm:
-    action: st2ci.st2_pkg_upgrade_rpm
-    input:
-      host: <% ctx().vm_info.private_ip_address %>
-      pkg_list:
-        - st2flow
-        - st2-auth-ldap
-        - st2-rbac-backend
-      version: <% ctx().upgrade_to_version %>
-      distro: <% ctx().distro %>
-      enterprise: true
-    next:
-      - when: <% succeeded()  %>
+      - when: <% succeeded() %>
         do:
           - post_migration_start
   post_migration_start:
@@ -255,7 +200,6 @@ tasks:
       host_ip: <% ctx().vm_info.private_ip_address %>
       host_fqdn: <% ctx().vm_fqdn %>
       st2tests_version: <% ctx().upgrade_to_version %>
-      enterprise: <% ctx().enterprise %>
       chatops: <% ctx().chatops %>
       st2_username: <% ctx().st2_username %>
       st2_password: <% ctx().st2_password %>
