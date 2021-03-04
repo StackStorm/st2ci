@@ -66,11 +66,6 @@ parameters:
   initial_commit:
     type: string
     description: Git hash of an initial commit from st2 repo. If provided, the workflow will update status of this commit.
-  enterprise:
-    type: boolean
-    default: false
-  enterprise_key:
-    type: string
   chatops:
     type: boolean
     default: false

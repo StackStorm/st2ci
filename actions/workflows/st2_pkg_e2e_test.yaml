@@ -16,8 +16,6 @@ input:
   - version
   - dev_build
   - initial_commit
-  - enterprise
-  - enterprise_key
   - chatops
   - pkg_env
   - bootstrap_branch
@@ -45,7 +43,7 @@ vars:
   - st2_password: Ch@ngeMe
   - github_status_org: StackStorm
   - github_status_repo: st2
-  - github_status_context: st2/e2e/<% ctx().distro.toLower() %><% ctx().enterprise and '-enterprise' or '' %>
+  - github_status_context: st2/e2e/<% ctx().distro.toLower() %>
   - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx().st2.action_execution_id %>
   - failed: False
 
@@ -127,25 +125,6 @@ tasks:
         --u16-add-insecure-py3-ppa
       timeout: 900
     next:
-      - when: <% succeeded() and (ctx().enterprise) %>
-        do: upgrade_to_enterprise
-      - when: <% succeeded() and (not ctx().enterprise) %>
-        do: cleanup_diskspace
-      - when: <% failed() %>
-        publish:
-          - failed: True
-        do: cleanup
-  upgrade_to_enterprise:
-    action: st2cd.st2_upgrade_to_enterprise
-    input:
-      hosts: <% ctx().vm_info.private_ip_address %>
-      license_key: <% ctx().enterprise_key %>
-      distro: <% ctx().distro %>
-      pkg_env: <% ctx().pkg_env %>
-      release: <% ctx().release %>
-      version: <% coalesce(ctx().version, '') %>
-      timeout: 150
-    next:
       - when: <% succeeded() %>
         do: cleanup_diskspace
       - when: <% failed() %>
@@ -219,7 +198,6 @@ tasks:
     input:
       host_ip: <% ctx().vm_info.private_ip_address %>
       host_fqdn: <% ctx().vm_fqdn %>
-      enterprise: <% ctx().enterprise %>
       chatops: <% ctx().chatops %>
       st2tests_version:
         <% switch(
@@ -266,7 +244,6 @@ tasks:
       triggering_commit_url: <% ctx().triggering_commit_url %>
       hostname: <% ctx().vm_fqdn %>
       distro: <% ctx().distro %>
-      enterprise: <% ctx().enterprise %>
       pkg_env: <% ctx().pkg_env %>
       release: <% ctx().release %>
       st2tests_version: <% ctx().st2tests_version %>
