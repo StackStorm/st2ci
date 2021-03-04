@@ -6,7 +6,6 @@ input:
   - pkg_list
   - version
   - distro
-  - enterprise
 tasks:
   init:
     action: core.noop
@@ -22,7 +21,6 @@ tasks:
     input:
       hosts: <% ctx().host %>
       version: <% ctx().version %>
-      enterprise: <% ctx().enterprise %>
       timeout: 180
     next:
       - when: <% succeeded() %>
@@ -35,7 +33,6 @@ tasks:
     input:
       hosts: <% ctx().host %>
       version: <% ctx().version %>
-      enterprise: <% ctx().enterprise %>
       timeout: 180
     next:
       - when: <% succeeded() %>
