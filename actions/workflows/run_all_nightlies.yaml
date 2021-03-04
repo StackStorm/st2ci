@@ -5,7 +5,6 @@ input:
   - st2tests_version
   - chatops
   - stable_st2_version
-  - enterprise_keys
   - keyfile
   - debug
 
@@ -27,7 +26,6 @@ tasks:
       - when: <% succeeded() %>
         do:
           - st2_pkg_test_stable_all
-
 
   st2_pkg_test_stable_all:
     with:
@@ -56,40 +54,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         do:
-          - st2_pkg_test_stable_enterprise_all
-
-
-  st2_pkg_test_stable_enterprise_all:
-    with:
-      items: <% distro, abbr in zip(ctx().distros.keys(), ctx().distros.values()) %>
-      concurrency: <% len(ctx().distros) %>
-    action: st2ci.st2_pkg_e2e_test
-    input:
-      hostname: st2-ent-pkg-stable-<% item(abbr) + switch((ctx().st2tests_version) => "-"+ctx().st2tests_version, default => "") %>
-      distro: <% item(distro) %>
-      windows_distro: windows2016
-      st2tests_version: <% ctx().st2tests_version %>
-      version: <% ctx().stable_st2_version %>
-      pkg_env: production
-      release: stable
-      environment: sandbox
-      chatops: <% ctx().chatops %>
-      debug: <% ctx().debug %>
-      enterprise: true
-      enterprise_key: <% ctx().enterprise_keys.stable %>
-    next:
-      - when: <% succeeded() %>
-        do:
-          - st2_pkg_test_all_stable_enterprise_join
-
-  st2_pkg_test_all_stable_enterprise_join:
-    join: all
-    action: core.noop
-    next:
-      - when: <% succeeded() %>
-        do:
           - st2_pkg_test_unstable_all
-
 
   st2_pkg_test_unstable_all:
     with:
@@ -112,36 +77,5 @@ tasks:
           - st2_pkg_test_all_unstable_join
 
   st2_pkg_test_all_unstable_join:
-    join: all
-    action: core.noop
-    next:
-      - when: <% succeeded() %>
-        do:
-          - st2_pkg_test_unstable_enterprise_all
-
-
-  st2_pkg_test_unstable_enterprise_all:
-    with:
-      items: <% distro, abbr in zip(ctx().distros.keys(), ctx().distros.values()) %>
-      concurrency: <% len(ctx().distros) %>
-    action: st2ci.st2_pkg_e2e_test
-    input:
-      hostname: st2-ent-pkg-unstable-<% item(abbr) + switch((ctx().st2tests_version) => "-"+ctx().st2tests_version, default => "") %>
-      distro: <% item(distro) %>
-      windows_distro: windows2016
-      st2tests_version: <% ctx().st2tests_version %>
-      pkg_env: staging
-      release: unstable
-      environment: sandbox
-      chatops: <% ctx().chatops %>
-      debug: <% ctx().debug %>
-      enterprise: true
-      enterprise_key: <% ctx().enterprise_keys.unstable %>
-    next:
-      - when: <% succeeded() %>
-        do:
-          - st2_pkg_test_all_stable_enterprise_join
-
-  st2_pkg_test_all_stable_enterprise_join:
     join: all
     action: core.noop
