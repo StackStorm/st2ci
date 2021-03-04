@@ -1,9 +1,0 @@
----
-name: st2_pkg_promote_enterprise_concurrency
-pack: st2ci
-description: Limits the concurrent executions of st2_pkg_promote_enterprise workflow
-enabled: true
-resource_ref: st2ci.st2_pkg_promote_enterprise
-policy_type: action.concurrency
-parameters:
-    threshold: 3
