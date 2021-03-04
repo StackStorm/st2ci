@@ -35,10 +35,8 @@ parameters:
     - rpm
     - all
   repo:
-    description: "Repo to upload to: stable/unstable, community/enterprise"
+    description: "Repo to upload to: stable/unstable"
     required: true
     enum:
     - stable
     - unstable
-    - enterprise
-    - enterprise-unstable
