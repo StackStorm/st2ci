@@ -26,6 +26,10 @@ input:
 vars:
   - vm_id:
   - vm_windows_id:
+  - vm_windows_info:
+      private_ip_address: nothing
+  - vm_windows_username: nothing
+  - vm_windows_password: nothing
   - vm_fqdn: <% ctx().hostname %>.<% ctx().dns_zone %>
   - vm_info:
   - windows_hostname: <% ctx().hostname %>win
@@ -166,33 +170,34 @@ tasks:
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
               st2_version: <% result().output.versions.get("st2") %>
-        do: create_vm_windows
-      - when: <% failed() %>
-        publish:
-          - failed: True
-        do: cleanup
-  create_vm_windows:
-    action: st2cd.create_vm_windows
-    input:
-      hostname: <% ctx().windows_hostname %>
-      instance_type: <% ctx().instance_type %>
-      environment: <% ctx().environment %>
-      dns_zone: <% ctx().dns_zone %>
-      distro: <% ctx().windows_distro %>
-      role: <% ctx().role %>
-    next:
-      - when: <% succeeded() %>
-        publish:
-          - vm_windows_info: <% result().output.vm_info %>
-          - vm_windows_id: <% result().output.vm_info.id %>
-          - vm_windows_username: <% result().output.vm_username %>
-          - vm_windows_password: <% result().output.vm_password %>
+        # do: create_vm_windows
         do: run_e2e_tests
       - when: <% failed() %>
         publish:
-          - vm_windows_id: <% result().output.get("vm_info", {}).get("id") %>
           - failed: True
         do: cleanup
+  # create_vm_windows:
+  #   action: st2cd.create_vm_windows
+  #   input:
+  #     hostname: <% ctx().windows_hostname %>
+  #     instance_type: <% ctx().instance_type %>
+  #     environment: <% ctx().environment %>
+  #     dns_zone: <% ctx().dns_zone %>
+  #     distro: <% ctx().windows_distro %>
+  #     role: <% ctx().role %>
+  #   next:
+  #     - when: <% succeeded() %>
+  #       publish:
+  #         - vm_windows_info: <% result().output.vm_info %>
+  #         - vm_windows_id: <% result().output.vm_info.id %>
+  #         - vm_windows_username: <% result().output.vm_username %>
+  #         - vm_windows_password: <% result().output.vm_password %>
+  #       do: run_e2e_tests
+  #     - when: <% failed() %>
+  #       publish:
+  #         - vm_windows_id: <% result().output.get("vm_info", {}).get("id") %>
+  #         - failed: True
+  #       do: cleanup
   run_e2e_tests:
     action: st2cd.st2_e2e_tests
     input:
