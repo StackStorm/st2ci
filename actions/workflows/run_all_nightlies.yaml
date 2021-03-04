@@ -21,7 +21,7 @@ tasks:
       items: distro, abbr in <% zip(ctx().distros.keys(), ctx().distros.values()) %>
     action: core.echo
     input:
-      message: <% str(item(distro)) + str(item(abbr)) %>
+      message: "<% str(item(distro)) + ': ' + str(item(abbr)) %>"
     next:
       - when: <% succeeded() %>
         do:
