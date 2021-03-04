@@ -18,7 +18,7 @@ vars:
 tasks:
   init:
     with:
-      items: <% distro, abbr in zip(ctx().distros.keys(), ctx().distros.values()) %>
+      items: distro, abbr in <% zip(ctx().distros.keys(), ctx().distros.values()) %>
     action: core.echo
     input:
       message: <% str(item(distro)) + str(item(abbr)) %>
@@ -29,7 +29,7 @@ tasks:
 
   st2_pkg_test_stable_all:
     with:
-      items: <% distro, abbr in zip(ctx().distros.keys(), ctx().distros.values()) %>
+      items: distro, abbr in <% zip(ctx().distros.keys(), ctx().distros.values()) %>
       concurrency: <% len(ctx().distros) %>
     action: st2ci.st2_pkg_e2e_test
     input:
@@ -58,7 +58,7 @@ tasks:
 
   st2_pkg_test_unstable_all:
     with:
-      items: <% distro, abbr in zip(ctx().distros.keys(), ctx().distros.values()) %>
+      items: distro, abbr in <% zip(ctx().distros.keys(), ctx().distros.values()) %>
       concurrency: <% len(ctx().distros) %>
     action: st2ci.st2_pkg_e2e_test
     input:
