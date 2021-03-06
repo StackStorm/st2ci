@@ -16,7 +16,7 @@ parameters:
   instance_type:
     type: string
     # There is no AMI which supports new C5 instance size for those distros
-    default: '{% if distro in ["RHEL7"] %}c4.large{% else %}c5.large{% endif %}'
+    default: '{% if distro in ["RHEL7"] %}c4.xlarge{% else %}c5.xlarge{% endif %}'
   environment:
     type: string
     enum:
