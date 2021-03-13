@@ -92,7 +92,13 @@ tasks:
     action: core.remote_sudo
     input:
       hosts: <% ctx().vm_info.private_ip_address %>
-      cmd: bash /tmp/st2_bootstrap.sh --<% ctx().pkg_env %> --<% ctx().release %> --version=<% coalesce(ctx().upgrade_from_version, '') %> --user=<% ctx().st2_username %> --password=<% ctx().st2_password %>
+      cmd: >-
+        bash /tmp/st2_bootstrap.sh
+        --<% ctx().pkg_env %>
+        --<% ctx().release %>
+        --version=<% coalesce(ctx().upgrade_from_version, '') %>
+        --user=<% ctx().st2_username %>
+        --password=<% ctx().st2_password %>
       timeout: 900
     next:
       - when: <% succeeded() %>
