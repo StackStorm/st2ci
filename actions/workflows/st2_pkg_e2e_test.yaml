@@ -119,6 +119,9 @@ tasks:
     action: core.remote_sudo
     input:
       hosts: <% ctx().vm_info.private_ip_address %>
+      # We need to pass in --u16-add-insecure-py3-ppa when we're running ST2 v3.4
+      # Note that while the flag is only for Ubuntu 16, the installer script on
+      # other OSes will ignore it, so it's safe to use for all OSes.
       cmd: >-
         bash /tmp/st2_bootstrap.sh
         --<% ctx().pkg_env %>
@@ -126,7 +129,7 @@ tasks:
         --<% ctx().bootstrap_script_arg_dev_or_ver %>
         --user=<% ctx().st2_username %>
         --password=<% ctx().st2_password %>
-        --u16-add-insecure-py3-ppa
+        <% switch(regex('^3\.4[^\d].*').matches(ctx().version) => '--u16-add-insecure-py3-ppa', default => '') %>
       timeout: 900
     next:
       - when: <% succeeded() %>
