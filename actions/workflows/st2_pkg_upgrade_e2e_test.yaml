@@ -104,7 +104,7 @@ tasks:
         --password=<% ctx().st2_password %>
         <% switch((ctx().upgrade_from_version = ''
                    or
-                   regex('^3\.[45][^\d].*').matches(ctx().upgrade_from_version)) => '--u16-add-insecure-py3-ppa',
+                   regex('^3\.[45][^\d].*').matches(coalesce(ctx().upgrade_from_version, ''))) => '--u16-add-insecure-py3-ppa',
                   default => '') %>
       timeout: 900
     next:
