@@ -129,7 +129,10 @@ tasks:
         --<% ctx().bootstrap_script_arg_dev_or_ver %>
         --user=<% ctx().st2_username %>
         --password=<% ctx().st2_password %>
-        <% switch((ctx().version = '' or regex('^3\.[45][^\d].*').matches(ctx().version)) => '--u16-add-insecure-py3-ppa', default => '') %>
+        <% switch((ctx().version = ''
+                   or
+                   regex('^3\.[45][^\d].*').matches(ctx().version)) => '--u16-add-insecure-py3-ppa',
+                  default => '') %>
       timeout: 900
     next:
       - when: <% succeeded() %>
