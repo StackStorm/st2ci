@@ -26,6 +26,8 @@ vars:
   - vm_info:
   - vm_id:
   - vm_windows_id:
+  # We set these here because we skip the Windows tests. We are unable to use
+  # WinRM to remote into freshly spun up Windows hosts, so those tests fail.
   - vm_windows_info:
       private_ip_address: nothing
   - vm_windows_username: nothing
@@ -190,6 +192,8 @@ tasks:
         do:
           # - create_vm_windows
           - run_e2e_tests
+  # We skip creating the Windows VM here, for now. We are unable to use
+  # WinRM to remote into freshly spun up Windows hosts, so those tests fail.
   # create_vm_windows:
   #   action: st2cd.create_vm_windows
   #   input:
