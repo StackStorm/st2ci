@@ -28,10 +28,10 @@ vars:
   - vm_windows_id:
   # We set these here because we skip the Windows tests. We are unable to use
   # WinRM to remote into freshly spun up Windows hosts, so those tests fail.
-  - vm_windows_info:
+  - vm_windows_info:  # remove this once the Windows tests are added back in
       private_ip_address: nothing
-  - vm_windows_username: nothing
-  - vm_windows_password: nothing
+  - vm_windows_username: nothing  # remove this once the Windows tests are added back in
+  - vm_windows_password: nothing  # remove this once the Windows tests are added back in
   - vm_fqdn: <% ctx().hostname %>.<% ctx().dns_zone %>
   - vm_info:
   - windows_hostname: <% ctx().hostname %>win
@@ -183,6 +183,7 @@ tasks:
         do: cleanup
   # We skip creating the Windows VM here, for now. We are unable to use
   # WinRM to remote into freshly spun up Windows hosts, so those tests fail.
+  # This can be re-enabled as part of re-adding the Windows tests.
   # create_vm_windows:
   #   action: st2cd.create_vm_windows
   #   input:

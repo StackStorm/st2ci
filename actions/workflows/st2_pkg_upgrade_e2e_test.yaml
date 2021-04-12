@@ -28,10 +28,10 @@ vars:
   - vm_windows_id:
   # We set these here because we skip the Windows tests. We are unable to use
   # WinRM to remote into freshly spun up Windows hosts, so those tests fail.
-  - vm_windows_info:
+  - vm_windows_info:  # remove this once the Windows tests are added back in
       private_ip_address: nothing
-  - vm_windows_username: nothing
-  - vm_windows_password: nothing
+  - vm_windows_username: nothing  # remove this once the Windows tests are added back in
+  - vm_windows_password: nothing  # remove this once the Windows tests are added back in
   - vm_windows_fqdn: <% ctx().hostname %>win.<% ctx().dns_zone %>
   - installed:
       distro:
@@ -190,10 +190,11 @@ tasks:
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
         do:
-          # - create_vm_windows
+          # - create_vm_windows  # add back in once the Windows tests are added back in
           - run_e2e_tests
   # We skip creating the Windows VM here, for now. We are unable to use
   # WinRM to remote into freshly spun up Windows hosts, so those tests fail.
+  # This can be re-enabled as part of re-adding the Windows tests.
   # create_vm_windows:
   #   action: st2cd.create_vm_windows
   #   input:
@@ -246,7 +247,7 @@ tasks:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
     next:
-      # - when: <% succeeded() %>
+      # - when: <% succeeded() %>  # add back in once the Windows tests are added back in
       #   do:
       #     - destroy_vm_windows
       - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) %>
@@ -265,6 +266,7 @@ tasks:
       - when: <% succeeded() %>
         do:
           - destroy_vm
+  # This can be re-enabled as part of re-adding the Windows tests.
   # destroy_vm_windows:
   #   action: st2cd.destroy_vm
   #   input:
