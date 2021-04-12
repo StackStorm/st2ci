@@ -15,12 +15,7 @@ parameters:
     default: true
   stable_st2_version:
     type: string
-    default: '3.1.0'
-  enterprise_keys:
-    type: object
-    default:
-      stable: "{{ st2kv.system.enterprise_key_prd_stable }}"
-      unstable: "{{ st2kv.system.enterprise_key_stg_unstable }}"
+    default: '3.4.0'
   keyfile:
     type: string
     default: /home/stanley/.ssh/stanley_rsa

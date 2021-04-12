@@ -26,6 +26,3 @@ parameters:
       - CENTOS8
       - RHEL7
       - RHEL8
-  enterprise:
-    type: boolean
-    default: false

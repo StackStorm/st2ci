@@ -3,13 +3,13 @@ name: "promote_package"
 pack: "st2ci"
 action_ref: "st2ci.promote_package"
 formats:
-  - display: "promote [deb|rpm] of [package] [version]-[revision] to [stable|unstable|enterprise|enterprise-unstable]"
+  - display: "promote [deb|rpm] of [package] [version]-[revision] to [stable|unstable]"
     representation:
     - "promote {{os}} of {{package}} {{version}}-{{revision}} to {{repo}}"
-  - display: "promote [package] [version]-[revision] for [trusty|xenial|el7|el8] to [stable|unstable|enterprise|enterprise-unstable]"
+  - display: "promote [package] [version]-[revision] for [trusty|xenial|el7|el8] to [stable|unstable]"
     representation:
     - "promote {{package}} {{version}}-{{revision}} for {{os}} to {{repo}}"
-  - display: "promote [package] [version]-[revision] to [stable|unstable|enterprise|enterprise-unstable]"
+  - display: "promote [package] [version]-[revision] to [stable|unstable]"
     representation:
     - "promote {{package}} {{version}}-{{revision}} to {{repo}}"
 description: "Promote a package to production repo"

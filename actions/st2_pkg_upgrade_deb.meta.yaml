@@ -24,6 +24,3 @@ parameters:
     enum:
       - UBUNTU16
       - UBUNTU18
-  enterprise:
-    type: boolean
-    default: false

@@ -11,10 +11,6 @@ parameters:
         default: ''
         description: Version to upgrade to
         position: 0
-    enterprise:
-        type: boolean
-        default: false
-        position: 1
     dir:
         immutable: true
         default: /home/stanley/

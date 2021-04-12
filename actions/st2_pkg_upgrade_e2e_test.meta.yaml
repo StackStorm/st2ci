@@ -66,11 +66,6 @@ parameters:
       - staging
       - production
     default: production
-  enterprise:
-    type: boolean
-    default: false
-  enterprise_key:
-    type: string
   chatops:
     type: boolean
     default: false

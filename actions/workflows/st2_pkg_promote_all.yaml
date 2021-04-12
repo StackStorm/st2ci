@@ -4,9 +4,6 @@ input:
   - distro
   - release
   - version
-  - enterprise_keys:
-      stable: "{{st2kv('system.enterprise_key_stg_stable')}}"
-      unstable: "{{st2kv('system.enterprise_key_stg_unstable')}}"
   - pkg_env: staging
   - distro_to_distro_version_map:
       RHEL7: el/7
