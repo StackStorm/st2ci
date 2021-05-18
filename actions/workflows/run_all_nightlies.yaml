@@ -9,19 +9,13 @@ input:
   - debug
 
 vars:
-# Can put back to just distros once U20 is released
+# TODO: Uncomment UBUNTU20 once we have released ST2 3.4 with Ubuntu 20.04 support
   - distros:
       RHEL7: el7
       RHEL8: el8
       UBUNTU16: u16
       UBUNTU18: u18
-      UBUNTU20: u20
-  - stabledistros:
-      RHEL7: el7
-      RHEL8: el8
-      UBUNTU16: u16
-      UBUNTU18: u18
-
+      # UBUNTU20: u20
 
 tasks:
   init:
