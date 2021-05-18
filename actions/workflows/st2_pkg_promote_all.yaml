@@ -10,6 +10,7 @@ input:
       RHEL8: el/8
       UBUNTU16: ubuntu/xenial
       UBUNTU18: ubuntu/bionic
+      UBUNTU20: ubuntu/focal
   - promoted_st2: false
   - promoted_st2chatops: false
   - promoted_st2web: false

@@ -1,0 +1,23 @@
+---
+name: st2_pkg_test_and_promote_unstable_u20
+pack: st2ci
+description: Test and promote unstable packages
+enabled: true
+
+trigger:
+  type: core.st2.CronTimer
+  parameters:
+    timezone: US/Pacific
+    hour: 8
+    minute: 0
+    second: 0
+
+criteria: {}
+
+action:
+  ref: st2ci.st2_pkg_test_and_promote
+  parameters:
+    hostname: st2-pkg-unstable-u20
+    distro: UBUNTU20
+    release: unstable
+    chatops: true

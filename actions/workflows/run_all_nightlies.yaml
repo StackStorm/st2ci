@@ -9,16 +9,24 @@ input:
   - debug
 
 vars:
+# Can put back to just distros once U20 is released
   - distros:
       RHEL7: el7
       RHEL8: el8
       UBUNTU16: u16
       UBUNTU18: u18
+      UBUNTU20: u20
+  - stabledistros:
+      RHEL7: el7
+      RHEL8: el8
+      UBUNTU16: u16
+      UBUNTU18: u18
+
 
 tasks:
   init:
     with:
-      items: distro, abbr in <% zip(ctx().distros.keys(), ctx().distros.values()) %>
+      items: distro, abbr in <% zip(ctx().stabledistros.keys(), ctx().stabledistros.values()) %>
     action: core.echo
     input:
       message: "<% str(item(distro)) + ': ' + str(item(abbr)) %>"
@@ -29,8 +37,8 @@ tasks:
 
   st2_pkg_test_stable_all:
     with:
-      items: distro, abbr in <% zip(ctx().distros.keys(), ctx().distros.values()) %>
-      concurrency: <% len(ctx().distros) %>
+      items: distro, abbr in <% zip(ctx().stabledistros.keys(), ctx().stabledistros.values()) %>
+      concurrency: <% len(ctx().stabledistros) %>
     action: st2ci.st2_pkg_e2e_test
     input:
       hostname: st2-pkg-stable-<% item(abbr) + switch((ctx().st2tests_version) => "-"+ctx().st2tests_version, default => "") %>
