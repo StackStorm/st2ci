@@ -13,8 +13,15 @@ tasks:
   init:
     action: core.local
     input:
-      cmd: mkdir -p /tmp/st2-up/{ubuntu/xenial,ubuntu/bionic,el/7,el/8}
+      cmd: mkdir -p /tmp/st2-up/{ubuntu/xenial,ubuntu/bionic,ubuntu/focal,el/7,el/8}
     next:
+      - when: <% succeeded() and (ctx().os in list('all', 'deb', 'focal')) %>
+        publish:
+          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
+          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
+          - source: <% ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
+        do:
+          - download_focal
       - when: <% succeeded() and (ctx().os in list('all', 'deb', 'xenial')) %>
         publish:
           - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
@@ -72,6 +79,21 @@ tasks:
     action: core.local
     input:
       cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/ubuntu/bionic /tmp/st2-up/ubuntu/bionic/<% ctx().deb %>
+      timeout: <% ctx().timeout %>
+
+  download_focal:
+    action: core.local
+    input:
+      cmd: wget -O /tmp/st2-up/ubuntu/focal/<% ctx().deb %> https://packagecloud.io/StackStorm/<% ctx().source %>/ubuntu/pool/focal/main/<% ctx().package.substring(0,1) %>/<% ctx().package %>/<% ctx().deb %>
+      timeout: <% ctx().timeout %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - upload_focal
+  upload_focal:
+    action: core.local
+    input:
+      cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/ubuntu/focal /tmp/st2-up/ubuntu/focal/<% ctx().deb %>
       timeout: <% ctx().timeout %>
 
   download_el7:

@@ -40,6 +40,7 @@ parameters:
       - RHEL8
       - UBUNTU16
       - UBUNTU18
+      - UBUNTU20
   windows_distro:
     type: string
     enum:

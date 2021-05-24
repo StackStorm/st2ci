@@ -14,6 +14,7 @@ parameters:
       - RHEL8
       - UBUNTU16
       - UBUNTU18
+      - UBUNTU20
   release:
     type: string
     required: true

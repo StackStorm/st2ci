@@ -29,6 +29,7 @@ parameters:
     - trusty
     - xenial
     - bionic
+    - focal
     - el7
     - el8
     - deb
