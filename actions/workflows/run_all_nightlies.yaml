@@ -9,7 +9,7 @@ input:
   - debug
 
 vars:
-# TODO: Uncomment UBUNTU20 and remove UBUNTU16 when we release 3.5
+# TODO: Uncomment UBUNTU20 when released 3.5
   - distros:
       RHEL7: el7
       RHEL8: el8

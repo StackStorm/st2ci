@@ -6,7 +6,7 @@ formats:
   - display: "promote [deb|rpm] of [package] [version]-[revision] to [stable|unstable]"
     representation:
     - "promote {{os}} of {{package}} {{version}}-{{revision}} to {{repo}}"
-  - display: "promote [package] [version]-[revision] for [trusty|xenial|el7|el8] to [stable|unstable]"
+  - display: "promote [package] [version]-[revision] for [bionic|focal|el7|el8] to [stable|unstable]"
     representation:
     - "promote {{package}} {{version}}-{{revision}} for {{os}} to {{repo}}"
   - display: "promote [package] [version]-[revision] to [stable|unstable]"

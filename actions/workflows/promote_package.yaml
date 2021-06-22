@@ -13,7 +13,7 @@ tasks:
   init:
     action: core.local
     input:
-      cmd: mkdir -p /tmp/st2-up/{ubuntu/xenial,ubuntu/bionic,ubuntu/focal,el/7,el/8}
+      cmd: mkdir -p /tmp/st2-up/{ubuntu/bionic,ubuntu/focal,el/7,el/8}
     next:
       - when: <% succeeded() and (ctx().os in list('all', 'deb', 'focal')) %>
         publish:
@@ -22,13 +22,6 @@ tasks:
           - source: <% ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
         do:
           - download_focal
-      - when: <% succeeded() and (ctx().os in list('all', 'deb', 'xenial')) %>
-        publish:
-          - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
-          - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
-          - source: <% ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
-        do:
-          - download_xenial
       - when: <% succeeded() and (ctx().os in list('all', 'deb', 'bionic')) %>
         publish:
           - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
@@ -50,21 +43,6 @@ tasks:
           - source: <% ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
         do:
           - download_el8
-
-  download_xenial:
-    action: core.local
-    input:
-      cmd: wget -O /tmp/st2-up/ubuntu/xenial/<% ctx().deb %> https://packagecloud.io/StackStorm/<% ctx().source %>/ubuntu/pool/xenial/main/<% ctx().package.substring(0,1) %>/<% ctx().package %>/<% ctx().deb %>
-      timeout: <% ctx().timeout %>
-    next:
-      - when: <% succeeded() %>
-        do:
-          - upload_xenial
-  upload_xenial:
-    action: core.local
-    input:
-      cmd: LANG=en_US.utf8 PACKAGECLOUD_TOKEN=<% ctx().token %> package_cloud push StackStorm/<% ctx().repo %>/ubuntu/xenial /tmp/st2-up/ubuntu/xenial/<% ctx().deb %>
-      timeout: <% ctx().timeout %>
 
   download_bionic:
     action: core.local
