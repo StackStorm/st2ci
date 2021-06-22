@@ -13,9 +13,9 @@ tasks:
       - when: <% ctx().distro = 'UBUNTU18' %>
         do:
           - upgrade_deps_u18
-      - when: <% ctx().distro = 'UBUNTU16' %>
+      - when: <% ctx().distro = 'UBUNTU20' %>
         do:
-          - upgrade_deps_u16
+          - upgrade_deps_u20
   upgrade_deps_u18:
     action: st2ci.st2_pkg_upgrade_deps_u18
     input:
@@ -26,8 +26,8 @@ tasks:
       - when: <% succeeded() %>
         do:
           - install_pkg
-  upgrade_deps_u16:
-    action: st2ci.st2_pkg_upgrade_deps_u16
+  upgrade_deps_u20:
+    action: st2ci.st2_pkg_upgrade_deps_u20
     input:
       hosts: <% ctx().host %>
       version: <% ctx().version %>

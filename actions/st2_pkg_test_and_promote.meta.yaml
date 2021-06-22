@@ -17,7 +17,6 @@ parameters:
     enum:
       - RHEL7
       - RHEL8
-      - UBUNTU16
       - UBUNTU18
       - UBUNTU20
   release:

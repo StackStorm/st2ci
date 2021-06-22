@@ -1,10 +1,10 @@
 ---
-name: st2_pkg_upgrade_deps_u16
+name: st2_pkg_upgrade_deps_u20
 pack: st2ci
-description: Upgrade dependencies on u16
+description: Upgrade dependencies on u20
 enabled: true
 runner_type: remote-shell-script
-entry_point: st2_pkg_upgrade_deps_u16.sh
+entry_point: st2_pkg_upgrade_deps_u20.sh
 parameters:
     version:
         type: string

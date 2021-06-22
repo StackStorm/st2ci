@@ -18,7 +18,6 @@ vars:
   - stabledistros:
       RHEL7: el7
       RHEL8: el8
-      UBUNTU16: u16
       UBUNTU18: u18
       # UBUNTU20: u20
 
