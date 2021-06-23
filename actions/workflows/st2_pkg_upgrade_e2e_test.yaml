@@ -238,9 +238,9 @@ tasks:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
     next:
-       - when: <% succeeded() %> 
-         do:
-           - destroy_vm_windows
+      - when: <% succeeded() %> 
+        do:
+          - destroy_vm_windows
       - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) %>
         do:
           - fail
@@ -257,30 +257,31 @@ tasks:
       - when: <% succeeded() %>
         do:
           - destroy_vm
-     action: st2cd.destroy_vm
-     input:
-       hostname: <% ctx().windows_hostname %>
-       instance_id: <% ctx().vm_windows_id %>
-     next:
-       - when: <% succeeded() %>
-         do:
-           - notify_success
-       - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
-         do:
-           - notify_failure
-       - when: <% failed() and (ctx().destroy_vm_windows_iteration_count < 2) %>
-         publish:
-           - destroy_vm_windows_iteration_count: <% ctx().destroy_vm_windows_iteration_count + 1 %>
-         do:
-           - sleep_destroy_vm_windows
-   sleep_destroy_vm_windows:
-     action: core.local
-     input:
-       cmd: sleep 30
-     next:
-       - when: <% succeeded() %>
-         do:
-           - destroy_vm_windows
+  destroy_vm_windows:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_id: <% ctx().vm_windows_id %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - notify_success
+      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
+        do:
+          - notify_failure
+      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count < 2) %>
+        publish:
+          - destroy_vm_windows_iteration_count: <% ctx().destroy_vm_windows_iteration_count + 1 %>
+        do:
+          - sleep_destroy_vm_windows
+  sleep_destroy_vm_windows:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_windows
   destroy_vm_on_failure:
     action: st2cd.destroy_vm
     input:
