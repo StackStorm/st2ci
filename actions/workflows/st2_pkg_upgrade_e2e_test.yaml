@@ -186,24 +186,24 @@ tasks:
         do:
           - create_vm_windows
 
-   create_vm_windows:
-     action: st2cd.create_vm_windows
-     input:
-       hostname: <% ctx().windows_hostname %>
-       instance_type: <% ctx().instance_type %>
-       environment: <% ctx().environment %>
-       dns_zone: <% ctx().dns_zone %>
-       distro: <% ctx().windows_distro %>
-       role: <% ctx().role %>
-     next:
-       - when: <% succeeded() %>
-         publish:
-           - vm_windows_info: <% result().output.vm_info %>
-           - vm_windows_id: <% result().output.vm_info.id %>
-           - vm_windows_username: <% result().output.vm_username %>
-           - vm_windows_password: <% result().output.vm_password %>
-         do:
-           - run_e2e_tests
+  create_vm_windows:
+    action: st2cd.create_vm_windows
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_type: <% ctx().instance_type %>
+      environment: <% ctx().environment %>
+      dns_zone: <% ctx().dns_zone %>
+      distro: <% ctx().windows_distro %>
+      role: <% ctx().role %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - vm_windows_info: <% result().output.vm_info %>
+          - vm_windows_id: <% result().output.vm_info.id %>
+          - vm_windows_username: <% result().output.vm_username %>
+          - vm_windows_password: <% result().output.vm_password %>
+        do:
+          - run_e2e_tests
   run_e2e_tests:
     action: st2cd.st2_e2e_tests
     input:
