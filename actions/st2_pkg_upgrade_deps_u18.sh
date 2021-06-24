@@ -7,7 +7,7 @@ SHORT_VERSION=`echo ${VERSION} | cut -d "." -f1-2`
 if [ ${SHORT_VERSION} = "3.5" ]; then
     echo "Upgrading dependencies for 3.5 community"
     curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash -
-    sudo apt-get install --only-upgrade nodejs
+    sudo apt-get install -y --only-upgrade nodejs
     exit 0
 fi
 
