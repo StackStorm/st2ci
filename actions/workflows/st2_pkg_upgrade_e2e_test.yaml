@@ -26,6 +26,7 @@ vars:
   - vm_info:
   - vm_id:
   - vm_windows_id:
+  - windows_hostname: <% ctx().hostname %>win
   - vm_windows_fqdn: <% ctx().hostname %>win.<% ctx().dns_zone %>
   - installed:
       distro:
@@ -184,25 +185,26 @@ tasks:
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
         do:
-          - create_vm_windows  # add back in once the Windows tests are added back in
-   create_vm_windows:
-     action: st2cd.create_vm_windows
-     input:
-       hostname: <% ctx().windows_hostname %>
-       instance_type: <% ctx().instance_type %>
-       environment: <% ctx().environment %>
-       dns_zone: <% ctx().dns_zone %>
-       distro: <% ctx().windows_distro %>
-       role: <% ctx().role %>
-     next:
-       - when: <% succeeded() %>
-         publish:
-           - vm_windows_info: <% result().output.vm_info %>
-           - vm_windows_id: <% result().output.vm_info.id %>
-           - vm_windows_username: <% result().output.vm_username %>
-           - vm_windows_password: <% result().output.vm_password %>
-         do:
-           - run_e2e_tests
+          - create_vm_windows
+
+  create_vm_windows:
+    action: st2cd.create_vm_windows
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_type: <% ctx().instance_type %>
+      environment: <% ctx().environment %>
+      dns_zone: <% ctx().dns_zone %>
+      distro: <% ctx().windows_distro %>
+      role: <% ctx().role %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - vm_windows_info: <% result().output.vm_info %>
+          - vm_windows_id: <% result().output.vm_info.id %>
+          - vm_windows_username: <% result().output.vm_username %>
+          - vm_windows_password: <% result().output.vm_password %>
+        do:
+          - run_e2e_tests
   run_e2e_tests:
     action: st2cd.st2_e2e_tests
     input:
@@ -237,9 +239,9 @@ tasks:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
     next:
-       - when: <% succeeded() %>  # add back in once the Windows tests are added back in
-         do:
-           - destroy_vm_windows
+      - when: <% succeeded() %> 
+        do:
+          - destroy_vm_windows
       - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) %>
         do:
           - fail
@@ -256,30 +258,31 @@ tasks:
       - when: <% succeeded() %>
         do:
           - destroy_vm
-     action: st2cd.destroy_vm
-     input:
-       hostname: <% ctx().windows_hostname %>
-       instance_id: <% ctx().vm_windows_id %>
-     next:
-       - when: <% succeeded() %>
-         do:
-           - notify_success
-       - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
-         do:
-           - notify_failure
-       - when: <% failed() and (ctx().destroy_vm_windows_iteration_count < 2) %>
-         publish:
-           - destroy_vm_windows_iteration_count: <% ctx().destroy_vm_windows_iteration_count + 1 %>
-         do:
-           - sleep_destroy_vm_windows
-   sleep_destroy_vm_windows:
-     action: core.local
-     input:
-       cmd: sleep 30
-     next:
-       - when: <% succeeded() %>
-         do:
-           - destroy_vm_windows
+  destroy_vm_windows:
+    action: st2cd.destroy_vm
+    input:
+      hostname: <% ctx().windows_hostname %>
+      instance_id: <% ctx().vm_windows_id %>
+    next:
+      - when: <% succeeded() %>
+        do:
+          - notify_success
+      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
+        do:
+          - notify_failure
+      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count < 2) %>
+        publish:
+          - destroy_vm_windows_iteration_count: <% ctx().destroy_vm_windows_iteration_count + 1 %>
+        do:
+          - sleep_destroy_vm_windows
+  sleep_destroy_vm_windows:
+    action: core.local
+    input:
+      cmd: sleep 30
+    next:
+      - when: <% succeeded() %>
+        do:
+          - destroy_vm_windows
   destroy_vm_on_failure:
     action: st2cd.destroy_vm
     input:

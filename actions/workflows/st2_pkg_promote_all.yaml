@@ -8,7 +8,6 @@ input:
   - distro_to_distro_version_map:
       RHEL7: el/7
       RHEL8: el/8
-      UBUNTU16: ubuntu/xenial
       UBUNTU18: ubuntu/bionic
       UBUNTU20: ubuntu/focal
   - promoted_st2: false

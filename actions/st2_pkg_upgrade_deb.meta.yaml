@@ -22,5 +22,5 @@ parameters:
     type: string
     required: true
     enum:
-      - UBUNTU16
       - UBUNTU18
+      - UBUNTU20
