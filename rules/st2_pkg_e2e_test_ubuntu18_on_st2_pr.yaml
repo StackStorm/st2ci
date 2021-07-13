@@ -2,7 +2,7 @@
 name: st2_pkg_e2e_test_ubuntu18_on_st2_pr
 description: Run Ubuntu18 end-to-end test on 'StackStorm/st2' PRs and update GitHub status
 pack: st2ci
-enabled: true
+enabled: false
 
 trigger:
     type: circle_ci.build_event
