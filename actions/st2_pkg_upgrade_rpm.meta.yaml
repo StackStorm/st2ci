@@ -23,6 +23,6 @@ parameters:
     required: true
     enum:
       - CENTOS7
-      - CENTOS8
+      - ROCKY8
       - RHEL7
       - RHEL8

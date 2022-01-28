@@ -14,7 +14,7 @@ tasks:
   init:
     action: core.noop
     next:
-      - when: <% ctx().distro = 'CENTOS8' or ctx().distro = 'RHEL8' %>
+      - when: <% ctx().distro = 'ROCKY8' or ctx().distro = 'RHEL8' %>
         # Run repoqery -y option in EL8 to do the following:
         #  - import any GPG keys from new repos
         #  - import any SSL certificates from new repos

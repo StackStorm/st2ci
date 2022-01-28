@@ -121,7 +121,7 @@ tasks:
       #         distro: <% result().distro %>
       #         versions: <% result().versions %>
       #         version_str: <% result().versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-      - when: <% succeeded() and (ctx().distro.startsWith('RHEL') or ctx().distro.startsWith('CENTOS')) %>
+      - when: <% succeeded() and (ctx().distro.startsWith('RHEL') or ctx().distro.startsWith('CENTOS') or ct().distro.startsWith('ROCKY')) %>
         publish:
           - installed:
               distro: <% result().output.distro %>
