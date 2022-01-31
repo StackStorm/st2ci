@@ -1,6 +1,6 @@
 ---
-name: st2_pkg_e2e_test_centos8_on_st2_pr
-description: Run CentOS8 end-to-end test on 'StackStorm/st2' PRs and update GitHub status
+name: st2_pkg_e2e_test_rocky8_on_st2_pr
+description: Run Rocky8 end-to-end test on 'StackStorm/st2' PRs and update GitHub status
 pack: st2ci
 enabled: false
 
@@ -37,8 +37,8 @@ criteria:
 action:
     ref: st2ci.st2_pkg_e2e_test
     parameters:
-        hostname: "pkg-e2e-test-centos8-pr-st2-{{trigger.body.payload.build_num}}"
-        distro: CENTOS8
+        hostname: "pkg-e2e-test-rocky8-pr-st2-{{trigger.body.payload.build_num}}"
+        distro: ROCKY8
         pkg_env: staging
         release: unstable
         dev_build: "st2/{{trigger.body.payload.build_num}}"
