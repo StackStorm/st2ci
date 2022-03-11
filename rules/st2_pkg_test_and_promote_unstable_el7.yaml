@@ -18,6 +18,6 @@ action:
   ref: st2ci.st2_pkg_test_and_promote
   parameters:
     hostname: st2-pkg-unstable-el7
-    distro: RHEL7
+    distro: CENTOS7
     release: unstable
     chatops: true
