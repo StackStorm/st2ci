@@ -15,7 +15,6 @@ parameters:
     type: string
     required: true
     enum:
-      - RHEL7
       - CENTOS7
       - RHEL8
       - UBUNTU18
