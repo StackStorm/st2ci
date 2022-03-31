@@ -16,7 +16,7 @@ parameters:
     required: true
     enum:
       - CENTOS7
-      - RHEL8
+      - ROCKY8
       - UBUNTU18
       - UBUNTU20
   release:

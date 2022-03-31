@@ -10,6 +10,7 @@ input:
   - keyfile
   - distro
   - windows_distro
+  - windows_instance_type
   - role
   - release
   - st2tests_version
@@ -174,7 +175,7 @@ tasks:
     action: st2cd.create_vm_windows
     input:
       hostname: <% ctx().windows_hostname %>
-      instance_type: <% ctx().instance_type %>
+      instance_type: <% ctx().windows_instance_type %>
       environment: <% ctx().environment %>
       dns_zone: <% ctx().dns_zone %>
       distro: <% ctx().windows_distro %>

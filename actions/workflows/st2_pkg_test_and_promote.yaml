@@ -14,6 +14,7 @@ input:
       RHEL7: el/7
       CENTOS7: el/7
       RHEL8: el/8
+      ROCKY8: el/8
       UBUNTU18: ubuntu/bionic
       UBUNTU20: ubuntu/focal
   - promoted_st2: false

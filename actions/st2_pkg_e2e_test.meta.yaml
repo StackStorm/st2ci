@@ -45,6 +45,9 @@ parameters:
     enum:
       - windows2016
     default: windows2016
+  windows_instance_type:
+    type: string
+    default: t2.medium
   role:
     type: string
     default: cislave
