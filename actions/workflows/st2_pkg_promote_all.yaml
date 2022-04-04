@@ -6,8 +6,8 @@ input:
   - version
   - pkg_env: staging
   - distro_to_distro_version_map:
-      RHEL7: el/7
-      RHEL8: el/8
+      CENTOS7: el/7
+      ROCKY8: el/8
       UBUNTU18: ubuntu/bionic
       UBUNTU20: ubuntu/focal
   - promoted_st2: false
