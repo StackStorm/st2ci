@@ -11,6 +11,7 @@ trigger:
     hour: 8
     minute: 0
     second: 0
+    day_of_week: "1,4"
 
 criteria: {}
 
