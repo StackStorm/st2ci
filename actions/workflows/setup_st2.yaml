@@ -8,7 +8,6 @@ input:
   - repo_dir
   - debug
 vars:
-  - clone_repo_iteration_count: 0
   - clone_path: null
 output:
   - clone_path: <% ctx().clone_path %>
@@ -20,6 +19,9 @@ tasks:
           - clone_repo
   clone_repo:
     action: st2cd.git_clone
+    retry:
+      count: 3
+      delay: 3
     input:
       hosts: <% ctx().host %>
       repo: <% ctx().repo %>
@@ -27,12 +29,7 @@ tasks:
       target: <% ctx().repo_dir %>/st2_<% ctx().repo_branch %>
       timeout:
     next:
-      - when: <% failed() and ctx().clone_repo_iteration_count < 3 %>
-        publish:
-          - clone_repo_iteration_count: <% ctx().clone_repo_iteration_count + 1 %>
-        do:
-          - sleep_for_clone_repo
-      - when: <% failed() and ctx().clone_repo_iteration_count >= 3 %>
+      - when: <% failed() %>
         do:
           - teardown
       - when: <% succeeded() %>
@@ -40,15 +37,6 @@ tasks:
           - clone_path: <% result().get(ctx().host).stdout %>
         do:
           - install
-  sleep_for_clone_repo:
-    action: core.local
-    input:
-      cmd: sleep 3
-      timeout: null
-    next:
-      - when: <% succeeded() %>
-        do:
-          - clone_repo
   install:
     action: st2ci.install_st2
     input:

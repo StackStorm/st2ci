@@ -80,7 +80,9 @@ tasks:
       target_url: <% ctx().github_status_url %>
     next:
       - when: <% succeeded() %>
-        do: create_vm
+        do:
+          - create_vm
+          - create_vm_windows
 
   create_vm:
     action: st2cd.create_vm_role
@@ -166,11 +168,12 @@ tasks:
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
               st2_version: <% result().output.versions.get("st2") %>
-        do: create_vm_windows
+        do: run_e2e_tests
       - when: <% failed() %>
         publish:
           - failed: True
         do: cleanup
+
   create_vm_windows:
     action: st2cd.create_vm_windows
     input:
@@ -193,7 +196,9 @@ tasks:
           - vm_windows_id: <% result().output.get("vm_info", {}).get("id") %>
           - failed: True
         do: cleanup
+
   run_e2e_tests:
+    join: all
     action: st2cd.st2_e2e_tests
     input:
       host_ip: <% ctx().vm_info.private_ip_address %>

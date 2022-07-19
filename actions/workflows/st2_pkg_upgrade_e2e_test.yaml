@@ -36,10 +36,6 @@ vars:
   - bootstrap_script_url: <% coalesce( ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
   - st2_username: st2admin
   - st2_password: Ch@ngeMe
-  - destroy_vm_iteration_count: 0
-  - destroy_vm_windows_iteration_count: 0
-  - destroy_vm_on_failure_iteration_count: 0
-  - destroy_vm_on_failure_windows_iteration_count: 0
   - notify_channels:
     - '#thunderdome'
   - notify_failure_channels:
@@ -232,6 +228,9 @@ tasks:
       attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
   destroy_vm:
     action: st2cd.destroy_vm
+    retry:
+      count: 2
+      delay: 30
     input:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
@@ -239,24 +238,14 @@ tasks:
       - when: <% succeeded() %> 
         do:
           - destroy_vm_windows
-      - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) %>
+      - when: <% failed() %>
         do:
           - fail
-      - when: <% failed() and (ctx().destroy_vm_iteration_count < 2) %>
-        publish:
-          - destroy_vm_iteration_count: <% ctx().destroy_vm_iteration_count + 1 %>
-        do:
-          - sleep_destroy_vm
-  sleep_destroy_vm:
-    action: core.local
-    input:
-      cmd: sleep 30
-    next:
-      - when: <% succeeded() %>
-        do:
-          - destroy_vm
   destroy_vm_windows:
     action: st2cd.destroy_vm
+    retry:
+      count: 2
+      delay: 30
     input:
       hostname: <% ctx().windows_hostname %>
       instance_id: <% ctx().vm_windows_id %>
@@ -264,24 +253,14 @@ tasks:
       - when: <% succeeded() %>
         do:
           - notify_success
-      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
+      - when: <% failed() %>
         do:
           - notify_failure
-      - when: <% failed() and (ctx().destroy_vm_windows_iteration_count < 2) %>
-        publish:
-          - destroy_vm_windows_iteration_count: <% ctx().destroy_vm_windows_iteration_count + 1 %>
-        do:
-          - sleep_destroy_vm_windows
-  sleep_destroy_vm_windows:
-    action: core.local
-    input:
-      cmd: sleep 30
-    next:
-      - when: <% succeeded() %>
-        do:
-          - destroy_vm_windows
   destroy_vm_on_failure:
     action: st2cd.destroy_vm
+    retry:
+      count: 2
+      delay: 30
     input:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
@@ -289,44 +268,23 @@ tasks:
       - when: <% succeeded() %>
         do:
           - destroy_vm_on_failure_windows
-      - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count >= 2) %>
+      - when: <% failed() %>
         do:
           - destroy_vm_on_failure_windows
           - fail
-      - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count < 2) %>
-        do:
-          - sleep_destroy_vm_on_failure
-  sleep_destroy_vm_on_failure:
-    action: core.local
-    input:
-      cmd: sleep 30
-    next:
-      - when: <% succeeded() %>
-        do:
-          - destroy_vm_on_failure
   destroy_vm_on_failure_windows:
     action: st2cd.destroy_vm
+    retry:
+      count: 2
+      delay: 30
     input:
       hostname: <% ctx().windows_hostname %>
       instance_id: <% ctx().vm_windows_id %>
     next:
-      - when: <% succeeded() or (failed() and (ctx().destroy_vm_on_failure_windows_iteration_count >= 2)) %>
+      - when: <% succeeded() or failed() %>
         do:
           - notify_failure
           - fail
-      - when: <% failed() and (ctx().destroy_vm_on_failure_windows_iteration_count < 2) %>
-        publish:
-          - destroy_vm_on_failure_windows_iteration_count: <% ctx().destroy_vm_on_failure_windows_iteration_count + 1 %>
-        do:
-          - sleep_destroy_vm_on_failure_windows
-  sleep_destroy_vm_on_failure_windows:
-    action: core.local
-    input:
-      cmd: sleep 30
-    next:
-      - when: <% succeeded() %>
-        do:
-          - destroy_vm_on_failure_windows
   notify_success:
     with:
       items: channel in <% ctx().notify_channels %>
