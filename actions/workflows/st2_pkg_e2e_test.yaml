@@ -16,6 +16,7 @@ input:
   - st2tests_version
   - version
   - dev_build
+  - pr_num
   - initial_commit
   - chatops
   - pkg_env
@@ -39,7 +40,7 @@ vars:
   - bootstrap_script_arg_dev_or_ver: <%
       switch(
         ctx().dev_build => "dev=" + ctx().dev_build,
-        not ctx().dev_build => "version=" + coalesce(ctx().version, '')) %> 
+        not ctx().dev_build => "version=" + coalesce(ctx().version, '')) %>
   - st2_username: st2admin
   - st2_password: Ch@ngeMe
   - github_status_org: StackStorm
@@ -66,7 +67,11 @@ tasks:
     next:
       - when: <% ctx().initial_commit != null %>
         do: set_github_status_pending
-      - when: <% ctx().initial_commit = null %>
+      # NOTE: We skip cancelation of old builds for executions which are not triggered as part of
+      # PR builds (e.g. nightly package builds)
+      - when: <% ctx().initial_commit = null and ctx().pr_num %>
+        do: cancel_old_builds_for_pr
+      - when: <% ctx().initial_commit = null and not ctx().pr_num %>
         do: create_vm
   set_github_status_pending:
     action: github.add_status
@@ -79,9 +84,21 @@ tasks:
       description: E2E tests are running...
       target_url: <% ctx().github_status_url %>
     next:
-      - when: <% succeeded() %>
+      # NOTE: We skip cancelation of old builds for executions which are not triggered as part of
+      # PR builds (e.g. nightly package builds)
+      - when: <% succeeded() and ctx().pr_num %>
+        do: cancel_old_builds_for_pr
+      - when: <% succeeded() and not ctx().pr_num  %>
         do: create_vm
 
+  cancel_old_builds_for_pr:
+    action: st2ci.cancel_old_builds_for_pr
+    input:
+      build_num: <% ctx().dev_build %>
+      pr_num: <% ctx().pr_num %>
+    next:
+      - do:
+        - create_vm
   create_vm:
     action: st2cd.create_vm_role
     input:
