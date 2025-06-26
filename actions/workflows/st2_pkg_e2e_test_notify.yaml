@@ -26,6 +26,7 @@ vars:
   - notify_failure_channels:
       - '#thunderdome'
       - '#opstown'
+  - notify_route: errbot
 
 tasks:
   determine_which_notify:
@@ -41,22 +42,55 @@ tasks:
   notify_start:
     with:
       items: channel in <% ctx().notify_channels %>
-    action: slack.chat.postMessage
+    action: chatops.post_message
     input:
       channel: <% item(channel) %>
-      text: 'st2ci.st2_pkg_e2e_test: STARTED'
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().hostname %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nST2TESTS_VERSION: <% coalesce(ctx().st2tests_version, ctx().version, 'latest') %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
+      route: <% ctx(notify_route)%>
+      message: 'st2ci.st2_pkg_e2e_test: STARTED'
+      extra:
+        slack:
+          attachments:
+            - fallback": "[st2ci.st2_pkg_e2e_test: STARTED]"
+              title: "[st2ci.st2_pkg_e2e_test: STARTED]"
+              title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().action_execution_id %>/general"
+              text: |
+                COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>
+                HOSTNAME: <% ctx().hostname %>
+                DISTRO: <% ctx().distro %>
+                RELEASE: <% ctx().pkg_env %> <% ctx().release %>
+                ST2TESTS_VERSION: <% coalesce(ctx().st2tests_version, ctx().version, 'latest') %>
+                VERSION: <% coalesce(ctx().version, 'latest') %>
+                BOOTSTRAP: <% ctx().bootstrap_script_url %>"
+              color: "#808080"
 
   notify_success:
     with: channel in <% ctx().notify_channels %>
-    action: slack.chat.postMessage
+    action: chatops.post_message
     input:
       channel: <% item(channel) %>
-      text: 'st2ci.st2_pkg_e2e_test: SUCCEEDED'
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: SUCCEEDED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().hostname %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nST2TESTS_VERSION: <% coalesce(ctx().st2tests_version, ctx().version, 'latest') %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#008000\"}]"
+      route: <% ctx(notify_route)%>
+      message: 'st2ci.st2_pkg_e2e_test: SUCCEEDED'
+      extra:
+        slack:
+          attachments:
+            - fallback: "[st2ci.st2_pkg_e2e_test: SUCCEEDED]"
+              title: "[st2ci.st2_pkg_e2e_test: SUCCEEDED]"
+              title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().action_execution_id %>/general"
+              text: |
+                COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>
+                HOSTNAME: <% ctx().hostname %>
+                DISTRO: <% ctx().distro %>
+                RELEASE: <% ctx().pkg_env %> <% ctx().release %>
+                ST2TESTS_VERSION: <% coalesce(ctx().st2tests_version, ctx().version, 'latest') %>
+                VERSION: <% coalesce(ctx().version, 'latest') %>
+                VERSION INSTALLED:
+                  <% ctx().installed.version_str %>
+                BOOTSTRAP: <% ctx().bootstrap_script_url %>
+              color: "#008000"
     next:
       - when: <% ctx().initial_commit %>
         do: set_github_status_success
+
   set_github_status_success:
     action: github.add_status
     input:
@@ -71,16 +105,34 @@ tasks:
   notify_failure:
     with:
       items: channel in <% ctx().notify_failure_channels %>
-    action: slack.chat.postMessage
+    action: chatops.post_message
     input:
       channel: <% item(channel) %>
-      text: 'st2ci.st2_pkg_e2e_test: FAILED'
-      attachments: "[{\"fallback\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title\": \"[st2ci.st2_pkg_e2e_test: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().hostname %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nST2TESTS_VERSION: <% coalesce(ctx().st2tests_version, ctx().version, 'latest') %>\\nVERSION: <% coalesce(ctx().version, 'latest') %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#FF0000\"}]"
+      route: <% ctx(notify_route)%>
+      message: 'st2ci.st2_pkg_e2e_test: FAILED'
+      extra:
+        slack:
+          attachments:
+            - fallback: "[st2ci.st2_pkg_e2e_test: FAILED]"
+              title: "[st2ci.st2_pkg_e2e_test: FAILED]"
+              title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().action_execution_id %>/general"
+              text: |
+                COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>
+                HOSTNAME: <% ctx().hostname %>
+                DISTRO: <% ctx().distro %>
+                RELEASE: <% ctx().pkg_env %> <% ctx().release %>
+                ST2TESTS_VERSION: <% coalesce(ctx().st2tests_version, ctx().version, 'latest') %>
+                VERSION: <% coalesce(ctx().version, 'latest') %>
+                VERSION INSTALLED:
+                  <% ctx().installed.version_str %>
+                BOOTSTRAP: <% ctx().bootstrap_script_url %>",
+              color: "#FF0000"
     next:
       - when: <% ctx().initial_commit %>
         do: set_github_status_failure
       - when: <% not ctx().initial_commit %>
         do: fail
+
   set_github_status_failure:
     action: github.add_status
     input:

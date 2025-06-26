@@ -20,6 +20,7 @@ input:
   - bootstrap_script
   - triggering_commit_url
   - debug
+
 vars:
   - result: ""
   - webui_base_url: http://st2cicd.uswest2.stackstorm.net
@@ -45,12 +46,15 @@ vars:
   - notify_failure_channels:
     - '#thunderdome'
     - '#opstown'
+  - notify_route: errbot
   - pkg_list:
     - st2
     - st2chatops
     - st2web
+
 output:
   - versions: <% ctx().installed.versions %>
+
 tasks:
   get_webui_server:
     action: core.noop
@@ -225,11 +229,26 @@ tasks:
   notify_start:
     with:
       items: channel in <% ctx().notify_channels %>
-    action: slack.chat.postMessage
+    action: chatops.post_message
     input:
       channel: <% item(channel) %>
-      text: 'st2ci.st2_pkg_upgrade_e2e_test: STARTED'
-      attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: STARTED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#808080\"}]"
+      route: <% ctx(notify_route) %>
+      message: 'st2ci.st2_pkg_upgrade_e2e_test: STARTED'
+      extra:
+        slack:
+          attachments:
+            - title: "[st2ci.st2_pkg_upgrade_e2e_test: STARTED]"
+              title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general"
+              text: |
+                COMMIT: <% coalesce(ctx(triggering_commit_url), 'n/a') %>
+                HOSTNAME: <% ctx(vm_fqdn) %>
+                DISTRO: <% ctx(distro) %>
+                RELEASE: <% ctx(pkg_env) %> <% ctx(release) %>
+                FROM_VERSION: <% ctx(upgrade_from_version) %>
+                TO_VERSION: <% ctx(upgrade_to_version) %>
+                BOOTSTRAP: <% ctx(bootstrap_script_url) %>
+              color: "#808080"
+
   destroy_vm:
     action: st2cd.destroy_vm
     input:
@@ -315,34 +334,67 @@ tasks:
           - notify_failure
           - fail
       - when: <% failed() and (ctx().destroy_vm_on_failure_windows_iteration_count < 2) %>
+        do: sleep_destroy_vm_on_failure_windows
         publish:
           - destroy_vm_on_failure_windows_iteration_count: <% ctx().destroy_vm_on_failure_windows_iteration_count + 1 %>
-        do:
-          - sleep_destroy_vm_on_failure_windows
+
   sleep_destroy_vm_on_failure_windows:
     action: core.local
     input:
       cmd: sleep 30
     next:
       - when: <% succeeded() %>
-        do:
-          - destroy_vm_on_failure_windows
+        do: destroy_vm_on_failure_windows
+
   notify_success:
     with:
       items: channel in <% ctx().notify_channels %>
-    action: slack.chat.postMessage
+    action: chatops.post_message
     input:
       channel: <% item(channel) %>
-      text: 'st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED'
-      attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#008000\"}]"
+      route: <% ctx(notify_route) %>
+      message: 'st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED'
+      extra:
+        slack:
+          attachments:
+            - title: "[st2ci.st2_pkg_upgrade_e2e_test: SUCCEEDED]"
+              title_link: "<% ctx(webui_base_url) %>/#/history/<% ctx().st2.action_execution_id %>/general"
+              text: |
+                COMMIT: <% coalesce(ctx(triggering_commit_url), 'n/a') %>
+                HOSTNAME: <% ctx(vm_fqdn) %>
+                DISTRO: <% ctx(distro) %>
+                RELEASE: <% ctx(pkg_env) %> <% ctx(release) %>
+                FROM_VERSION: <% ctx(upgrade_from_version) %>
+                TO_VERSION: <% ctx(upgrade_to_version) %>
+                VERSION INSTALLED:
+                  <% ctx().installed.version_str %>
+                BOOTSTRAP: <% ctx(bootstrap_script_url) %>
+              color: "#008000"
+
+
   notify_failure:
     with:
       items: channel in <% ctx().notify_failure_channels %>
-    action: slack.chat.postMessage
+    action: chatops.post_message
     input:
       channel: <% item(channel) %>
-      text: 'st2ci.st2_pkg_upgrade_e2e_test: FAILED'
-      attachments: "[{\"title\": \"[st2ci.st2_pkg_upgrade_e2e_test: FAILED]\", \"title_link\": \"<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general\", \"text\": \"COMMIT: <% coalesce(ctx().triggering_commit_url, 'n/a') %>\\nHOSTNAME: <% ctx().vm_fqdn %>\\nDISTRO: <% ctx().distro %>\\nRELEASE: <% ctx().pkg_env %> <% ctx().release %>\\nFROM_VERSION: <% ctx().upgrade_from_version %>\\nTO_VERSION: <% ctx().upgrade_to_version %>\\nVERSION INSTALLED:\\n\\t<% ctx().installed.version_str %>\\nBOOTSTRAP: <% ctx().bootstrap_script_url %>\", \"color\": \"#FF0000\"}]"
+      route: <% ctx(notify_route) %>
+      message: "st2ci.st2_pkg_upgrade_e2e_test: FAILED"
+      extra:
+        slack:
+          attachments:
+            - title: "[st2ci.st2_pkg_upgrade_e2e_test: FAILED]"
+              title_link: "<% ctx(webui_base_url) %>/#/history/<% ctx().st2.action_execution_id %>/general"
+              text: |
+                COMMIT: <% coalesce(ctx(triggering_commit_url), 'n/a') %>
+                HOSTNAME: <% ctx(vm_fqdn) %>
+                DISTRO: <% ctx(distro) %>
+                RELEASE: <% ctx(pkg_env) %> <% ctx(release) %>
+                FROM_VERSION: <% ctx(upgrade_from_version) %>
+                TO_VERSION: <% ctx(upgrade_to_version) %>
+                VERSION INSTALLED:
+                  <% ctx().installed.version_str %>
+                BOOTSTRAP: <% ctx(bootstrap_script_url) %>
+              color: "#FF0000"
     next:
-      - do:
-          - fail
+      - do: fail
