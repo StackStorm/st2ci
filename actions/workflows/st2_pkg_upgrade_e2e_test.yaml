@@ -63,6 +63,7 @@ tasks:
         do:
           - notify_start
           - create_vm
+
   create_vm:
     action: st2cd.create_vm_role
     input:
@@ -79,8 +80,8 @@ tasks:
         publish:
           - vm_info: <% result().output.vm_info %>
           - vm_id: <% result().output.vm_info.id %>
-        do:
-          - get_bootstrap_script
+        do: get_bootstrap_script
+
   get_bootstrap_script:
     action: core.remote_sudo
     input:
@@ -88,8 +89,8 @@ tasks:
       cmd: curl -Ss -k -o /tmp/st2_bootstrap.sh <% ctx().bootstrap_script_url %>
     next:
       - when: <% succeeded() %>
-        do:
-          - run_bootstrap_script
+        do: run_bootstrap_script
+
   run_bootstrap_script:
     action: core.remote_sudo
     input:
@@ -104,8 +105,8 @@ tasks:
       timeout: 900
     next:
       - when: <% succeeded() %>
-        do:
-          - pre_upgrade_stop
+        do: pre_upgrade_stop
+
   pre_upgrade_stop:
     action: core.remote_sudo
     input:
@@ -113,8 +114,8 @@ tasks:
       cmd: st2ctl stop
       timeout: 180
     next:
-      - do:
-          - get_installed_version
+      - do: get_installed_version
+
   get_installed_version:
     action: st2cd.st2_get_installed_version
     input:
@@ -132,16 +133,15 @@ tasks:
               distro: <% result().output.distro %>
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-        do:
-          - upgrade_packages_rpm
+        do: upgrade_packages_rpm
       - when: <% succeeded() and ctx().distro.startsWith('UBUNTU') %>
         publish:
           - installed:
               distro: <% result().output.distro %>
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-        do:
-          - upgrade_packages_deb
+        do: upgrade_packages_deb
+
   upgrade_packages_rpm:
     action: st2ci.st2_pkg_upgrade_rpm
     input:
@@ -151,8 +151,8 @@ tasks:
       distro: <% ctx().distro %>
     next:
       - when: <% succeeded() %>
-        do:
-          - post_migration_start
+        do: post_migration_start
+
   upgrade_packages_deb:
     action: st2ci.st2_pkg_upgrade_deb
     input:
@@ -162,8 +162,8 @@ tasks:
       distro: <% ctx().distro %>
     next:
       - when: <% succeeded() %>
-        do:
-          - post_migration_start
+        do: post_migration_start
+
   post_migration_start:
     action: core.remote_sudo
     input:
@@ -172,8 +172,8 @@ tasks:
       timeout: 180
     next:
       - when: <% succeeded() %>
-        do:
-          - get_upgraded_version
+        do: get_upgraded_version
+
   get_upgraded_version:
     action: st2cd.st2_get_installed_version
     input:
@@ -185,8 +185,7 @@ tasks:
               distro: <% result().output.distro %>
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-        do:
-          - create_vm_windows
+        do: create_vm_windows
 
   create_vm_windows:
     action: st2cd.create_vm_windows
@@ -204,8 +203,8 @@ tasks:
           - vm_windows_id: <% result().output.vm_info.id %>
           - vm_windows_username: <% result().output.vm_username %>
           - vm_windows_password: <% result().output.vm_password %>
-        do:
-          - run_e2e_tests
+        do: run_e2e_tests
+
   run_e2e_tests:
     action: st2cd.st2_e2e_tests
     input:
@@ -221,11 +220,10 @@ tasks:
       windows_password: <% ctx().vm_windows_password %>
     next:
       - when: <% succeeded() and (not ctx().debug) %>
-        do:
-          - destroy_vm
+        do: destroy_vm
       - when: <% succeeded() and (ctx().debug) %>
-        do:
-          - notify_success
+        do: notify_success
+
   notify_start:
     with:
       items: channel in <% ctx().notify_channels %>
@@ -255,25 +253,23 @@ tasks:
       hostname: <% ctx().hostname %>
       instance_id: <% ctx().vm_id %>
     next:
-      - when: <% succeeded() %> 
-        do:
-          - destroy_vm_windows
+      - when: <% succeeded() %>
+        do: destroy_vm_windows
       - when: <% failed() and (ctx().destroy_vm_iteration_count >= 2) %>
-        do:
-          - fail
+        do: fail
       - when: <% failed() and (ctx().destroy_vm_iteration_count < 2) %>
         publish:
           - destroy_vm_iteration_count: <% ctx().destroy_vm_iteration_count + 1 %>
-        do:
-          - sleep_destroy_vm
+        do: sleep_destroy_vm
+
   sleep_destroy_vm:
     action: core.local
     input:
       cmd: sleep 30
     next:
       - when: <% succeeded() %>
-        do:
-          - destroy_vm
+        do: destroy_vm
+
   destroy_vm_windows:
     action: st2cd.destroy_vm
     input:
@@ -281,24 +277,22 @@ tasks:
       instance_id: <% ctx().vm_windows_id %>
     next:
       - when: <% succeeded() %>
-        do:
-          - notify_success
+        do: notify_success
       - when: <% failed() and (ctx().destroy_vm_windows_iteration_count >= 2) %>
-        do:
-          - notify_failure
+        do: notify_failure
       - when: <% failed() and (ctx().destroy_vm_windows_iteration_count < 2) %>
         publish:
           - destroy_vm_windows_iteration_count: <% ctx().destroy_vm_windows_iteration_count + 1 %>
-        do:
-          - sleep_destroy_vm_windows
+        do: sleep_destroy_vm_windows
+
   sleep_destroy_vm_windows:
     action: core.local
     input:
       cmd: sleep 30
     next:
       - when: <% succeeded() %>
-        do:
-          - destroy_vm_windows
+        do: destroy_vm_windows
+
   destroy_vm_on_failure:
     action: st2cd.destroy_vm
     input:
@@ -306,23 +300,22 @@ tasks:
       instance_id: <% ctx().vm_id %>
     next:
       - when: <% succeeded() %>
-        do:
-          - destroy_vm_on_failure_windows
+        do: destroy_vm_on_failure_windows
       - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count >= 2) %>
         do:
           - destroy_vm_on_failure_windows
           - fail
       - when: <% failed() and (ctx().destroy_vm_on_failure_iteration_count < 2) %>
-        do:
-          - sleep_destroy_vm_on_failure
+        do: sleep_destroy_vm_on_failure
+
   sleep_destroy_vm_on_failure:
     action: core.local
     input:
       cmd: sleep 30
     next:
       - when: <% succeeded() %>
-        do:
-          - destroy_vm_on_failure
+        do: destroy_vm_on_failure
+
   destroy_vm_on_failure_windows:
     action: st2cd.destroy_vm
     input:
