@@ -1,6 +1,34 @@
 ---
 version: '1.0'
 
+# Use consistent naming of variables with a single purpose.  These
+# parameters will probably be best set in the kv store so that all workflows
+# share the same data without repeating it.
+
+#~ unstable / dev
+
+#~ st2test_branch: master
+#~ st2bootstrap_branch: master
+#~ packagecloud_repostiory: unstable
+#~ package_distribution_path: ubuntu/jammy
+#~ package_environment: staging
+#~ package_version: 3.9dev
+
+#~ unstable / vX.Ydev
+
+#~ stable / latest
+
+#~ st2test_branch: v3.8
+#~ st2bootstrap_branch: v3.8
+#~ packagecloud_repostiory: stable
+#~ package_distribution_path: ubuntu/focal
+#~ package_environment: ""
+#~ package_version: 3.8.1
+
+#~ stable / vX.Y.Z
+
+
+
 input:
   - hostname
   - distro
@@ -10,7 +38,7 @@ input:
   - chatops
   - debug
   - pkg_env: staging
-  - distro_to_distro_version_map:
+  - map_distro_to_repository:
       ROCKY8: el/8
       ROCKY9: el/9
       UBUNTU20: ubuntu/focal
@@ -27,8 +55,9 @@ input:
 vars:
   - versions: ""
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
-  - pkg_distro_version: <% ctx().distro_to_distro_version_map.get(ctx().distro) %>
+  - pkg_distro_version: <% ctx().map_distro_to_repository.get(ctx().distro) %>
   - notify_route: errbot
+  - bootstrap_branch: master
 
 output:
   - versions: <% ctx().versions %>
@@ -55,17 +84,9 @@ tasks:
               color: "#808080"
     next:
       - when: <% succeeded() %>
-        do: get_hostname_suffix
-
-  get_hostname_suffix:
-    action: core.local
-    input:
-      cmd: date +'%s'
-    next:
-      - when: <% succeeded() %>
-        publish:
-          - suffix: <% result().stdout %>
         do: run_e2e_test
+        publish:
+          - suffix: <% now().format("%s") %>
 
   run_e2e_test:
     action: st2ci.st2_pkg_e2e_test
@@ -78,6 +99,7 @@ tasks:
       keyfile: <% ctx().keyfile %>
       chatops: <% ctx().chatops %>
       debug: <% ctx().debug %>
+      bootstrap_branch: <% ctx().bootstrap_branch %>
     next:
       - when: <% succeeded() %>
         publish:

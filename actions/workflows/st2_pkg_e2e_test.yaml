@@ -39,7 +39,7 @@ vars:
   - bootstrap_script_arg_dev_or_ver: <%
       switch(
         ctx().dev_build => "dev=" + ctx().dev_build,
-        not ctx().dev_build => "version=" + coalesce(ctx().version, '')) %> 
+        not ctx().dev_build => "version=" + coalesce(ctx().version, '')) %>
   - st2_username: st2admin
   - st2_password: Ch@ngeMe
   - github_status_org: StackStorm
@@ -68,6 +68,7 @@ tasks:
         do: set_github_status_pending
       - when: <% ctx().initial_commit = null %>
         do: create_vm
+
   set_github_status_pending:
     action: github.add_status
     input:
@@ -104,6 +105,7 @@ tasks:
           - vm_id: <% result().output.get("vm_info", {}).get("id") %>
           - failed: True
         do: cleanup
+
   get_bootstrap_script:
     action: core.remote_sudo
     input:
@@ -112,6 +114,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         do: run_bootstrap_script
+
   run_bootstrap_script:
     action: core.remote_sudo
     input:
@@ -131,6 +134,7 @@ tasks:
         publish:
           - failed: True
         do: cleanup
+
   cleanup_diskspace:
     action: st2ci.cleanup_diskspace
     input:
@@ -139,6 +143,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         do: check_debug_mode
+
   check_debug_mode:
     action: core.noop
     next:
@@ -146,6 +151,7 @@ tasks:
         do: get_installed_version
       - when: <% ctx().debug %>
         do: enable_debug_mode
+
   enable_debug_mode:
     action: core.remote_sudo
     input:
@@ -154,6 +160,7 @@ tasks:
       timeout: 120
     next:
       - do: get_installed_version
+
   get_installed_version:
     action: st2cd.st2_get_installed_version
     input:
@@ -171,6 +178,7 @@ tasks:
         publish:
           - failed: True
         do: cleanup
+
   create_vm_windows:
     action: st2cd.create_vm_windows
     input:
@@ -193,6 +201,7 @@ tasks:
           - vm_windows_id: <% result().output.get("vm_info", {}).get("id") %>
           - failed: True
         do: cleanup
+
   run_e2e_tests:
     action: st2cd.st2_e2e_tests
     input:
