@@ -36,10 +36,12 @@ parameters:
     enum:
       - CENTOS7
       - ROCKY8
+      - ROCKY9
       - RHEL7
       - RHEL8
       - UBUNTU18
       - UBUNTU20
+      - UBUNTU22
   windows_distro:
     type: string
     enum:
@@ -63,6 +65,7 @@ parameters:
     default: null
   version:
     type: string
+    description: The package version to tested.
   dev_build:
     type: string
     description: Repo name + CircleCI build number ('st2/3126') to install artifacts from. Overrides version.
