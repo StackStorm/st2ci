@@ -1,9 +1,13 @@
 ---
 version: '1.0'
 description: Teardown a running instance of StackStorm.
+
+
 input:
   - host
   - repo
+
+
 tasks:
   stop_service:
     action: core.remote
@@ -11,8 +15,8 @@ tasks:
       hosts: <% ctx().host %>
       cmd: <% ctx().repo %>/tools/launchdev.sh stop || true
     next:
-      - do:
-          - teardown_db
+      - do: teardown_db
+
   teardown_db:
     action: core.remote
     input:
@@ -20,8 +24,8 @@ tasks:
       cmd: mongo st2 --eval "db.dropDatabase();"
     next:
       - when: <% succeeded() %>
-        do:
-          - remove_packs
+        do: remove_packs
+
   remove_packs:
     action: core.remote_sudo
     input:
@@ -29,8 +33,8 @@ tasks:
       cmd: rm -rf /opt/stackstorm/packs
     next:
       - when: <% succeeded() %>
-        do:
-          - remove_repo
+        do: remove_repo
+
   remove_repo:
     action: st2cd.git_clean
     input:

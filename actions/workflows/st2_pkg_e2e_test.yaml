@@ -53,13 +53,16 @@ output:
   - failed: <% ctx().failed %>
 
 tasks:
-  init:
-    action: core.noop
+  load_cfg:
+    action: core.local
+    input:
+      cmd: cat /opt/stackstorm/packs/st2ci/e2e_config.json
     next:
-      - publish: notify_status="started"
-        do:
+      - do:
           - update_github_commit_status
           - notify
+        when: <% succeeded() %>
+        publish: notify_status="started"
 
   update_github_commit_status:
     action: core.noop

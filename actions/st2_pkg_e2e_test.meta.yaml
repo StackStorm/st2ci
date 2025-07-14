@@ -7,11 +7,12 @@ runner_type: orquesta
 entry_point: workflows/st2_pkg_e2e_test.yaml
 parameters:
   hostname:
+    description: The hostname for the AWS instance to perform the e2e tests.
     type: string
     required: true
   dns_zone:
     type: string
-    description: Route53 DNS Zone to add host to
+    description: Hostname will be added to the Route53 DNS Zone.
     default: uswest2.stackstorm.net
   instance_type:
     type: string
@@ -45,8 +46,8 @@ parameters:
   windows_distro:
     type: string
     enum:
-      - windows2016
-    default: windows2016
+      - WINDOWS2016
+    default: WINDOWS2016
   windows_instance_type:
     type: string
     default: t2.small

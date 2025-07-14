@@ -1,34 +1,6 @@
 ---
 version: '1.0'
 
-# Use consistent naming of variables with a single purpose.  These
-# parameters will probably be best set in the kv store so that all workflows
-# share the same data without repeating it.
-
-#~ unstable / dev
-
-#~ st2test_branch: master
-#~ st2bootstrap_branch: master
-#~ packagecloud_repostiory: unstable
-#~ package_distribution_path: ubuntu/jammy
-#~ package_environment: staging
-#~ package_version: 3.9dev
-
-#~ unstable / vX.Ydev
-
-#~ stable / latest
-
-#~ st2test_branch: v3.8
-#~ st2bootstrap_branch: v3.8
-#~ packagecloud_repostiory: stable
-#~ package_distribution_path: ubuntu/focal
-#~ package_environment: ""
-#~ package_version: 3.8.1
-
-#~ stable / vX.Y.Z
-
-
-
 input:
   - hostname
   - distro
@@ -58,11 +30,22 @@ vars:
   - pkg_distro_version: <% ctx().map_distro_to_repository.get(ctx().distro) %>
   - notify_route: errbot
   - bootstrap_branch: master
+  - default_hostname: <% "".join(["st2-pkg-", ctx().release, "-", ctx().distro, "-", str(now().format("%s"))]) %>
 
 output:
   - versions: <% ctx().versions %>
 
 tasks:
+  load_cfg:
+    action: core.local
+    input:
+      cmd: cat /opt/stackstorm/packs/st2ci/e2e_config.json
+    next:
+      - do: notify_start
+        when: <% succeeded() %>
+        publish:
+          - hostname: <% coalesce(ctx().hostname, ctx().default_hostname) %>
+
   notify_start:
     with: channel in <% ctx().notify_channels %>
     action: chatops.post_message
@@ -77,7 +60,7 @@ tasks:
               title: "[st2ci.st2_pkg_test_and_promote: STARTED]"
               title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general"
               text: |
-                HOSTNAME: <% coalesce(ctx().hostname, "unspecified") %>
+                HOSTNAME: <% ctx().hostname %>
                 DISTRO: <% ctx().distro %>
                 RELEASE: <% ctx().pkg_env %> <% ctx().release %>
                 VERSION: <% coalesce(ctx().version, 'latest') %>
@@ -85,13 +68,11 @@ tasks:
     next:
       - when: <% succeeded() %>
         do: run_e2e_test
-        publish:
-          - suffix: <% now().format("%s") %>
 
   run_e2e_test:
     action: st2ci.st2_pkg_e2e_test
     input:
-      hostname: <% coalesce( ctx().hostname, "st2-pkg-" + ctx().release + "-" + ctx().distro.toLower() + "-" + str(ctx().suffix) ) %>
+      hostname: <% ctx().hostname %>
       distro: <% ctx().distro %>
       release: <% ctx().release %>
       version: <% ctx().version %>
@@ -195,7 +176,7 @@ tasks:
               title: "[st2ci.st2_pkg_test_and_promote: COMPLETED]"
               title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general"
               text: |
-                HOSTNAME: <% coalesce(ctx().hostname, "unspecified") %>
+                HOSTNAME: <% ctx().hostname %>
                 DISTRO: <% ctx().distro %>
                 RELEASE: <% ctx().pkg_env %> <% ctx().release %>
                 VERSION: <% coalesce(ctx().version, 'latest') %>
@@ -221,7 +202,7 @@ tasks:
               title: "[st2ci.st2_pkg_test_and_promote: FAILED]"
               title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general"
               text: |
-                HOSTNAME: <% coalesce(ctx().hostname, "unspecified") %>
+                HOSTNAME: <% ctx().hostname %>
                 DISTRO: <% ctx().distro %>
                 RELEASE: <% ctx().pkg_env %> <% ctx().release %>
                 VERSION: <% coalesce(ctx().version, 'latest') %>
