@@ -1,6 +1,8 @@
 ---
 version: '1.0'
 description: Promote a package to production.
+
+
 input:
   - package
   - version
@@ -9,6 +11,8 @@ input:
   - repo
   - token
   - timeout:
+
+
 tasks:
   init:
     action: core.local
@@ -16,33 +20,29 @@ tasks:
       cmd: mkdir -p /tmp/st2-up/{ubuntu/bionic,ubuntu/focal,el/7,el/8}
     next:
       - when: <% succeeded() and (ctx().os in list('all', 'deb', 'focal')) %>
+        do: download_focal
         publish:
           - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
           - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
           - source: <% ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
-        do:
-          - download_focal
       - when: <% succeeded() and (ctx().os in list('all', 'deb', 'bionic')) %>
+        do: download_bionic
         publish:
           - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
           - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
           - source: <% ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
-        do:
-          - download_bionic
       - when: <% succeeded() and (ctx().os in list('all', 'rpm', 'el7')) %>
+        do: download_el7
         publish:
           - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
           - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
           - source: <% ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
-        do:
-          - download_el7
       - when: <% succeeded() and (ctx().os in list('all', 'rpm', 'el8')) %>
+        do: download_el8
         publish:
           - rpm: <% ctx().package %>-<% ctx().version %>-<% ctx().revision %>.x86_64.rpm
           - deb: <% ctx().package %>_<% ctx().version %>-<% ctx().revision %>_amd64.deb
           - source: <% ctx().repo = 'stable' and 'staging-stable' or ctx().repo = 'unstable' and 'staging-unstable' %>
-        do:
-          - download_el8
 
   download_bionic:
     action: core.local
@@ -51,8 +51,8 @@ tasks:
       timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
-        do:
-          - upload_bionic
+        do: upload_bionic
+
   upload_bionic:
     action: core.local
     input:
@@ -66,8 +66,8 @@ tasks:
       timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
-        do:
-          - upload_focal
+        do: upload_focal
+
   upload_focal:
     action: core.local
     input:
@@ -81,8 +81,8 @@ tasks:
       timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
-        do:
-          - upload_el7
+        do: upload_el7
+
   upload_el7:
     action: core.local
     input:
@@ -96,8 +96,8 @@ tasks:
       timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
-        do:
-          - upload_el8
+        do: upload_el8
+
   upload_el8:
     action: core.local
     input:
