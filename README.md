@@ -1,2 +1,4 @@
 # st2ci
-New and improved continuous integration actions and workflows
+
+StackStorm continuous integration actions and workflows for managing the
+development life-cycle of StackStorm.
