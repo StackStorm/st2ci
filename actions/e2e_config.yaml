@@ -1,0 +1,17 @@
+---
+name: e2e_config
+pack: st2ci
+description: End to End authoratative configuration for st2 packages
+runner_type: python-script
+entry_point: scripts/e2e_config.py
+enabled: true
+parameters:
+  profile:
+    description: Profile for the environment 
+    type: string
+    required: false
+    enum:
+      - release
+      - release-candidate
+      - development-tested
+      - development
