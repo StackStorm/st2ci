@@ -17,7 +17,7 @@ parameters:
   instance_type:
     type: string
     # There is no AMI which supports new C5 instance size for those distros
-    default: '{% if distro in ["RHEL7"] %}c4.large{% else %}c5.large{% endif %}'
+    default: '{% if distro in ["rhel7"] %}c4.large{% else %}c5.large{% endif %}'
   environment:
     type: string
     enum:
@@ -35,19 +35,19 @@ parameters:
     type: string
     required: true
     enum:
-      - CENTOS7
-      - ROCKY8
-      - ROCKY9
-      - RHEL7
-      - RHEL8
-      - UBUNTU18
-      - UBUNTU20
-      - UBUNTU22
+      - centos7
+      - rocky8
+      - rocky9
+      - rhel7
+      - rhel8
+      - ubuntu18
+      - ubuntu20
+      - ubuntu22
   windows_distro:
     type: string
     enum:
-      - WINDOWS2016
-    default: WINDOWS2016
+      - windows2016
+    default: windows2016
   windows_instance_type:
     type: string
     default: t2.small

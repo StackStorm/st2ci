@@ -8,16 +8,17 @@ from st2client.client import Client
 from st2client.models import KeyValuePair
 
 # The end to end tests and package promotion workflows rely on information
-# which express the following concepts:
+# which define various parts of the process:
 #
 #  - the current development and release branches.
 #  - the stackstorm tests git branch to use for testing.
-#  - the git branch to use when installing the  st2boostrap script to run to install st2 on an AWS instance.
-#  - the supported linux distributions for a given version of stackstorm.
+#  - the st2boostrap script git branch to install st2 on an AWS instance.
+#  - which linux distributions are supported for the stackstorm version being tested.
 #  - the distrbution path used by packagecloud repository. (e.g. rocky8 uses el/8)
-#  - the amazon image to use and instance type when testing packages.
+#  - the amazon image and instance type to use for testing packages.
 #
-# All this information was scattered across rules, action default parameters and workflow variables.
+# All this information was scattered across numerous packs in rules, action default parameters
+# which made it hard to understand what was being done and how workflow variables were being used.
 #
 # This action acts as a central authority on configuration for all these services so that maintenance
 # is easier to reason about across workflows, it avoids repeating data and ensures consistency.

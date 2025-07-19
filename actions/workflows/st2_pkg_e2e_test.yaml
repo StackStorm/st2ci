@@ -143,8 +143,20 @@ tasks:
       timeout: 600
       cmd: |
         df -h
-        command -v yum && ( echo ">> Detected yum-based Linux"; sudo yum clean all)
-        command -v apt && ( echo ">> Detected apt-based Linux"; sudo apt-get clean; sudo apt-get autoremove --purge)
+        export PM=$(command -v dnf)
+        test -z "$PM" && PM=$(command -v apt)
+        case "$PM" in
+          *dnf)
+            sudo dnf clean all
+            ;;
+          *apt)
+            sudo apt-get clean; sudo apt-get autoremove --purge
+            ;;
+          *)
+            echo dnf or apt not detected on the system.
+            exit 1
+            ;;
+        esac
         df -h
     next:
       - when: <% succeeded() %>

@@ -1,0 +1,39 @@
+---
+name: st2_pkg_test_and_promote_development
+pack: st2ci
+description: Run end to end tests and promote st2 packages from development repository
+enabled: true
+runner_type: orquesta
+entry_point: workflows/st2_pkg_test_and_promote_development.yaml
+parameters:
+  profile_source:
+    type: string
+    required: true
+    description: The e2e profile to promote the package from.
+    enum:
+      - stable
+      - staging-stable
+      - unstable
+      - staging-unstable
+  profile_target:
+    type: string
+    required: true
+    description: The e2e profile to promote the package to.
+    enum:
+      - stable
+      - staging-stable
+      - unstable
+      - staging-unstable
+  distributions:
+    type: array
+    required: false
+    description: List of distributions used to create a INTERSECTION with e2e_config distributions list.
+  keyfile:
+    type: string
+    default: /home/stanley/.ssh/stanley_rsa
+  chatops:
+    type: boolean
+    default: false
+  debug:
+    type: boolean
+    default: false
