@@ -98,19 +98,9 @@ tasks:
 
   promote:
     next:
-      - do:
-          - get_pkg_filename
-
-  get_pkg_filename:
-    action: core.local
-    input:
-      cmd: date +'%s'
-    next:
-      - when: <% succeeded() %>
+      - do: download_stg_pkg
         publish:
-          - target: <% str(result().stdout) + '-' + str(random(100000, 999999)) + '-' + ctx().filename %>
-        do:
-          - download_stg_pkg
+          - target: <% "-".join([now().format("%s"), str(random(100000, 999999)), ctx().filename]) %>
 
   download_stg_pkg:
     action: core.local
