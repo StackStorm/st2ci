@@ -1,0 +1,22 @@
+---
+name: st2_pkg_test_and_promote_development
+pack: st2ci
+description: Tests and promotes development packages.
+enabled: true
+
+trigger:
+  type: core.st2.CronTimer
+  parameters:
+    timezone: UTC
+    hour: 17
+    minute: 0
+    second: 0
+    day_of_week: "2,3"
+
+criteria: {}
+
+action:
+  ref: st2ci.st2_pkg_test_and_promote_development
+  parameters:
+    profile_source: "development"
+    profile_target: "development-tested"
