@@ -1,0 +1,21 @@
+---
+name: e2e_config
+pack: st2ci
+description: End to End authoratative configuration for st2 packages
+runner_type: python-script
+entry_point: scripts/e2e_config.py
+enabled: true
+parameters:
+  environment:
+    description: Profile for the environment describing package, git repo, st2 version.
+    type: string
+    required: false
+    enum:
+      - stable
+      - staging-stable
+      - unstable
+      - staging-unstable
+  kv_update:
+    description: Update the key/value datastore using script internal data.
+    type: boolean
+    required: false
