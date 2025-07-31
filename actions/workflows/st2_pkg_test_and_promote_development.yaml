@@ -33,15 +33,25 @@ vars:
 
 
 tasks:
-  load_cfg:
-    action: st2ci.e2e_config
+  load_source_cfg:
+    action: st2.kv.get_object
+    input:
+      key: e2e_<% ctx().profile_source %>
+    next:
+      - do: load_target_cfg
+        when: <% succeeded() %>
+        publish:
+          - cfgsrc: <% result().result %>
+
+  load_target_cfg:
+    action: st2.kv.get_object
+    input:
+      key: e2e_<% ctx().profile_target %>
     next:
       - do: run_e2e_test
         when: <% succeeded() %>
         publish:
-          - cfgsrc: <% result().result[ctx().profile_source] %>
-          - cfgtgt: <% result().result[ctx().profile_target] %>
-
+          - cfgtgt: <% result().result %>
 
   #~ notify_start:
     #~ with: channel in <% ctx().notify_channels %>
@@ -80,9 +90,15 @@ tasks:
       keyfile: <% ctx().keyfile %>
       chatops: <% ctx().chatops %>
       debug: <% ctx().debug %>
-      bootstrap_branch: <% ctx().cfgsrc.st2.st2bootstrap_branch %>
-      windows_distro: <% ctx().cfgsrc.st2.distributions.windows.first() %>
-      windows_instance_type: <% ctx().cfgsrc.aws.distributions[ctx().cfgsrc.st2.distributions.windows.first()].default.type %>
+      bootstrap_branch: <% ctx().cfgsrc.st2.st2bootstrap.branch %>
+      windows_distro: <% ctx().windows_distro %>
+      windows_instance_type: <% ctx().windows_instance_type %>
+      st2tests_version: <% ctx().cfgsrc.st2.st2test.branch %>
+      packagecloud_repo_path: <% ctx().cfgsrc.st2.distributions.linux[item()].packagecloud.package_path %>
+    next:
+      - when: <% succeeded() %>
+        publish:
+          - e2e_results: <% zip(ctx().cfgsrc.st2.distributions.linux.keys().toList(), result()).toDict() %>
 
     #~ next:
       #~ - when: <% succeeded() %>

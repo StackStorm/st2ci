@@ -32,8 +32,8 @@ vars:
   - windows_hostname: <% ctx().hostname %>win
   - vm_windows_fqdn: <% ctx().hostname %>win.<% ctx().dns_zone %>
   - installed:
-      distro:
-      versions:
+      distro: ""
+      versions: ""
       version_str: not installed
   - bootstrap_script_url: <% coalesce(ctx().bootstrap_script, "https://raw.githubusercontent.com/StackStorm/st2-packages/" + ctx().bootstrap_branch + "/scripts/st2_bootstrap.sh") %>
   - bootstrap_script_arg_dev_or_ver: <%
@@ -46,11 +46,8 @@ vars:
   - github_status_repo: st2
   - github_status_context: st2/e2e/<% ctx().distro.toLower() %>
   - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx().st2.action_execution_id %>
-  - failed: False
+  - failed: false
 
-output:
-  - versions: <% ctx().installed.versions %>
-  - failed: <% ctx().failed %>
 
 tasks:
   init:
@@ -104,7 +101,7 @@ tasks:
       - when: <% failed() %>
         publish:
           - vm_id: <% result().output.get("vm_info", {}).get("id") %>
-          - failed: True
+          - failed: true
         do: cleanup
 
   get_bootstrap_script:
@@ -133,7 +130,7 @@ tasks:
         do: cleanup_diskspace
       - when: <% failed() %>
         publish:
-          - failed: True
+          - failed: true
         do: cleanup
 
   cleanup_diskspace:
@@ -194,7 +191,7 @@ tasks:
         do: create_vm_windows
       - when: <% failed() %>
         publish:
-          - failed: True
+          - failed: true
         do: cleanup
 
   create_vm_windows:
@@ -217,7 +214,7 @@ tasks:
       - when: <% failed() %>
         publish:
           - vm_windows_id: <% result().output.get("vm_info", {}).get("id") %>
-          - failed: True
+          - failed: true
         do: cleanup
 
   run_e2e_tests:
@@ -243,7 +240,7 @@ tasks:
         do: cleanup
       - when: <% failed() %>
         publish:
-          - failed: True
+          - failed: true
         do: cleanup
 
   cleanup:
@@ -281,3 +278,9 @@ tasks:
       github_status_repo: <% ctx().github_status_repo %>
       github_status_context: <% ctx().github_status_context %>
       github_status_url: <% ctx().github_status_url %>
+
+
+
+output:
+  - versions: <% ctx().installed.versions %>
+  - failed: <% ctx().failed %>

@@ -24,6 +24,7 @@ input:
     - '#thunderdome'
     - '#opstown'
 
+
 vars:
   - versions: ""
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
@@ -32,14 +33,10 @@ vars:
   - bootstrap_branch: master
   - default_hostname: <% "".join(["st2-pkg-", ctx().release, "-", ctx().distro, "-", str(now().format("%s"))]) %>
 
-output:
-  - versions: <% ctx().versions %>
 
 tasks:
-  load_cfg:
-    action: core.local
-    input:
-      cmd: cat /opt/stackstorm/packs/st2ci/e2e_config.json
+  set_hostname:
+    action: core.noop
     next:
       - do: notify_start
         when: <% succeeded() %>
@@ -209,3 +206,6 @@ tasks:
               color: "#FF0000"
     next:
       - do: fail
+
+output:
+  - versions: <% ctx().versions %>
