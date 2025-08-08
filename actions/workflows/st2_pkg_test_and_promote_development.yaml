@@ -2,19 +2,12 @@
 version: '1.0'
 
 input:
-  - profile_source
-  - profile_target
+  - environment_source
+  - environment_target
   - distributions
-  - version
   - keyfile
   - chatops
   - debug
-  #~ - pkg_env: staging
-  #~ - map_distro_to_repository:
-      #~ ROCKY8: el/8
-      #~ ROCKY9: el/9
-      #~ UBUNTU20: ubuntu/focal
-      #~ UBUNTU22: ubuntu/jammy
   - promoted_st2: false
   - promoted_st2chatops: false
   - promoted_st2web: false
@@ -27,26 +20,26 @@ input:
 vars:
   - versions: ""
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
-  #~ - pkg_distro_version: <% ctx().map_distro_to_repository.get(ctx().distro) %>
   - notify_route: errbot
-  - bootstrap_branch: master
-
 
 tasks:
   load_source_cfg:
-    action: st2.kv.get_object
+    action: st2ci.e2e_config
     input:
-      key: e2e_<% ctx().profile_source %>
+      environment: <% ctx().environment_source %>
     next:
       - do: load_target_cfg
         when: <% succeeded() %>
         publish:
           - cfgsrc: <% result().result %>
+          # This ties to windows2016, the only version currently used for testing.
+          - windows_distro: <% ctx().cfgsrc.st2.distributions.windows.keys().first() %>
+          - windows_instance_type: <% ctx().cfgsrc.st2.distributions.windows[ctx().windows_distro].aws.default.type %>
 
   load_target_cfg:
-    action: st2.kv.get_object
+    action: st2ci.e2e_config
     input:
-      key: e2e_<% ctx().profile_target %>
+      environment: <% ctx().environment_target %>
     next:
       - do: run_e2e_test
         when: <% succeeded() %>
@@ -79,10 +72,10 @@ tasks:
   run_e2e_test:
     action: st2ci.st2_pkg_e2e_test
     with:
-      items: <% ctx().cfgsrc.st2.distributions.linux %>
+      items: <% ctx().cfgsrc.st2.distributions.linux.keys().toList() %>
       concurrency: <% len(ctx().cfgsrc.st2.distributions.linux) %>
     input:
-      hostname: <% ctx().cfgsrc.aws.distributions[item()].hostname %>
+      hostname: <% ctx().cfgsrc.st2.distributions.linux[item()].hostname %>
       distro: <% item() %>
       version: <% ctx().cfgsrc.st2.package_version %>
       release: <% let(ctx().cfgsrc.packagecloud.repo_name) -> [$, $.split("-").last()][int("-" in $)] %>

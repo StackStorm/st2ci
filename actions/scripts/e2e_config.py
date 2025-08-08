@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import json
+import time
 
 from st2actions.runners.pythonrunner import Action
 
@@ -128,32 +129,59 @@ e2ecfg = {
     },
 }
 
+def short_env(environment):
+    """
+    Shorten environment to two letters so the hostname isn't excessively long
+      e.g.  stable = s
+            unstable = u
+            staging-stable = ss
+            staging-unstable = su
+    """
+    try:
+        pos = environment.index("-")
+        return "{}{}".format(environment[0], environment[pos+1])
+    except ValueError:
+        return environment[0]
+
 
 def denormalise_config(client, environment):
     """
     Denormalised data to be easily queried from workflows.
     """
     # Fetch keys from keystore
-    env = client.keys.get_by_name(name="environment")
-    st2 = client.keys.get_by_name(name="st2")
-    github = client.keys.get_by_name(name="github")
-    packagecloud = client.keys.get_by_name(name="packagecloud")
-    aws = client.keys.get_by_name(name="aws")
+    env = json.loads(client.keys.get_by_name(name="environment").value)
+    st2 = json.loads(client.keys.get_by_name(name="st2").value)
+    github = json.loads(client.keys.get_by_name(name="github").value)
+    packagecloud = json.loads(client.keys.get_by_name(name="packagecloud").value)
+    aws = json.loads(client.keys.get_by_name(name="aws").value)
 
     st2_version = env[environment]["st2"]
-    packagecloud_repo = env[environmanet]["packagecloud"]
+    packagecloud_repo = env[environment]["packagecloud"]
     profile = {
         "env": environment,
         "st2": st2[st2_version],
+        "packagecloud": {
+            "repo_name": packagecloud["repo"][environment]
+        }
     }
     profile["st2"]["version"] = st2_version
     # resolve package cloud and aws information per distribution
+    tmp = {}
+    suffix = str(int(time.time()) % 86400)
     for distro in profile["st2"]["distributions"]["linux"]:
-        linux_distro = {
-            "name": distro,
+        tmp[distro]={
             "packagecloud": packagecloud["distro"][distro],
             "aws": aws["distro"][distro],
+            "hostname": "-".join(["pkge2e", short_env(environment.lower()), distro.lower(), suffix])
         }
+    profile["st2"]["distributions"]["linux"] = tmp
+    tmp = {}
+    for distro in profile["st2"]["distributions"]["windows"]:
+        tmp[distro]={
+            "aws": aws["distro"][distro],
+            "hostname": "-".join(["pkge2e", short_env(environment.lower()), distro.lower(), suffix])
+        }
+    profile["st2"]["distributions"]["windows"] = tmp
 
     return profile
 

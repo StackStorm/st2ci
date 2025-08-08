@@ -5,7 +5,7 @@ input:
   - hostname
   - dns_zone
   - instance_type
-  - environment
+  - aws_environment
   - key_name
   - keyfile
   - distro
@@ -86,11 +86,11 @@ tasks:
     input:
       hostname: <% ctx().hostname %>
       instance_type: <% ctx().instance_type %>
-      environment: <% ctx().environment %>
+      environment: <% ctx().aws_environment %>
       key_name: <% ctx().key_name %>
       keyfile: <% ctx().keyfile %>
       dns_zone: <% ctx().dns_zone %>
-      distro: pkg_<% ctx().distro %>
+      distro: <% ctx().distro %>
       role: <% ctx().role %>
     next:
       - when: <% succeeded() %>
@@ -199,7 +199,7 @@ tasks:
     input:
       hostname: <% ctx().windows_hostname %>
       instance_type: <% ctx().windows_instance_type %>
-      environment: <% ctx().environment %>
+      environment: <% ctx().aws_environment %>
       dns_zone: <% ctx().dns_zone %>
       distro: <% ctx().windows_distro %>
       role: <% ctx().role %>
