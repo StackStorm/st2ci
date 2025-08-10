@@ -2,27 +2,27 @@
 version: '1.0'
 
 input:
-  - hostname
-  - dns_zone
-  - instance_type
   - aws_environment
-  - key_name
-  - keyfile
-  - distro
-  - windows_distro
-  - windows_instance_type
-  - role
-  - release
-  - st2tests_version
-  - version
-  - dev_build
-  - initial_commit
-  - chatops
-  - pkg_env
   - bootstrap_branch
   - bootstrap_script
-  - triggering_commit_url
+  - chatops
   - debug
+  - dev_build
+  - distro
+  - dns_zone
+  - hostname
+  - initial_commit
+  - instance_type
+  - keyfile
+  - key_name
+  - pkg_env
+  - release
+  - role
+  - st2tests_version
+  - triggering_commit_url
+  - version
+  - windows_distro
+  - windows_instance_type
 
 vars:
   - vm_id:
@@ -53,10 +53,10 @@ tasks:
   init:
     action: core.noop
     next:
-      - do:
+      - when: <% succeeded() %>
+        do:
           - update_github_commit_status
           - notify
-        when: <% succeeded() %>
         publish: notify_status="started"
 
   update_github_commit_status:
@@ -194,22 +194,29 @@ tasks:
           - failed: true
         do: cleanup
 
+  # Windows 2016 image is unavailable, setting to noop and pass dummy values.
   create_vm_windows:
-    action: st2cd.create_vm_windows
-    input:
-      hostname: <% ctx().windows_hostname %>
-      instance_type: <% ctx().windows_instance_type %>
-      environment: <% ctx().aws_environment %>
-      dns_zone: <% ctx().dns_zone %>
-      distro: <% ctx().windows_distro %>
-      role: <% ctx().role %>
+    #~ action: st2cd.create_vm_windows
+    action: core.noop
+    #~ input:
+      #~ hostname: <% ctx().windows_hostname %>
+      #~ instance_type: <% ctx().windows_instance_type %>
+      #~ environment: <% ctx().aws_environment %>
+      #~ dns_zone: <% ctx().dns_zone %>
+      #~ distro: <% ctx().windows_distro %>
+      #~ role: <% ctx().role %>
     next:
       - when: <% succeeded() %>
         publish:
-          - vm_windows_info: <% result().output.vm_info %>
-          - vm_windows_id: <% result().output.vm_info.id %>
-          - vm_windows_username: <% result().output.vm_username %>
-          - vm_windows_password: <% result().output.vm_password %>
+          #~ - vm_windows_info: <% result().output.vm_info %>
+          #~ - vm_windows_id: <% result().output.vm_info.id %>
+          #~ - vm_windows_username: <% result().output.vm_username %>
+          #~ - vm_windows_password: <% result().output.vm_password %>
+          - vm_windows_info:
+              private_ip_address: "n/a"
+          - vm_windows_id: "n/a"
+          - vm_windows_username: "n/a"
+          - vm_windows_password: "n/a"
         do: run_e2e_tests
       - when: <% failed() %>
         publish:
@@ -235,6 +242,7 @@ tasks:
       windows_host_fqdn: <% ctx().vm_windows_fqdn %>
       windows_username: <% ctx().vm_windows_username %>
       windows_password: <% ctx().vm_windows_password %>
+      windows_enabled: false
     next:
       - when: <% succeeded() %>
         do: cleanup
@@ -278,7 +286,6 @@ tasks:
       github_status_repo: <% ctx().github_status_repo %>
       github_status_context: <% ctx().github_status_context %>
       github_status_url: <% ctx().github_status_url %>
-
 
 
 output:
