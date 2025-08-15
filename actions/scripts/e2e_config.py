@@ -38,12 +38,9 @@ e2ecfg = {
         "url": "https://buildstatus.stackstorm.org/execution/<% ctx().st2.action_execution_id %>",  # this dns entry doesn't exist any more. delete/fix?
     },
     "environment": {
-        "stable": {"st2": "v3.8", "packagecloud": "stable"},
-        "staging-stable": {"st2": "v3.8", "packagecloud": "staging-stable"},
-        "unstable": {
-            "st2": "v3.9",
-            "packagecloud": "unstable",
-        },
+        "stable":           {"st2": "v3.8", "packagecloud": "stable"},
+        "staging-stable":   {"st2": "v3.8", "packagecloud": "staging-stable"},
+        "unstable":         {"st2": "v3.9", "packagecloud": "unstable"},
         "staging-unstable": {"st2": "v3.9", "packagecloud": "staging-unstable"},
     },
     "st2": {

@@ -13,12 +13,17 @@ parameters:
       if it is not given.
   distro:
     type: string
+    description: linux distribution used for package testing.
     required: true
     enum:
-      - CENTOS7
-      - ROCKY8
-      - UBUNTU18
-      - UBUNTU20
+      - centos7
+      - rocky8
+      - rocky9
+      - rhel7
+      - rhel8
+      - ubuntu18
+      - ubuntu20
+      - ubuntu22
   release:
     type: string
     required: true
@@ -36,3 +41,26 @@ parameters:
   debug:
     type: boolean
     default: false
+  bootstrap_branch:
+    type: string
+    description: The github branch to use when downloading the st2 bootstrap installation script.
+    default: master
+  bootstrap_script:
+    type: string
+    description: The URL to use to download the st2 bootstrap installation script. (Over-rides bootstrap_branch logic).
+  st2tests_version:
+    type: string
+    description: The github branch for the st2test repository.
+  windows_distro:
+    type: string
+    description: The name of the windows distribution to run tests against.
+  windows_instance_type:
+    type: string
+    description: The AWS AMI to use for VM instantiation.
+  pkg_env:
+    type: string
+    description: The packagecloud repository environment. (staging or an empty string).
+    default: staging
+  packagecloud_repo_path:
+    type: string
+    description: The packagecloud repository path for the linux distribution.

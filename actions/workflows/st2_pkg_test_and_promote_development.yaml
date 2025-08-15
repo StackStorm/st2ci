@@ -8,14 +8,6 @@ input:
   - keyfile
   - chatops
   - debug
-  - promoted_st2: false
-  - promoted_st2chatops: false
-  - promoted_st2web: false
-  - notify_channels:
-    - '#thunderdome'
-  - notify_failure_channels:
-    - '#thunderdome'
-    - '#opstown'
 
 vars:
   - versions: ""
@@ -32,7 +24,7 @@ tasks:
         when: <% succeeded() %>
         publish:
           - cfgsrc: <% result().result %>
-          # This ties to windows2016, the only version currently used for testing.
+          # The workflow doesn't handle multiple windows instances, so the first one is used.
           - windows_distro: <% ctx().cfgsrc.st2.distributions.windows.keys().first() %>
           - windows_instance_type: <% ctx().cfgsrc.st2.distributions.windows[ctx().windows_distro].aws.default.type %>
 
@@ -41,36 +33,13 @@ tasks:
     input:
       environment: <% ctx().environment_target %>
     next:
-      - do: run_e2e_test
+      - do: test_e2e_per_distro
         when: <% succeeded() %>
         publish:
           - cfgtgt: <% result().result %>
 
-  #~ notify_start:
-    #~ with: channel in <% ctx().notify_channels %>
-    #~ action: chatops.post_message
-    #~ input:
-      #~ channel: <% item(channel) %>
-      #~ route: <% ctx(notify_route) %>
-      #~ message: 'st2ci.st2_pkg_test_and_promote: STARTED'
-      #~ extra:
-        #~ slack:
-          #~ attachments:
-            #~ - fallback: "[st2ci.st2_pkg_test_and_promote: STARTED]"
-              #~ title: "[st2ci.st2_pkg_test_and_promote: STARTED]"
-              #~ title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general"
-              #~ text: |
-                #~ HOSTNAME: <% ctx().hostname %>
-                #~ DISTRO: <% ctx().distro %>
-                #~ RELEASE: <% ctx().pkg_env %> <% ctx().release %>
-                #~ VERSION: <% coalesce(ctx().version, 'latest') %>
-              #~ color: "#808080"
-    #~ next:
-      #~ - when: <% succeeded() %>
-        #~ do: run_e2e_test
-
-  run_e2e_test:
-    action: st2ci.st2_pkg_e2e_test
+  test_e2e_per_distro:
+    action: st2ci.st2_pkg_test_and_promote
     with:
       items: <% ctx().cfgsrc.st2.distributions.linux.keys().toList() %>
       concurrency: <% len(ctx().cfgsrc.st2.distributions.linux) %>
@@ -91,138 +60,7 @@ tasks:
     next:
       - when: <% succeeded() %>
         publish:
-          - e2e_results: <% zip(ctx().cfgsrc.st2.distributions.linux.keys().toList(), result()).toDict() %>
+          - e2e_results: <% zip(ctx().cfgsrc.st2.distributions.linux.keys().toList(), result()) %>
 
-    #~ next:
-      #~ - when: <% succeeded() %>
-        #~ publish:
-          #~ - versions: <% result().output.versions %>
-          #~ - version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-        #~ do: promote_st2
-
-  #~ promote_st2:
-    #~ action: st2ci.st2_pkg_promote
-    #~ input:
-      #~ package: st2
-      #~ distro_version: <% ctx().pkg_distro_version %>
-      #~ release: <% ctx().release %>
-      #~ version: <% ctx().versions.get(st2).split("-")[0] %>
-      #~ revision: <% ctx().versions.get(st2).split("-")[1] %>
-    #~ next:
-      #~ - when: <% succeeded() %>
-        #~ publish:
-          #~ - promoted_st2: <% ctx().versions.get(st2) %>
-        #~ do: promote_st2chatops
-      #~ - when: <% failed() %>
-        #~ do: promote_st2chatops
-
-  #~ promote_st2chatops:
-    #~ action: st2ci.st2_pkg_promote
-    #~ input:
-      #~ package: st2chatops
-      #~ distro_version: <% ctx().pkg_distro_version %>
-      #~ release: <% ctx().release %>
-      #~ version: <% ctx().versions.get(st2chatops).split("-")[0] %>
-      #~ revision: <% ctx().versions.get(st2chatops).split("-")[1] %>
-    #~ next:
-      #~ - when: <% succeeded() %>
-        #~ publish:
-          #~ - promoted_st2chatops: <% ctx().versions.get(st2chatops) %>
-        #~ do: promote_st2web
-      #~ - when: <% failed() %>
-        #~ do: promote_st2web
-
-  #~ promote_st2web:
-    #~ action: st2ci.st2_pkg_promote
-    #~ input:
-      #~ package: st2web
-      #~ distro_version: <% ctx().pkg_distro_version %>
-      #~ release: <% ctx().release %>
-      #~ version: <% ctx().versions.get(st2web).split("-")[0] %>
-      #~ revision: <% ctx().versions.get(st2web).split("-")[1] %>
-    #~ next:
-      #~ - when: <% succeeded() %>
-        #~ publish:
-          #~ - promoted_st2web: <% ctx().versions.get(st2web) %>
-        #~ do: process_completion
-      #~ - when: <% failed() %>
-        #~ do: process_completion
-
-  #~ process_completion:
-    #~ action: core.noop
-    #~ next:
-      #~ - when: <% succeeded() and (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2web) %>
-        #~ do: set_notify_success
-      #~ - when: <% succeeded() and not (ctx().promoted_st2 and ctx().promoted_st2chatops and ctx().promoted_st2web) %>
-        #~ do: set_notify_failure
-
-  #~ set_notify_failure:
-    #~ action: core.noop
-    #~ next:
-      #~ - when: <% succeeded() %>
-        #~ publish:
-          #~ - notify_color: '#FF0000'
-          #~ - notify_completion_channels: <% ctx().notify_failure_channels %>
-        #~ do: notify_failure
-
-  #~ set_notify_success:
-    #~ action: core.noop
-    #~ next:
-      #~ - when: <% succeeded() %>
-        #~ publish:
-          #~ - notify_color: '#008000'
-          #~ - notify_completion_channels: <% ctx().notify_channels %>
-        #~ do: notify_completion
-
-  #~ notify_completion:
-    #~ with: channel in <% ctx().notify_completion_channels %>
-    #~ action: chatops.post_message
-    #~ input:
-      #~ channel: <% item(channel) %>
-      #~ route: <% ctx(notify_route) %>
-      #~ message: 'st2ci.st2_pkg_test_and_promote: COMPLETED'
-      #~ extra:
-        #~ slack:
-          #~ attachments:
-            #~ - fallback: "[st2ci.st2_pkg_test_and_promote: COMPLETED]"
-              #~ title: "[st2ci.st2_pkg_test_and_promote: COMPLETED]"
-              #~ title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general"
-              #~ text: |
-                #~ HOSTNAME: <% ctx().hostname %>
-                #~ DISTRO: <% ctx().distro %>
-                #~ RELEASE: <% ctx().pkg_env %> <% ctx().release %>
-                #~ VERSION: <% coalesce(ctx().version, 'latest') %>
-                #~ VERSION TESTED:
-                  #~ <% ctx().version_str %>
-                #~ PACKAGE PROMOTED:
-                  #~ st2=<% ctx().promoted_st2 %>
-                  #~ st2chatops=<% ctx().promoted_st2chatops %>
-                  #~ st2web=<% ctx().promoted_st2web %>
-              #~ color: "<% ctx().notify_color %>"
-
-  #~ notify_failure:
-    #~ with: channel in <% ctx().notify_failure_channels %>
-    #~ action: chatops.post_message
-    #~ input:
-      #~ channel: <% item(channel) %>
-      #~ route: <% ctx(notify_route) %>
-      #~ message: 'st2ci.st2_pkg_test_and_promote: FAILED'
-      #~ extra:
-        #~ slack:
-          #~ attachments:
-            #~ - fallback: "[st2ci.st2_pkg_test_and_promote: FAILED]"
-              #~ title: "[st2ci.st2_pkg_test_and_promote: FAILED]"
-              #~ title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general"
-              #~ text: |
-                #~ HOSTNAME: <% ctx().hostname %>
-                #~ DISTRO: <% ctx().distro %>
-                #~ RELEASE: <% ctx().pkg_env %> <% ctx().release %>
-                #~ VERSION: <% coalesce(ctx().version, 'latest') %>
-              #~ color: "#FF0000"
-    #~ next:
-      #~ - do: fail
-
-
-
-#~ output:
-  #~ - versions: <% ctx().versions %>
+output:
+  - e2e_results: <% ctx().e2e_results %>

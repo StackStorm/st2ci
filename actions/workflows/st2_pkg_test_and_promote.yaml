@@ -9,12 +9,8 @@ input:
   - keyfile
   - chatops
   - debug
-  - pkg_env: staging
-  - map_distro_to_repository:
-      ROCKY8: el/8
-      ROCKY9: el/9
-      UBUNTU20: ubuntu/focal
-      UBUNTU22: ubuntu/jammy
+  - pkg_env
+  - packagecloud_repo_path
   - promoted_st2: false
   - promoted_st2chatops: false
   - promoted_st2web: false
@@ -23,14 +19,17 @@ input:
   - notify_failure_channels:
     - '#thunderdome'
     - '#opstown'
+  - bootstrap_branch
+  - bootstrap_script
+  - st2tests_version
+  - windows_distro
+  - windows_instance_type
 
 
 vars:
   - versions: ""
   - webui_base_url: https://st2cicd.uswest2.stackstorm.net
-  - pkg_distro_version: <% ctx().map_distro_to_repository.get(ctx().distro) %>
   - notify_route: errbot
-  - bootstrap_branch: master
   - default_hostname: <% "".join(["st2-pkg-", ctx().release, "-", ctx().distro, "-", str(now().format("%s"))]) %>
 
 
@@ -78,6 +77,7 @@ tasks:
       chatops: <% ctx().chatops %>
       debug: <% ctx().debug %>
       bootstrap_branch: <% ctx().bootstrap_branch %>
+      bootstrap_script: <% ctx().bootstrap_script %>
     next:
       - when: <% succeeded() %>
         publish:
@@ -89,7 +89,7 @@ tasks:
     action: st2ci.st2_pkg_promote
     input:
       package: st2
-      distro_version: <% ctx().pkg_distro_version %>
+      distro_version: <% ctx().packagecloud_repo_path %>
       release: <% ctx().release %>
       version: <% ctx().versions.get(st2).split("-")[0] %>
       revision: <% ctx().versions.get(st2).split("-")[1] %>
@@ -105,7 +105,7 @@ tasks:
     action: st2ci.st2_pkg_promote
     input:
       package: st2chatops
-      distro_version: <% ctx().pkg_distro_version %>
+      distro_version: <% ctx().packagecloud_repo_path %>
       release: <% ctx().release %>
       version: <% ctx().versions.get(st2chatops).split("-")[0] %>
       revision: <% ctx().versions.get(st2chatops).split("-")[1] %>
@@ -121,7 +121,7 @@ tasks:
     action: st2ci.st2_pkg_promote
     input:
       package: st2web
-      distro_version: <% ctx().pkg_distro_version %>
+      distro_version: <% ctx().packagecloud_repo_path %>
       release: <% ctx().release %>
       version: <% ctx().versions.get(st2web).split("-")[0] %>
       revision: <% ctx().versions.get(st2web).split("-")[1] %>
