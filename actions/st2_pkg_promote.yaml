@@ -1,7 +1,7 @@
 ---
 name: st2_pkg_promote
 runner_type: orquesta
-description: Promote a st2 package from staging to production repo.
+description: Promote a StackStorm package from source to target packagecloud repository.
 enabled: true
 entry_point: workflows/st2_pkg_promote.yaml
 parameters:

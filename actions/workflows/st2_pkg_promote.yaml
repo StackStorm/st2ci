@@ -1,6 +1,6 @@
 ---
 version: '1.0'
-description: Promote a StackStorm package from staging to production repo
+description: Promote a StackStorm package from source to target packagecloud repository.
 
 
 input:
@@ -22,8 +22,8 @@ input:
 
 
 vars:
-  - prd_repo: StackStorm/<% ctx().release %>
-  - stg_repo: StackStorm/staging-<% ctx().release %>
+  - tgt_repo: StackStorm/<% ctx().release %>
+  - src_repo: StackStorm/staging-<% ctx().release %>
   - arch: <% ctx().distro_arch_map.get(ctx().distro_version.split("/")[0]) %>
   - package_type: <% ctx().distro_pkg_type_map.get(ctx().distro_version.split("/")[0]) %>
   - packagecloud_api_url: <% "https://" + ctx().api_token + ":@packagecloud.io"  %>
@@ -33,7 +33,7 @@ tasks:
   get_pkgs_list:
     action: packagecloud.list_packages
     input:
-      repo: <% ctx().stg_repo %>
+      repo: <% ctx().src_repo %>
       package: <% ctx().package %>
       distro_version: <% ctx().distro_version %>
       version: <% ctx().version %>
@@ -60,72 +60,78 @@ tasks:
   get_pkg_meta:
     next:
       - when: <% succeeded() %>
-        do: get_stg_pkg_info
+        do: get_src_pkg_info
         publish:
           - revision: <% coalesce(ctx().revision, ctx().pkgs_list.first().get('release')) %>
-          - stg_pkg_url: <% ctx().packagecloud_api_url + ctx().pkgs_list.first().get('package_url') %>
-          - prd_pkg_url: <% ctx().packagecloud_api_url + ctx().pkgs_list.first().get('package_url').replace(ctx().stg_repo, ctx().prd_repo) %>
+          - src_pkg_url: <% ctx().packagecloud_api_url + ctx().pkgs_list.first().get('package_url') %>
+          - tgt_pkg_url: <% ctx().packagecloud_api_url + ctx().pkgs_list.first().get('package_url').replace(ctx().src_repo, ctx().tgt_repo) %>
 
-  get_stg_pkg_info:
+  get_src_pkg_info:
     action: core.http
     input:
-      url: <% ctx().stg_pkg_url %>
+      url: <% ctx().src_pkg_url %>
     next:
       - when: <% succeeded() %>
         publish:
           - download_url: <% result().body.download_url %>
           - filename: <% result().body.filename %>
           - url: <% result().body.package_html_url %>
-        do: get_prd_pkg_info
+        do: get_tgt_pkg_info
 
-  get_prd_pkg_info:
+  get_tgt_pkg_info:
     action: core.http
     input:
-      url: <% ctx().prd_pkg_url %>
+      url: <% ctx().tgt_pkg_url %>
     next:
       - when: <% succeeded() %>
         do: checksum
       - when: <% failed() and (result().get(status_code, 0) = 404) %>
         do: promote
       - when: <% failed() and (result().get(status_code, 0) != 404) %>
-        do: fail
+        do: error
+        publish:
+          - err_msg: "http return code <% result().get(status_code, 0) %> when fetching <% ctx().tgt_pkg_url.split('@').last() %>"
 
   checksum:
     action: core.noop
     next:
-      - when: <% task(get_prd_pkg_info).result.body.sha512sum = task(get_stg_pkg_info).result.body.sha512sum %>
+      - when: <% task(get_tgt_pkg_info).result.body.sha512sum = task(get_src_pkg_info).result.body.sha512sum %>
         do: notify_success
-      - when: <% task(get_prd_pkg_info).result.body.sha512sum != task(get_stg_pkg_info).result.body.sha512sum %>
-        do: fail
+      - when: <% task(get_tgt_pkg_info).result.body.sha512sum != task(get_src_pkg_info).result.body.sha512sum %>
+        do: error
+        publish:
+          - err_msg: "sha512 checksum doesn't match between the source and target packages."
 
   promote:
     next:
-      - do: download_stg_pkg
+      - do: download_src_pkg
         publish:
           - target: <% "-".join([now().format("%s"), str(random(100000, 999999)), ctx().filename]) %>
 
-  download_stg_pkg:
+  download_src_pkg:
     action: core.local
     input:
-      cmd: wget -O /tmp/<% ctx().target %> <% ctx().download_url %>
+      cmd: wget -qO "/tmp/<% ctx().target %>" "<% ctx().download_url %>"
       timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
-        do: upload_stg_pkg_to_prd
+        do: upload_src_pkg_to_prd
 
-  upload_stg_pkg_to_prd:
+  upload_src_pkg_to_prd:
     action: core.local
     input:
       env:
-        LANG: en_US.utf8
-        PACKAGECLOUD_TOKEN: <% ctx().api_token %>
-      cmd: package_cloud push <% ctx().prd_repo %>/<% ctx().distro_version %> /tmp/<% ctx().target %>
+        LANG: "en_US.utf8"
+        PACKAGECLOUD_TOKEN: "<% ctx().api_token %>"
+      cmd: |
+        curl -X POST \
+             -F "package[distro_version_id]=<% ctx().version %>"     \
+             -F "package[package_file]=@/tmp/<% ctx().target %>" \
+             "https://${PACKAGECLOUD_TOKEN}:@packagecloud.io/api/v1/repos/<% ctx().tgt_repo %>/<% ctx().distro_version %>/packages.json"
       timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
         do: notify_success
-      - when: <% failed() %>
-        do: fail
       - do: cleanup
 
   cleanup:
@@ -145,5 +151,5 @@ output:
   - distro_version: <% ctx().distro_version %>
   - arch: <% ctx().arch %>
   - package_type: <% ctx().package_type %>
-  - stg_repo: <% ctx().stg_repo %>
-  - prd_repo: <% ctx().prd_repo %>
+  - src_repo: <% ctx().src_repo %>
+  - tgt_repo: <% ctx().tgt_repo %>
