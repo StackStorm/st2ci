@@ -76,6 +76,7 @@ tasks:
       keyfile: <% ctx().keyfile %>
       chatops: <% ctx().chatops %>
       debug: <% ctx().debug %>
+      st2tests_version: <% ctx().st2tests_version %>
       bootstrap_branch: <% ctx().bootstrap_branch %>
       bootstrap_script: <% ctx().bootstrap_script %>
     next:
@@ -173,16 +174,18 @@ tasks:
               title: "[st2ci.st2_pkg_test_and_promote: COMPLETED]"
               title_link: "<% ctx().webui_base_url %>/#/history/<% ctx().st2.action_execution_id %>/general"
               text: |
-                HOSTNAME: <% ctx().hostname %>
-                DISTRO: <% ctx().distro %>
-                RELEASE: <% ctx().pkg_env %> <% ctx().release %>
-                VERSION: <% coalesce(ctx().version, 'latest') %>
+                HOSTNAME: `<% ctx().hostname %>`
+                DISTRO: `<% ctx().distro %>`
+                RELEASE: `<% ctx().pkg_env %> <% ctx().release %>`
+                VERSION: `<% coalesce(ctx().version, 'latest') %>`
                 VERSION TESTED:
-                  <% ctx().version_str %>
+                  `<% ctx().version_str %>`
                 PACKAGE PROMOTED:
+                  ```
                   st2=<% ctx().promoted_st2 %>
                   st2chatops=<% ctx().promoted_st2chatops %>
                   st2web=<% ctx().promoted_st2web %>
+                  ```
               color: "<% ctx().notify_color %>"
 
   notify_failure:

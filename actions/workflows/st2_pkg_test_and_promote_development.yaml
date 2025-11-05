@@ -33,12 +33,12 @@ tasks:
     input:
       environment: <% ctx().environment_target %>
     next:
-      - do: test_e2e_per_distro
+      - do: distro_test_e2e
         when: <% succeeded() %>
         publish:
           - cfgtgt: <% result().result %>
 
-  test_e2e_per_distro:
+  distro_test_e2e:
     action: st2ci.st2_pkg_test_and_promote
     with:
       items: <% ctx().cfgsrc.st2.distributions.linux.keys().toList() %>

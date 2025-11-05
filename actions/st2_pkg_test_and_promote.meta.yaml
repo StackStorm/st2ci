@@ -43,11 +43,12 @@ parameters:
     default: false
   bootstrap_branch:
     type: string
-    description: The github branch to use when downloading the st2 bootstrap installation script.
+    description: The github branch used to download the st2 bootstrap installation script.
     default: master
+  # FIXME: rename this variable to its actual purpose bootstrap_url
   bootstrap_script:
     type: string
-    description: The URL to use to download the st2 bootstrap installation script. (Over-rides bootstrap_branch logic).
+    description: The URL used to download the st2 bootstrap installation script. (Over-rides bootstrap_branch logic).
   st2tests_version:
     type: string
     description: The github branch for the st2test repository.
