@@ -30,6 +30,9 @@ from st2client.models import KeyValuePair
 #      - unstable           Development packages that have passed e2e testing and have been promoted to "unstable".
 #      - staging-unstable   Development packages built from "master".
 
+# Update st2 version information after the new version has been release.
+# e.g. if st2 defined v3.8 as stable and v3.9 as unstable and v3.9 is released, then
+# st2 would define v3.9 as stable and v3.10 as unstable.
 e2ecfg = {
     "github": {
         "organisation": "StackStorm",
@@ -80,41 +83,47 @@ e2ecfg = {
             "unstable": "unstable",
             "staging-unstable": "staging-unstable",
         },
+        # 'id' is an undeterminable index found at the packagecloud api.
+        # https://packagecloud.io/docs/api#resource_distributions
+        # The indexes are maintained by hand in the e2e config to avoid
+        # repeatedly processing predominantly static distro data with an
+        # inconvient data structure the e2e processing needs.
         "distro": {
-            "ubuntu24": {"package_path": "ubuntu/noble"},
-            "ubuntu22": {"package_path": "ubuntu/jammy"},
-            "ubuntu20": {"package_path": "ubuntu/focal"},
-            "ubuntu18": {"package_path": "ubuntu/bionic"},
-            "ubuntu16": {"package_path": "ubuntu/xenial"},
-            "ubuntu14": {"package_path": "ubuntu/trusty"},
-            "rocky9": {"package_path": "el/9"},
-            "rocky8": {"package_path": "el/8"},
-            "rhel8": {"package_path": "el/8"},
-            "rhel7": {"package_path": "el/7"},
-            "rhel6": {"package_path": "el/6"},
-            "centos8": {"package_path": "el/8"},
-            "centos7": {"package_path": "el/7"},
-            "centos6": {"package_path": "el/6"},
+            "ubuntu24": {"id": 284, "package_path": "ubuntu/noble"},
+            "ubuntu22": {"id": 237, "package_path": "ubuntu/jammy"},
+            "ubuntu20": {"id": 210, "package_path": "ubuntu/focal"},
+            "ubuntu18": {"id": 190, "package_path": "ubuntu/bionic"},
+            "ubuntu16": {"id": 165, "package_path": "ubuntu/xenial"},
+            "ubuntu14": {"id":  20, "package_path": "ubuntu/trusty"},
+            "rocky10":  {"id": 308, "package_path": "el/10"},
+            "rocky9":   {"id": 240, "package_path": "el/9"},
+            "rocky8":   {"id": 205, "package_path": "el/8"},
+            "rhel8":    {"id": 205, "package_path": "el/8"},
+            "rhel7":    {"id": 140, "package_path": "el/7"},
+            "rhel6":    {"id":  27, "package_path": "el/6"},
+            "centos8":  {"id": 205, "package_path": "el/8"},
+            "centos7":  {"id": 140, "package_path": "el/7"},
+            "centos6":  {"id":  27, "package_path": "el/6"},
         },
     },
     "aws": {
         "region": "us-west-2",
         "distro": {
-            "windows2016": {"default": {"id": "ami-061967ec99026bdc1", "type": "t2.small"}},
-            "ubuntu24": {"default": {"id": "ami-0a4435b54107f9c9f", "type": "c5.large"}},
-            "ubuntu22": {"default": {"id": "ami-07ceaccc0c1916f5f", "type": "c5.large"}},
-            "ubuntu20": {"default": {"id": "ami-07182692443fccde1", "type": "c5.large"}},
-            "ubuntu18": {"default": {"id": "ami-0bbe6b35405ecebdb", "type": "t2.small"}},
-            "ubuntu16": {"default": {"id": "ami-8803e0f0", "type": "t2.small"}},
-            "ubuntu14": {"default": {"id": "ami-038a82c53a4545bb5", "type": "t2.small"}},
-            "rocky9": {"default": {"id": "ami-08f2642bb132b988c", "type": "c5.large"}},
-            "rocky8": {"default": {"id": "ami-0f74cc83310468775", "type": "c5.large"}},
-            "rhel8": {"default": {"id": "ami-087c2c50437d0b80d", "type": "c5.large"}},
-            "rhel7": {"default": {"id": "ami-9fa343e7", "type": "c4.large"}},
-            "rhel6": {"default": {"id": "ami-0b4704d80e01f7948", "type": "c4.large"}},
-            "centos8": {"default": {"id": "ami-0155c31ea13d4abd2", "type": "c5.large"}},
-            "centos7": {"default": {"id": "ami-3ecc8f46", "type": "c4.large"}},
-            "centos6": {"default": {"id": "ami-e9503589", "type": "c4.large"}},
+            "windows2016":  {"default": {"id": "ami-061967ec99026bdc1", "type": "t2.small"}},
+            "ubuntu24":     {"default": {"id": "ami-0a4435b54107f9c9f", "type": "c5.large"}},
+            "ubuntu22":     {"default": {"id": "ami-07ceaccc0c1916f5f", "type": "c5.large"}},
+            "ubuntu20":     {"default": {"id": "ami-07182692443fccde1", "type": "c5.large"}},
+            "ubuntu18":     {"default": {"id": "ami-0bbe6b35405ecebdb", "type": "t2.small"}},
+            "ubuntu16":     {"default": {"id": "ami-8803e0f0",          "type": "t2.small"}},
+            "ubuntu14":     {"default": {"id": "ami-038a82c53a4545bb5", "type": "t2.small"}},
+            "rocky9":       {"default": {"id": "ami-08f2642bb132b988c", "type": "c5.large"}},
+            "rocky8":       {"default": {"id": "ami-0f74cc83310468775", "type": "c5.large"}},
+            "rhel8":        {"default": {"id": "ami-087c2c50437d0b80d", "type": "c5.large"}},
+            "rhel7":        {"default": {"id": "ami-9fa343e7",          "type": "c4.large"}},
+            "rhel6":        {"default": {"id": "ami-0b4704d80e01f7948", "type": "c4.large"}},
+            "centos8":      {"default": {"id": "ami-0155c31ea13d4abd2", "type": "c5.large"}},
+            "centos7":      {"default": {"id": "ami-3ecc8f46",          "type": "c4.large"}},
+            "centos6":      {"default": {"id": "ami-e9503589",          "type": "c4.large"}},
         },
         "subnet": {
             "staging": "subnet-b7b7aec0",

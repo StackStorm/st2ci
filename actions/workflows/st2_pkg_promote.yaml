@@ -115,7 +115,20 @@ tasks:
       timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
+        do: get_distribution_id
+
+  # The distribution version ID defined at packagecloud with map maintained in e2econfig.
+  get_distribution_id:
+    action: st2.kv.get_object
+    input:
+      key: packagecloud
+    next:
+      - when: <% succeeded() %>
         do: upload_src_pkg_to_prd
+        publish:
+          # 'distro_version' (e.g. 'ubuntu/jammy') is the package path and is the only information
+          # the workflow has to find packagecloud's distribution id from the e2e configuration in the kvstore.
+          - distro_version_id: <% result().result.distro.items().where($[1].package_path = ctx().distro_version).first()[1].id %>
 
   upload_src_pkg_to_prd:
     action: core.local
@@ -124,10 +137,10 @@ tasks:
         LANG: "en_US.utf8"
         PACKAGECLOUD_TOKEN: "<% ctx().api_token %>"
       cmd: |
-        curl -X POST \
-             -F "package[distro_version_id]=<% ctx().version %>"     \
-             -F "package[package_file]=@/tmp/<% ctx().target %>" \
-             "https://${PACKAGECLOUD_TOKEN}:@packagecloud.io/api/v1/repos/<% ctx().tgt_repo %>/<% ctx().distro_version %>/packages.json"
+        curl --fail -X POST \
+          -F "package[distro_version_id]=<% ctx().distro_version_id %>" \
+          -F "package[package_file]=@/tmp/<% ctx().target %>" \
+          "https://${PACKAGECLOUD_TOKEN}:@packagecloud.io/api/v1/repos/<% ctx().tgt_repo %>/packages.json"
       timeout: <% ctx().timeout %>
     next:
       - when: <% succeeded() %>
