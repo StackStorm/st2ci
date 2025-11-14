@@ -34,12 +34,13 @@ parameters:
     type: string
     required: true
     enum:
-      - CENTOS7
-      - ROCKY8
-      - RHEL7
-      - RHEL8
-      - UBUNTU18
-      - UBUNTU20
+      - rocky8
+      - rocky9
+      - rhel7
+      - rhel8
+      - ubuntu18
+      - ubuntu20
+      - ubuntu22
   windows_distro:
     type: string
     enum:
