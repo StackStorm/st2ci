@@ -73,7 +73,7 @@ tasks:
       key_name: <% ctx().key_name %>
       keyfile: <% ctx().keyfile %>
       dns_zone: <% ctx().dns_zone %>
-      distro: pkg_<% ctx().distro %>
+      distro: <% ctx().distro %>
       role: <% ctx().role %>
     next:
       - when: <% succeeded() %>
