@@ -127,20 +127,20 @@ tasks:
       #         distro: <% result().distro %>
       #         versions: <% result().versions %>
       #         version_str: <% result().versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
-      - when: <% succeeded() and (ctx().distro.startsWith('RHEL') or ctx().distro.startsWith('CENTOS') or ctx().distro.startsWith('ROCKY')) %>
-        publish:
-          - installed:
-              distro: <% result().output.distro %>
-              versions: <% result().output.versions %>
-              version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
+      - when: <% succeeded() and regex("^(rhel|centos|rocky)").matches(ctx().distro) %>
         do: upgrade_packages_rpm
-      - when: <% succeeded() and ctx().distro.startsWith('UBUNTU') %>
         publish:
           - installed:
               distro: <% result().output.distro %>
               versions: <% result().output.versions %>
               version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
+      - when: <% succeeded() and regex("^(ubuntu|debian)").matches(ctx().distro) %>
         do: upgrade_packages_deb
+        publish:
+          - installed:
+              distro: <% result().output.distro %>
+              versions: <% result().output.versions %>
+              version_str: <% result().output.versions.items().select( $[0] + "=" + $[1]).join("\n\t") %>
 
   upgrade_packages_rpm:
     action: st2ci.st2_pkg_upgrade_rpm
