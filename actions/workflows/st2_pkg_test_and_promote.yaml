@@ -179,13 +179,11 @@ tasks:
                 RELEASE: `<% ctx().pkg_env %> <% ctx().release %>`
                 VERSION: `<% coalesce(ctx().version, 'latest') %>`
                 VERSION TESTED:
-                  `<% ctx().version_str %>`
+                  ```<% ctx().version_str %>```
                 PACKAGE PROMOTED:
-                  ```
-                  st2=<% ctx().promoted_st2 %>
+                  ```st2=<% ctx().promoted_st2 %>
                   st2chatops=<% ctx().promoted_st2chatops %>
-                  st2web=<% ctx().promoted_st2web %>
-                  ```
+                  st2web=<% ctx().promoted_st2web %>```
               color: "<% ctx().notify_color %>"
 
   notify_failure:

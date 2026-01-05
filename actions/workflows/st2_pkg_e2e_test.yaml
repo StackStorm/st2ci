@@ -48,7 +48,6 @@ vars:
   - github_status_url: https://buildstatus.stackstorm.org/execution/<% ctx().st2.action_execution_id %>
   - failed: false
 
-
 tasks:
   init:
     action: core.noop
