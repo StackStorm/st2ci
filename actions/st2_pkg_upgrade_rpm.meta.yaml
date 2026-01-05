@@ -9,8 +9,7 @@ parameters:
   host:
     type: string
     required: true
-    description: >
-      Host on which upgrade should be performed
+    description: Host on which upgrade should be performed
   pkg_list:
     type: array
     required: true
@@ -22,7 +21,7 @@ parameters:
     type: string
     required: true
     enum:
-      - CENTOS7
-      - ROCKY8
-      - RHEL7
-      - RHEL8
+      - rocky8
+      - rocky9
+      - rhel8
+      - rhel9

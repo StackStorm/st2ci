@@ -9,23 +9,20 @@ parameters:
   host:
     type: string
     required: true
-    description: >
-      Host on which upgrade should be performed
+    description: Host on which upgrade should be performed
   distro:
     type: string
     required: true
     enum:
-      - CENTOS7
-      - ROCKY8
-      - RHEL7
-      - RHEL8
+      - rocky8
+      - rocky9
+      - rhel8
+      - rhel9
   pkg:
     type: string
     required: true
-    description: >
-      Package to upgrade
+    description: Package to upgrade
   version:
     type: string
     required: true
-    description: >
-      Version string that specifies the version to install
+    description: Version string that specifies the version to install

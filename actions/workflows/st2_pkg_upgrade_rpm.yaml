@@ -6,16 +6,16 @@ input:
   - pkg_list
   - version
   - distro
+
 tasks:
   init:
     action: core.noop
     next:
-      - when: <% ctx().distro = 'ROCKY8' or ctx().distro = 'RHEL8' %>
-        do:
-          - upgrade_deps_el8
-      - when: <% ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL7' %>
-        do:
-          - upgrade_deps_el7
+      - when: <% ctx().distro in ['rocky8', 'rhel8'] %>
+        do: upgrade_deps_el8
+      - when: <% ctx().distro in ['centos7', 'rhel7'] %>
+        do: upgrade_deps_el7
+
   upgrade_deps_el8:
     action: st2ci.st2_pkg_upgrade_deps_el8
     input:
@@ -24,10 +24,10 @@ tasks:
       timeout: 180
     next:
       - when: <% succeeded() %>
+        do: install_pkg
         publish:
           - pkg_list: <% ctx().pkg_list %>
-        do:
-          - install_pkg
+
   upgrade_deps_el7:
     action: st2ci.st2_pkg_upgrade_deps_el7
     input:
@@ -36,10 +36,10 @@ tasks:
       timeout: 180
     next:
       - when: <% succeeded() %>
+        do: install_pkg
         publish:
           - pkg_list: <% ctx().pkg_list %>
-        do:
-          - install_pkg
+
   install_pkg:
     with:
       items: <% ctx().pkg_list %>

@@ -6,10 +6,10 @@ input:
   - version
   - pkg_env: staging
   - distro_to_distro_version_map:
-      ROCKY8: el/8
-      ROCKY9: el/9
-      UBUNTU20: ubuntu/focal
-      UBUNTU22: ubuntu/jammy
+      rocky8: el/8
+      rocky9: el/9
+      ubuntu20: ubuntu/focal
+      ubuntu22: ubuntu/jammy
   - promoted_st2: false
   - promoted_st2chatops: false
   - promoted_st2web: false

@@ -14,17 +14,15 @@ tasks:
   init:
     action: core.noop
     next:
-      - when: <% ctx().distro = 'ROCKY8' or ctx().distro = 'RHEL8' %>
+      - when: <% ctx().distro in ['rocky8', 'rhel8'] %>
+        do: get_latest_revision
         # Run repoqery -y option in EL8 to do the following:
         #  - import any GPG keys from new repos
         #  - import any SSL certificates from new repos
         publish:
           - repoquery_args: '-y'
-        do:
-          - get_latest_revision
-      - when: <% ctx().distro = 'CENTOS7' or ctx().distro = 'RHEL7' %>
-        do:
-          - get_latest_revision
+      - when: <% ctx().distro in ['centos7', 'rhel7'] %>
+        do: get_latest_revision
 
   get_latest_revision:
     action: core.remote
@@ -36,10 +34,9 @@ tasks:
       timeout: 120
     next:
       - when: <% succeeded() %>
+        do: upgrade_pkg_via_yum
         publish:
           - pkg_name_with_revision: <% result().get(ctx().host).stdout %>
-        do:
-          - upgrade_pkg_via_yum
 
   upgrade_pkg_via_yum:
     action: core.remote
